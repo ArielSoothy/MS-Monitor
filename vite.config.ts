@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/ms-monitor-dashboard/',
+  base: '/MS-Monitor/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

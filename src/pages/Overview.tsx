@@ -77,25 +77,6 @@ const Overview = memo(() => {
     .sort((a, b) => b.failureRate - a.failureRate)
     .slice(0, 5);
 
-  // Enhanced analytics using new metadata
-  const sourceHealthData = pipelines.reduce((acc, pipeline) => {
-    const existing = acc.find(item => item.source === pipeline.source);
-    if (existing) {
-      existing.total++;
-      if (pipeline.status === 'healthy') existing.healthy++;
-    } else {
-      acc.push({
-        source: pipeline.source,
-        total: 1,
-        healthy: pipeline.status === 'healthy' ? 1 : 0
-      });
-    }
-    return acc;
-  }, [] as any[]).map(item => ({
-    ...item,
-    healthPercentage: Math.round((item.healthy / item.total) * 100)
-  }));
-
   // Team-based analytics
   const teamMetrics = pipelines.reduce((acc, pipeline) => {
     const team = pipeline.ownerTeam || 'Unknown';
