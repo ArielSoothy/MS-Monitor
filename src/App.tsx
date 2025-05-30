@@ -52,7 +52,7 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
+    <Router basename="/MS-Monitor">
       <AppContent />
     </Router>
   );
