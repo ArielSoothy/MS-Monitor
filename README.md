@@ -4,7 +4,7 @@ A React-based monitoring dashboard for Microsoft Security Threat Intelligence (M
 
 ## 🚀 Live Demo
 
-Visit the live dashboard: [MS Monitor Dashboard](https://arielsoothy.github.io/MS-Monitor/)
+Visit the live dashboard: [MS Monitor Dashboard](https://ArielSoothy.github.io/MS-Monitor/)
 
 ## ✨ Features
 
