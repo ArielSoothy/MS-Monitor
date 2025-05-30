@@ -67,7 +67,7 @@
 /* Real-time Metrics Header */
 .metricsHeader {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -141,12 +141,24 @@
   opacity: 0.9;
 }
 
-/* Main Dashboard Grid (2x2) */
+/* Main Dashboard Grid (3x2) */
 .dashboardGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
+}
+
+@media (max-width: 1400px) {
+  .dashboardGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .chartCard {
@@ -199,7 +211,7 @@
 
 .tableHeader {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr 0.8fr;
   gap: 1rem;
   padding: 0.75rem 0;
   border-bottom: 1px solid #333;
@@ -210,7 +222,7 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr 0.8fr;
   gap: 1rem;
   padding: 1rem 0;
   border-bottom: 1px solid #2a2a2a;
@@ -276,6 +288,18 @@
 .lastRun {
   color: #cccccc;
   font-size: 0.875rem;
+}
+
+.team {
+  color: #1890ff;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.sla {
+  color: #faad14;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .recentAlertsCard {

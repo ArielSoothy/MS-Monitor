@@ -22,6 +22,16 @@ export interface Pipeline {
   recordsProcessed: number;
   failureRate: number; // percentage
   description?: string;
+  // Enhanced metadata
+  ownerTeam: string;
+  slaRequirement: number; // in minutes
+  dataClassification: 'Public' | 'Internal' | 'Confidential' | 'Secret';
+  region: 'US' | 'EU' | 'APAC' | 'Global';
+  dataType: string;
+  process: string;
+  lastFailureReason?: string;
+  maintenanceWindow?: string;
+  dependsOn?: string[]; // Pipeline IDs this depends on
 }
 
 export interface Alert {

@@ -14,7 +14,33 @@ import {
 } from 'lucide-react';
 import { mockPipelines } from '../data/mockData';
 import type { PipelineSource, PipelineStatus } from '../types';
-import styles from './DataLineage.module.css';interface LineageNode {  id: string;  name: string;  type: 'source' | 'ingestion' | 'transformation' | 'enrichment' | 'destination';  source?: PipelineSource;  x: number;  y: number;  status: PipelineStatus;  recordsPerSecond: number;  avgProcessingTime: number;  connections: string[];  description: string;  lastUpdate: string;  dataQuality: number;}interface DataConnection {  id: string;  from: string;  to: string;  volume: 'low' | 'medium' | 'high';  health: 'healthy' | 'warning' | 'error';  animated: boolean;}const DataLineage = memo(() => {  const [searchTerm, setSearchTerm] = useState('');  const [selectedSource, setSelectedSource] = useState<PipelineSource | 'all'>('all');  const [selectedNode, setSelectedNode] = useState<LineageNode | null>(null);  const [hoveredNode, setHoveredNode] = useState<string | null>(null);  const [highlightedPath, setHighlightedPath] = useState<string[]>([]);  const svgRef = useRef<SVGSVGElement>(null);
+import styles from './DataLineage.module.css';
+
+interface LineageNode {
+  id: string;
+  name: string;
+  type: 'source' | 'ingestion' | 'transformation' | 'enrichment' | 'destination';
+  source?: PipelineSource;
+  x: number;
+  y: number;
+  status: PipelineStatus;
+  recordsPerSecond: number;
+  avgProcessingTime: number;
+  connections: string[];
+  description: string;
+  lastUpdate: string;
+  dataQuality: number;
+  actualPipeline?: any; // Reference to actual pipeline for dependencies
+}
+
+interface DataConnection {
+  id: string;
+  from: string;
+  to: string;
+  volume: 'low' | 'medium' | 'high';
+  health: 'healthy' | 'warning' | 'error';
+  animated: boolean;
+}const DataLineage = memo(() => {  const [searchTerm, setSearchTerm] = useState('');  const [selectedSource, setSelectedSource] = useState<PipelineSource | 'all'>('all');  const [selectedNode, setSelectedNode] = useState<LineageNode | null>(null);  const [hoveredNode, setHoveredNode] = useState<string | null>(null);  const [highlightedPath, setHighlightedPath] = useState<string[]>([]);  const svgRef = useRef<SVGSVGElement>(null);
 
   // Generate comprehensive lineage data
   const generateLineageData = () => {
@@ -53,8 +79,8 @@ import styles from './DataLineage.module.css';interface LineageNode {  id: strin
         .filter(p => selectedSource === 'all' || p.source === selectedSource)
         .slice(0, 8)
         .map((pipeline, index) => ({
-          id: `${type}-${pipeline.id}`,
-          name: `${type.charAt(0).toUpperCase() + type.slice(1)} - ${pipeline.name.split(' ').slice(0, 2).join(' ')}`,
+          id: pipeline.id, // Use actual pipeline ID for dependency matching
+          name: `${type.charAt(0).toUpperCase() + type.slice(1)} - ${pipeline.name.split(' ').slice(0, 3).join(' ')}`,
           type: type as 'ingestion' | 'transformation' | 'enrichment',
           source: pipeline.source,
           x,
@@ -63,9 +89,10 @@ import styles from './DataLineage.module.css';interface LineageNode {  id: strin
           recordsPerSecond: Math.floor(pipeline.recordsProcessed / 60),
           avgProcessingTime: pipeline.avgProcessingTime,
           connections: [],
-          description: `${type} pipeline for ${pipeline.source} data`,
+          description: `${type} pipeline: ${pipeline.name}`,
           lastUpdate: pipeline.lastRun.toISOString(),
-          dataQuality: Math.floor(Math.random() * 15) + 85
+          dataQuality: Math.floor(Math.random() * 15) + 85,
+          actualPipeline: pipeline // Store reference to actual pipeline for dependencies
         }));
         
       nodes.push(...typeNodes);

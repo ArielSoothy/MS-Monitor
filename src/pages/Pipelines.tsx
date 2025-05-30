@@ -25,6 +25,8 @@ const Pipelines = memo(() => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilters, setStatusFilters] = useState<Set<PipelineStatus>>(new Set());
   const [sourceFilter, setSourceFilter] = useState<PipelineSource | 'all'>('all');
+  const [teamFilter, setTeamFilter] = useState<string | 'all'>('all');
+  const [classificationFilter, setClassificationFilter] = useState<string | 'all'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'lastRun' | 'status' | 'source' | 'failureRate'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -46,51 +48,73 @@ const Pipelines = memo(() => {
     return data;
   };
 
-  // Mock error messages for pipelines with issues
+  // Enhanced error messages using actual pipeline failure data
   const getRecentErrors = (pipeline: Pipeline) => {
-    if (pipeline.status === 'healthy') return [];
-    
     const errors = [];
-    if (pipeline.status === 'failed') {
+    
+    if (pipeline.status === 'failed' && pipeline.lastFailureReason) {
+      errors.push({
+        timestamp: new Date(pipeline.lastRun.getTime() + Math.random() * 60 * 60 * 1000),
+        message: pipeline.lastFailureReason,
+        level: 'error' as const
+      });
+    }
+    
+    if (pipeline.status === 'warning') {
+      if (pipeline.lastFailureReason) {
+        errors.push({
+          timestamp: new Date(Date.now() - Math.random() * 1 * 60 * 60 * 1000),
+          message: pipeline.lastFailureReason,
+          level: 'warning' as const
+        });
+      } else {
+        errors.push({
+          timestamp: new Date(Date.now() - Math.random() * 1 * 60 * 60 * 1000),
+          message: `Performance degradation detected - ${pipeline.failureRate}% failure rate`,
+          level: 'warning' as const
+        });
+      }
+    }
+    
+    // Add SLA breach warnings
+    if (pipeline.avgProcessingTime > pipeline.slaRequirement) {
       errors.push({
         timestamp: new Date(Date.now() - Math.random() * 2 * 60 * 60 * 1000),
-        message: 'Connection timeout to data source',
-        level: 'error' as const
-      });
-      errors.push({
-        timestamp: new Date(Date.now() - Math.random() * 4 * 60 * 60 * 1000),
-        message: 'Authentication failed for API endpoint',
-        level: 'error' as const
-      });
-    } else if (pipeline.status === 'warning') {
-      errors.push({
-        timestamp: new Date(Date.now() - Math.random() * 1 * 60 * 60 * 1000),
-        message: 'High memory usage detected (85%)',
+        message: `SLA breach: Processing time (${pipeline.avgProcessingTime}min) exceeds requirement (${pipeline.slaRequirement}min)`,
         level: 'warning' as const
       });
     }
     return errors;
   };
 
-  // Mock configuration details
-  const getConfigDetails = () => ({
-    schedule: '*/15 * * * *', // Every 15 minutes
-    retryAttempts: 3,
-    timeout: '5m',
-    batchSize: 1000,
-    parallelWorkers: 4,
-    dataRetention: '30 days'
+  // Enhanced configuration details using actual pipeline metadata
+  const getConfigDetails = (pipeline: Pipeline) => ({
+    ownerTeam: pipeline.ownerTeam,
+    dataClassification: pipeline.dataClassification,
+    region: pipeline.region,
+    slaRequirement: `${pipeline.slaRequirement} minutes`,
+    dataType: pipeline.dataType,
+    process: pipeline.process,
+    maintenanceWindow: pipeline.maintenanceWindow || 'Not scheduled',
+    avgProcessingTime: `${pipeline.avgProcessingTime} minutes`,
+    recordsProcessed: pipeline.recordsProcessed.toLocaleString(),
+    failureRate: `${pipeline.failureRate}%`
   });
 
-  // Mock pipeline dependencies
+  // Get actual pipeline dependencies
   const getDependencies = (pipeline: Pipeline) => {
-    const allPipelines = mockPipelines.filter(p => p.id !== pipeline.id);
-    const numDeps = Math.floor(Math.random() * 3);
-    return allPipelines.slice(0, numDeps).map(p => ({
-      id: p.id,
-      name: p.name,
-      status: p.status
-    }));
+    if (!pipeline.dependsOn || pipeline.dependsOn.length === 0) {
+      return [];
+    }
+    
+    return pipeline.dependsOn.map(depId => {
+      const dependentPipeline = mockPipelines.find(p => p.id === depId);
+      return dependentPipeline ? {
+        id: dependentPipeline.id,
+        name: dependentPipeline.name,
+        status: dependentPipeline.status
+      } : null;
+    }).filter(Boolean) as Array<{ id: string; name: string; status: PipelineStatus }>;
   };
 
   // Filter and sort pipelines
@@ -98,10 +122,13 @@ const Pipelines = memo(() => {
     return pipelines
       .filter(pipeline => {
         const matchesSearch = pipeline.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            pipeline.source.toLowerCase().includes(searchTerm.toLowerCase());
+                            pipeline.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            pipeline.ownerTeam.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilters.size === 0 || statusFilters.has(pipeline.status);
         const matchesSource = sourceFilter === 'all' || pipeline.source === sourceFilter;
-        return matchesSearch && matchesStatus && matchesSource;
+        const matchesTeam = teamFilter === 'all' || pipeline.ownerTeam === teamFilter;
+        const matchesClassification = classificationFilter === 'all' || pipeline.dataClassification === classificationFilter;
+        return matchesSearch && matchesStatus && matchesSource && matchesTeam && matchesClassification;
       })
       .sort((a, b) => {
         let aValue: any, bValue: any;
@@ -137,7 +164,10 @@ const Pipelines = memo(() => {
           return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
         }
       });
-  }, [pipelines, searchTerm, statusFilters, sourceFilter, sortBy, sortOrder]);
+  }, [pipelines, searchTerm, statusFilters, sourceFilter, teamFilter, classificationFilter, sortBy, sortOrder]);
+
+  const uniqueTeams = [...new Set(pipelines.map(p => p.ownerTeam))];
+  const uniqueClassifications = [...new Set(pipelines.map(p => p.dataClassification))];
 
   const toggleStatusFilter = (status: PipelineStatus) => {
     const newFilters = new Set(statusFilters);
@@ -210,6 +240,17 @@ const Pipelines = memo(() => {
               <div className={styles.pipelineName}>
                 <span className={styles.name}>{pipeline.name}</span>
                 <span className={styles.source}>{pipeline.source}</span>
+                <div className={styles.pipelineMetadata}>
+                  <span className={styles.metadataItem}>
+                    <span className={styles.metadataLabel}>Team:</span> {pipeline.ownerTeam}
+                  </span>
+                  <span className={styles.metadataItem}>
+                    <span className={styles.metadataLabel}>Region:</span> {pipeline.region}
+                  </span>
+                  <span className={`${styles.metadataItem} ${styles.classification} ${styles[pipeline.dataClassification.toLowerCase()]}`}>
+                    {pipeline.dataClassification}
+                  </span>
+                </div>
               </div>
               
               <div className={styles.statusCell}>
@@ -337,7 +378,7 @@ const Pipelines = memo(() => {
                     Configuration
                   </h4>
                   <div className={styles.configGrid}>
-                    {Object.entries(getConfigDetails()).map(([key, value]) => (
+                    {Object.entries(getConfigDetails(pipeline)).map(([key, value]) => (
                       <div key={key} className={styles.configItem}>
                         <span className={styles.configKey}>
                           {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:
@@ -455,6 +496,34 @@ const Pipelines = memo(() => {
               <option value="all">All Sources</option>
               {uniqueSources.map(source => (
                 <option key={source} value={source}>{source}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className={styles.filterGroup}>
+            <label className={styles.filterLabel}>Owner Team:</label>
+            <select
+              value={teamFilter}
+              onChange={(e) => setTeamFilter(e.target.value)}
+              className={styles.teamFilter}
+            >
+              <option value="all">All Teams</option>
+              {uniqueTeams.map(team => (
+                <option key={team} value={team}>{team}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className={styles.filterGroup}>
+            <label className={styles.filterLabel}>Classification:</label>
+            <select
+              value={classificationFilter}
+              onChange={(e) => setClassificationFilter(e.target.value)}
+              className={styles.classificationFilter}
+            >
+              <option value="all">All Classifications</option>
+              {uniqueClassifications.map(classification => (
+                <option key={classification} value={classification}>{classification}</option>
               ))}
             </select>
           </div>

@@ -77,7 +77,7 @@ const Overview = memo(() => {
     .sort((a, b) => b.failureRate - a.failureRate)
     .slice(0, 5);
 
-  // Source system health data
+  // Enhanced analytics using new metadata
   const sourceHealthData = pipelines.reduce((acc, pipeline) => {
     const existing = acc.find(item => item.source === pipeline.source);
     if (existing) {
@@ -94,6 +94,77 @@ const Overview = memo(() => {
   }, [] as any[]).map(item => ({
     ...item,
     healthPercentage: Math.round((item.healthy / item.total) * 100)
+  }));
+
+  // Team-based analytics
+  const teamMetrics = pipelines.reduce((acc, pipeline) => {
+    const team = pipeline.ownerTeam || 'Unknown';
+    if (!acc[team]) {
+      acc[team] = { total: 0, healthy: 0, failed: 0, warning: 0 };
+    }
+    acc[team].total++;
+    acc[team][pipeline.status as keyof typeof acc[typeof team]]++;
+    return acc;
+  }, {} as Record<string, any>);
+
+  const teamHealthData = Object.entries(teamMetrics).map(([team, metrics]) => ({
+    team,
+    healthPercentage: Math.round((metrics.healthy / metrics.total) * 100),
+    total: metrics.total,
+    healthy: metrics.healthy,
+    failed: metrics.failed,
+    warning: metrics.warning
+  })).sort((a, b) => b.healthPercentage - a.healthPercentage);
+
+  // Data classification insights
+  const classificationData = pipelines.reduce((acc, pipeline) => {
+    const classification = pipeline.dataClassification || 'Unknown';
+    if (!acc[classification]) {
+      acc[classification] = { total: 0, healthy: 0, failed: 0 };
+    }
+    acc[classification].total++;
+    if (pipeline.status === 'healthy') acc[classification].healthy++;
+    if (pipeline.status === 'failed') acc[classification].failed++;
+    return acc;
+  }, {} as Record<string, any>);
+
+  const classificationChartData = Object.entries(classificationData).map(([name, data]) => ({
+    name,
+    total: data.total,
+    healthy: data.healthy,
+    failed: data.failed,
+    healthPercentage: Math.round((data.healthy / data.total) * 100)
+  }));
+
+  // SLA compliance analysis
+  const slaBreaches = pipelines.filter(p => {
+    const slaMinutes = p.slaRequirement || 60;
+    const lastRun = new Date(p.lastRun);
+    const now = new Date();
+    const minutesSinceLastRun = (now.getTime() - lastRun.getTime()) / (1000 * 60);
+    return minutesSinceLastRun > slaMinutes && p.status !== 'processing';
+  });
+
+  const slaComplianceRate = Math.round(((pipelines.length - slaBreaches.length) / pipelines.length) * 100);
+
+  // Regional distribution
+  const regionalData = pipelines.reduce((acc, pipeline) => {
+    const region = pipeline.region || 'Unknown';
+    if (!acc[region]) {
+      acc[region] = { total: 0, healthy: 0, failed: 0 };
+    }
+    acc[region].total++;
+    if (pipeline.status === 'healthy') acc[region].healthy++;
+    if (pipeline.status === 'failed') acc[region].failed++;
+    return acc;
+  }, {} as Record<string, any>);
+
+  const regionalChartData = Object.entries(regionalData).map(([region, data]) => ({
+    region,
+    total: data.total,
+    healthy: data.healthy,
+    failed: data.failed,
+    healthPercentage: Math.round((data.healthy / data.total) * 100)
   }));
 
   const getHealthScoreColor = (score: number) => {
@@ -189,9 +260,25 @@ const Overview = memo(() => {
           </div>
           <div className={styles.metricSubtext}>Overall system health</div>
         </div>
+
+        <div className={styles.metricCard}>
+          <div className={styles.metricHeader}>
+            <Activity className={styles.metricIcon} />
+            <span className={styles.metricTitle}>SLA Compliance</span>
+          </div>
+          <div 
+            className={styles.metricValue} 
+            style={{ color: getHealthScoreColor(slaComplianceRate) }}
+          >
+            {slaComplianceRate}%
+          </div>
+          <div className={styles.metricSubtext}>
+            {slaBreaches.length} SLA breaches
+          </div>
+        </div>
       </div>
 
-      {/* Main Dashboard Grid (2x2) */}
+      {/* Main Dashboard Grid (3x2) */}
       <div className={styles.dashboardGrid}>
         {/* Pipeline Status Donut Chart */}
         <div className={styles.chartCard}>
@@ -234,6 +321,76 @@ const Overview = memo(() => {
           </div>
         </div>
 
+        {/* Team Health Performance */}
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>Team Health Performance</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={teamHealthData.slice(0, 6)} layout="horizontal">
+              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+              <XAxis 
+                type="number" 
+                tick={{ fill: '#ccc' }}
+                domain={[0, 100]}
+              />
+              <YAxis 
+                type="category" 
+                dataKey="team" 
+                tick={{ fill: '#ccc', fontSize: 11 }}
+                width={100}
+              />
+              <Tooltip 
+                formatter={(value, name) => {
+                  if (name === 'healthPercentage') return [`${value}%`, 'Health Score'];
+                  return [value, name];
+                }}
+                labelFormatter={(label) => `Team: ${label}`}
+                contentStyle={{ 
+                  backgroundColor: '#252526', 
+                  border: '1px solid #333',
+                  borderRadius: '6px'
+                }} 
+              />
+              <Bar 
+                dataKey="healthPercentage" 
+                fill="#52c41a"
+                radius={[0, 4, 4, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Data Classification Security */}
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>Data Classification Status</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={classificationChartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fill: '#ccc', fontSize: 11 }}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis tick={{ fill: '#ccc' }} />
+              <Tooltip 
+                formatter={(value, name) => {
+                  if (name === 'healthy') return [`${value} pipelines`, 'Healthy'];
+                  if (name === 'failed') return [`${value} pipelines`, 'Failed'];
+                  return [value, name];
+                }}
+                contentStyle={{ 
+                  backgroundColor: '#252526', 
+                  border: '1px solid #333',
+                  borderRadius: '6px'
+                }} 
+              />
+              <Bar dataKey="healthy" stackId="a" fill="#52c41a" />
+              <Bar dataKey="failed" stackId="a" fill="#f5222d" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
         {/* Ingestion Rate Line Chart */}
         <div className={styles.chartCard}>
           <h3 className={styles.chartTitle}>Ingestion Rate (Last 24 Hours)</h3>
@@ -270,15 +427,48 @@ const Overview = memo(() => {
           </ResponsiveContainer>
         </div>
 
+        {/* Regional Distribution */}
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>Regional Pipeline Distribution</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={regionalChartData}
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                dataKey="total"
+                label={({ region, total }) => `${region}: ${total}`}
+              >
+                {regionalChartData.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1'][index % 5]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                formatter={(value, _, props) => [
+                  `${value} pipelines (${props.payload.healthPercentage}% healthy)`, 
+                  props.payload.region
+                ]}
+                contentStyle={{ 
+                  backgroundColor: '#252526', 
+                  border: '1px solid #333',
+                  borderRadius: '6px'
+                }} 
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
         {/* Top 5 Failing Pipelines */}
         <div className={styles.chartCard}>
           <h3 className={styles.chartTitle}>Top Failing Pipelines</h3>
           <div className={styles.failingPipelinesTable}>
             <div className={styles.tableHeader}>
               <span>Pipeline</span>
+              <span>Team</span>
               <span>Status</span>
               <span>Failure Rate</span>
-              <span>Last Run</span>
+              <span>SLA</span>
             </div>
             {failingPipelines.map((pipeline) => (
               <div key={pipeline.id} className={styles.tableRow}>
@@ -286,52 +476,19 @@ const Overview = memo(() => {
                   <span className={styles.name}>{pipeline.name}</span>
                   <span className={styles.source}>{pipeline.source}</span>
                 </div>
+                <span className={styles.team}>{pipeline.ownerTeam}</span>
                 <span className={`${styles.status} ${styles[pipeline.status]}`}>
                   {pipeline.status}
                 </span>
                 <span className={styles.failureRate}>
                   {pipeline.failureRate.toFixed(1)}%
                 </span>
-                <span className={styles.lastRun}>
-                  {pipeline.lastRun.toLocaleDateString()}
+                <span className={styles.sla}>
+                  {pipeline.slaRequirement}m
                 </span>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Source System Health */}
-        <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Source System Health</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={sourceHealthData} layout="horizontal">
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-              <XAxis 
-                type="number" 
-                tick={{ fill: '#ccc' }}
-                domain={[0, 100]}
-              />
-              <YAxis 
-                type="category" 
-                dataKey="source" 
-                tick={{ fill: '#ccc', fontSize: 12 }}
-                width={80}
-              />
-              <Tooltip 
-                formatter={(value) => [`${value}%`, 'Health Score']}
-                contentStyle={{ 
-                  backgroundColor: '#252526', 
-                  border: '1px solid #333',
-                  borderRadius: '6px'
-                }} 
-              />
-              <Bar 
-                dataKey="healthPercentage" 
-                            fill="#1890ff"
-                radius={[0, 4, 4, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
         </div>
       </div>
     </div>

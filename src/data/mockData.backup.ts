@@ -5,7 +5,7 @@ interface PipelineConfig {
   source: PipelineSource;
   dataTypes: string[];
   processes: string[];
-  regions: ('US' | 'EU' | 'APAC' | 'Global')[];
+  regions: string[];
   teams: string[];
   slaRequirements: number[];
   dataClassifications: ('Public' | 'Internal' | 'Confidential' | 'Secret')[];
@@ -139,7 +139,7 @@ const failureReasons = {
 };
 
 // Maintenance windows by team
-const maintenanceWindows: Record<string, string> = {
+const maintenanceWindows = {
   'Threat Intelligence': 'Sundays 02:00-04:00 UTC',
   'Social Media Analytics': 'Saturdays 23:00-01:00 UTC',
   'Enterprise Security': 'Sundays 01:00-03:00 UTC',
@@ -152,62 +152,11 @@ const maintenanceWindows: Record<string, string> = {
   'OSINT': 'Saturdays 21:00-23:00 UTC',
   'Real-time Monitoring': 'Sundays 05:00-06:00 UTC',
   'Compliance': 'Sundays 00:00-02:00 UTC',
-  'Data Governance': 'Sundays 03:00-05:00 UTC',
-  'Malware Analysis': 'Sundays 01:00-03:00 UTC',
-  'APT Tracking': 'Sundays 02:00-04:00 UTC',
-  'Code Intelligence': 'Sundays 03:00-05:00 UTC',
-  'Repository Security': 'Sundays 04:00-06:00 UTC',
-  'Email Security': 'Sundays 01:00-03:00 UTC',
-  'Collaboration Analytics': 'Saturdays 22:00-00:00 UTC',
-  'Content Management': 'Sundays 02:00-04:00 UTC',
-  'Performance Monitoring': 'Sundays 04:00-06:00 UTC',
-  'Access Management': 'Sundays 00:00-02:00 UTC',
-  'Risk Assessment': 'Sundays 01:00-03:00 UTC',
-  'Productivity Analytics': 'Sundays 02:00-04:00 UTC'
+  'Data Governance': 'Sundays 03:00-05:00 UTC'
 };
 
 function getRandomElement<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
-}
-
-function getBusinessHourWeight(): number {
-  const now = new Date();
-  const hour = now.getHours();
-  // Higher activity during business hours (9 AM - 5 PM)
-  if (hour >= 9 && hour <= 17) {
-    return 1.5; // 50% more activity
-  }
-  // Lower activity during night hours (11 PM - 6 AM)
-  if (hour >= 23 || hour <= 6) {
-    return 0.3; // 70% less activity
-  }
-  return 1.0;
-}
-
-function getWeeklyPattern(): number {
-  const now = new Date();
-  const day = now.getDay();
-  // Lower activity on weekends
-  if (day === 0 || day === 6) {
-    return 0.4; // 60% less activity on weekends
-  }
-  // Higher activity on Monday and Friday (start/end of week spikes)
-  if (day === 1 || day === 5) {
-    return 1.3; // 30% more activity
-  }
-  return 1.0;
-}
-
-function getEndOfMonthSpike(): number {
-  const now = new Date();
-  const day = now.getDate();
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  
-  // Spike in activity during last 3 days of month
-  if (day >= lastDay - 2) {
-    return 1.8; // 80% more activity
-  }
-  return 1.0;
 }
 
 function getRealisticStatus(config: PipelineConfig, dataType: string, process: string): PipelineStatus {
@@ -226,11 +175,6 @@ function getRealisticStatus(config: PipelineConfig, dataType: string, process: s
   // Authentication-heavy processes
   if (config.source === 'AzureAD' || config.source === 'Office365') {
     failureWeight += 0.01;
-  }
-  
-  // High-volume data types are more prone to issues
-  if (dataType.includes('Logs') || dataType.includes('Activity') || dataType.includes('Feeds')) {
-    failureWeight += 0.015;
   }
   
   // Apply time-based patterns
@@ -306,8 +250,25 @@ function getFailureReason(source: PipelineSource, status: PipelineStatus): strin
 
 function createPipelineDependencies(pipelines: Pipeline[]): void {
   // Create realistic dependency chains
+  const sourceToEnrichment = new Map<string, Pipeline[]>();
+  const enrichmentToAnalysis = new Map<string, Pipeline[]>();
+  
   pipelines.forEach(pipeline => {
     const { source, process, dataType } = pipeline;
+    const key = `${source}_${dataType}`;
+    
+    if (process === 'Ingestion') {
+      if (!sourceToEnrichment.has(key)) sourceToEnrichment.set(key, []);
+    } else if (process === 'Enrichment') {
+      if (!enrichmentToAnalysis.has(key)) enrichmentToAnalysis.set(key, []);
+      enrichmentToAnalysis.get(key)!.push(pipeline);
+    }
+  });
+  
+  // Set up dependencies: Ingestion -> Enrichment -> Analysis
+  pipelines.forEach(pipeline => {
+    const { source, process, dataType } = pipeline;
+    const key = `${source}_${dataType}`;
     
     if (process === 'Enrichment') {
       const ingestionPipeline = pipelines.find(p => 
@@ -358,6 +319,108 @@ function simulateCorrelatedFailures(pipelines: Pipeline[]): void {
       }
     });
   });
+}
+    'Phishing Detection',
+    'Domain Reputation',
+    'IP Intelligence',
+    'Hash Analysis',
+    'YARA Rule Processing',
+    'Threat Hunting Analytics',
+    'Indicator Enrichment',
+    'Attribution Analysis',
+    'Threat Landscape Mapping'
+  ],
+  Exchange: [
+    'Exchange Message Tracking',
+    'Exchange Transport Rules',
+    'Exchange Security Monitoring',
+    'Exchange Calendar Intelligence',
+    'Exchange Mobile Device',
+    'Exchange Mailbox Analysis',
+    'Exchange Anti-Spam',
+    'Exchange DLP Monitoring',
+    'Exchange Compliance Center',
+    'Exchange Journaling',
+    'Exchange Public Folders',
+    'Exchange Hybrid Analytics',
+    'Exchange Protection Service',
+    'Exchange Admin Audit',
+    'Exchange Message Trace',
+    'Exchange Connection Filtering'
+  ],
+  Teams: [
+    'Teams Meeting Intelligence',
+    'Teams Chat Analysis',
+    'Teams File Sharing',
+    'Teams Channel Monitoring',
+    'Teams Call Analytics',
+    'Teams App Usage',
+    'Teams Security Compliance',
+    'Teams Guest Access',
+    'Teams Phone System',
+    'Teams Live Events',
+    'Teams Recording Analysis',
+    'Teams Presence Intelligence',
+    'Teams Integration Monitoring',
+    'Teams Policy Compliance',
+    'Teams External Access',
+    'Teams Device Analytics'
+  ],
+  SharePoint: [
+    'SharePoint Site Intelligence',
+    'SharePoint Document Analysis',
+    'SharePoint Permission Audit',
+    'SharePoint Search Analytics',
+    'SharePoint Version Control',
+    'SharePoint Workflow Monitoring',
+    'SharePoint External Sharing',
+    'SharePoint Content Types',
+    'SharePoint List Intelligence',
+    'SharePoint Library Analysis',
+    'SharePoint User Activity',
+    'SharePoint Compliance Center',
+    'SharePoint Migration Analytics',
+    'SharePoint App Monitoring',
+    'SharePoint Taxonomy Intelligence',
+    'SharePoint Hub Site Analytics'
+  ],
+  PowerBI: [
+    'PowerBI Usage Analytics',
+    'PowerBI Dataset Monitoring',
+    'PowerBI Report Intelligence',
+    'PowerBI Dashboard Analysis',
+    'PowerBI Gateway Monitoring',
+    'PowerBI Workspace Analytics',
+    'PowerBI Data Refresh',
+    'PowerBI Security Audit',
+    'PowerBI Capacity Monitoring',
+    'PowerBI App Analytics',
+    'PowerBI Dataflow Intelligence',
+    'PowerBI Premium Metrics',
+    'PowerBI Tenant Analytics',
+    'PowerBI Sharing Intelligence',
+    'PowerBI Performance Monitoring',
+    'PowerBI Embedding Analytics'
+  ]
+};
+
+function getRandomStatus(): PipelineStatus {
+  const weights = { healthy: 0.6, warning: 0.2, processing: 0.15, failed: 0.05 };
+  const random = Math.random();
+  
+  if (random < weights.healthy) return 'healthy';
+  if (random < weights.healthy + weights.warning) return 'warning';
+  if (random < weights.healthy + weights.warning + weights.processing) return 'processing';
+  return 'failed';
+}
+
+function getRandomDate(daysBack: number = 7): Date {
+  const now = new Date();
+  const randomDays = Math.floor(Math.random() * daysBack);
+  const randomHours = Math.floor(Math.random() * 24);
+  const randomMinutes = Math.floor(Math.random() * 60);
+  
+  return new Date(now.getTime() - (randomDays * 24 * 60 * 60 * 1000) - (randomHours * 60 * 60 * 1000) - (randomMinutes * 60 * 1000));
 }
 
 export function generateMockPipelines(): Pipeline[] {
@@ -415,7 +478,7 @@ export function generateMockPipelines(): Pipeline[] {
             dataType,
             process,
             lastFailureReason: getFailureReason(config.source, status),
-            maintenanceWindow: maintenanceWindows[team] || 'Not scheduled'
+            maintenanceWindow: maintenanceWindows[team]
           };
 
           pipelines.push(pipeline);
@@ -429,15 +492,6 @@ export function generateMockPipelines(): Pipeline[] {
   simulateCorrelatedFailures(pipelines);
 
   return pipelines;
-}
-
-function getRandomDate(daysBack: number = 7): Date {
-  const now = new Date();
-  const randomDays = Math.floor(Math.random() * daysBack);
-  const randomHours = Math.floor(Math.random() * 24);
-  const randomMinutes = Math.floor(Math.random() * 60);
-  
-  return new Date(now.getTime() - (randomDays * 24 * 60 * 60 * 1000) - (randomHours * 60 * 60 * 1000) - (randomMinutes * 60 * 1000));
 }
 
 export function generateMockAlerts(pipelines: Pipeline[]): Alert[] {

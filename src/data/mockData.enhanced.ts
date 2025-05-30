@@ -228,11 +228,6 @@ function getRealisticStatus(config: PipelineConfig, dataType: string, process: s
     failureWeight += 0.01;
   }
   
-  // High-volume data types are more prone to issues
-  if (dataType.includes('Logs') || dataType.includes('Activity') || dataType.includes('Feeds')) {
-    failureWeight += 0.015;
-  }
-  
   // Apply time-based patterns
   const businessHourWeight = getBusinessHourWeight();
   const weeklyWeight = getWeeklyPattern();

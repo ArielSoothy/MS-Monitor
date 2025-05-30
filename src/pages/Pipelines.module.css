@@ -228,6 +228,26 @@
   cursor: pointer;
 }
 
+.teamFilter,
+.classificationFilter {
+  padding: 0.75rem;
+  background: #252526;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #ffffff;
+  min-width: 200px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.teamFilter:focus,
+.classificationFilter:focus,
+.sourceFilter:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
 /* Virtual Scrolling Pipeline List */
 .pipelinesList {
   background: #1e1e1e;
@@ -339,6 +359,54 @@
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 500;
+}
+
+.pipelineMetadata {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.metadataItem {
+  font-size: 0.75rem;
+  color: #999;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.metadataLabel {
+  color: #666;
+  font-weight: 500;
+}
+
+.classification {
+  padding: 0.125rem 0.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.classification.public {
+  background: #1f4e3d;
+  color: #4ade80;
+}
+
+.classification.internal {
+  background: #3b3b1f;
+  color: #fbbf24;
+}
+
+.classification.confidential {
+  background: #4c1d1d;
+  color: #f87171;
+}
+
+.classification.secret {
+  background: #2d1b69;
+  color: #a78bfa;
 }
 
 .statusCell {
