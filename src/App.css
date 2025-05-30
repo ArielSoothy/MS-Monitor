@@ -1,0 +1,160 @@
+/* Global styles for the MS Monitor Dashboard */
+.app {
+  display: flex;
+  min-height: 100vh;
+  background: #1e1e1e;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 250px;
+  background: #1e1e1e;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+  position: relative;
+}
+
+/* Page loading container */
+.page-loading {
+  padding: 2rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Smooth page transitions */
+.page-container {
+  animation: slideIn 0.4s ease-out;
+  opacity: 1;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Improved focus styles for accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #0078d4;
+  outline-offset: 2px;
+}
+
+/* Smooth hover transitions for interactive elements */
+button,
+.clickable {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    margin-top: 60px;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #252526;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .page-loading {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0.5rem;
+  }
+  
+  .page-loading {
+    padding: 0.5rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .main-content {
+    background: white;
+    color: black;
+  }
+  
+  .page-loading {
+    display: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .app {
+    background: #000000;
+    color: #ffffff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .page-fade-in,
+  .fade-in,
+  .slide-in-up {
+    animation: none;
+  }
+  
+  * {
+    transition: none !important;
+  }
+}
+
+/* Selection */
+::selection {
+  background: #0078d4;
+  color: #ffffff;
+}

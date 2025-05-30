@@ -1,0 +1,222 @@
+/* About Modal Styles */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem 2rem 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.icon {
+  color: #0078d4;
+  flex-shrink: 0;
+}
+
+.title {
+  color: #ffffff;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: #333;
+  color: #fff;
+}
+
+.content {
+  padding: 2rem;
+}
+
+.description {
+  margin-bottom: 2rem;
+}
+
+.description p {
+  color: #cccccc;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.description p:last-child {
+  margin-bottom: 0;
+}
+
+.features {
+  margin-bottom: 2rem;
+}
+
+.features h3 {
+  color: #ffffff;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: #222;
+  border-radius: 6px;
+  border: 1px solid #333;
+}
+
+.featureIcon {
+  color: #0078d4;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.feature div {
+  flex: 1;
+}
+
+.feature strong {
+  color: #ffffff;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.feature p {
+  color: #999;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tech h3 {
+  color: #ffffff;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.techStack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.techItem {
+  background: #0078d4;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #333;
+  background: #111;
+}
+
+.footer p {
+  color: #666;
+  margin: 0;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .backdrop {
+    padding: 1rem;
+  }
+  
+  .header,
+  .content,
+  .footer {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .featureList {
+    gap: 0.75rem;
+  }
+  
+  .feature {
+    padding: 0.75rem;
+  }
+  
+  .title {
+    font-size: 1.3rem;
+  }
+}

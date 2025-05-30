@@ -1,0 +1,166 @@
+/* Loading Skeleton Styles */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeletonBase {
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* Card Skeleton */
+.skeletonCard {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.skeletonHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.skeletonCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+.skeletonLines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeletonLine {
+  height: 12px;
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeletonBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Table Skeleton */
+.skeletonTable {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeletonTableRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  background: #222;
+  border-radius: 6px;
+}
+
+.skeletonCell {
+  height: 12px;
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* Chart Skeleton */
+.skeletonChart {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.skeletonChartBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  height: 100%;
+  width: 100%;
+  max-width: 400px;
+}
+
+.skeletonBar {
+  flex: 1;
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px 4px 0 0;
+  min-height: 20px;
+}
+
+/* Text Skeleton */
+.skeletonText {
+  display: flex;
+  align-items: center;
+}
+
+.skeletonText .skeletonLine {
+  width: 100%;
+}
+
+/* Animation Delays for Natural Feel */
+.skeletonCard:nth-child(2) .skeletonLine,
+.skeletonCard:nth-child(2) .skeletonCircle,
+.skeletonCard:nth-child(2) .skeletonCell,
+.skeletonCard:nth-child(2) .skeletonBar {
+  animation-delay: -0.5s;
+}
+
+.skeletonCard:nth-child(3) .skeletonLine,
+.skeletonCard:nth-child(3) .skeletonCircle,
+.skeletonCard:nth-child(3) .skeletonCell,
+.skeletonCard:nth-child(3) .skeletonBar {
+  animation-delay: -1s;
+}
+
+.skeletonTableRow:nth-child(2) .skeletonCell {
+  animation-delay: -0.3s;
+}
+
+.skeletonTableRow:nth-child(3) .skeletonCell {
+  animation-delay: -0.6s;
+}
+
+.skeletonTableRow:nth-child(4) .skeletonCell {
+  animation-delay: -0.9s;
+}
+
+.skeletonTableRow:nth-child(5) .skeletonCell {
+  animation-delay: -1.2s;
+}
+
+.skeletonBar:nth-child(2) { animation-delay: -0.2s; }
+.skeletonBar:nth-child(3) { animation-delay: -0.4s; }
+.skeletonBar:nth-child(4) { animation-delay: -0.6s; }
+.skeletonBar:nth-child(5) { animation-delay: -0.8s; }
+.skeletonBar:nth-child(6) { animation-delay: -1.0s; }
+.skeletonBar:nth-child(7) { animation-delay: -1.2s; }
+.skeletonBar:nth-child(8) { animation-delay: -1.4s; }

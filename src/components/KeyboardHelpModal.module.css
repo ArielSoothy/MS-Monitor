@@ -1,0 +1,207 @@
+/* Keyboard Help Modal Styles */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.icon {
+  color: #0078d4;
+  flex-shrink: 0;
+}
+
+.title {
+  color: #ffffff;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: #333;
+  color: #fff;
+}
+
+.content {
+  padding: 1.5rem 2rem 2rem;
+}
+
+.shortcutList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.shortcutItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #222;
+  border-radius: 6px;
+  border: 1px solid #333;
+  gap: 1rem;
+}
+
+.shortcutKeys {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.key {
+  background: #333;
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #555;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.plus {
+  color: #999;
+  font-size: 0.8rem;
+  margin: 0 0.1rem;
+}
+
+.shortcutDescription {
+  color: #cccccc;
+  font-size: 0.9rem;
+  text-align: right;
+  flex: 1;
+}
+
+.tip {
+  background: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 1rem;
+  border-left: 3px solid #0078d4;
+}
+
+.tip p {
+  color: #cccccc;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tip strong {
+  color: #0078d4;
+}
+
+.tip .key {
+  background: #333;
+  color: #fff;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid #555;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .backdrop {
+    padding: 1rem;
+  }
+  
+  .header,
+  .content {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .shortcutItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .shortcutDescription {
+    text-align: left;
+  }
+  
+  .title {
+    font-size: 1.2rem;
+  }
+}

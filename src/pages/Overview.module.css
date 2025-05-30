@@ -1,0 +1,416 @@
+.overview {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #cccccc;
+  gap: 1rem;
+}
+
+.loadingIcon {
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  color: #cccccc;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.refreshInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #888;
+  font-size: 0.875rem;
+}
+
+.refreshIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.refreshText {
+  color: #888;
+}
+
+/* Real-time Metrics Header */
+.metricsHeader {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.metricCard {
+  background: linear-gradient(145deg, #252526, #2d2d30);
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metricCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.metricHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.metricIcon {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.75rem;
+  color: #0078d4;
+}
+
+.metricIcon.healthy {
+  color: #52c41a;
+}
+
+.metricIcon.warning {
+  color: #faad14;
+}
+
+.metricTitle {
+  font-size: 0.875rem;
+  color: #cccccc;
+  font-weight: 500;
+}
+
+.metricValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.metricSubtext {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.metricBreakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.statusBadge {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Main Dashboard Grid (2x2) */
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chartCard {
+  background: linear-gradient(145deg, #252526, #2d2d30);
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chartCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.chartTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+}
+
+.chartLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #cccccc;
+}
+
+.legendColor {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+/* Top Failing Pipelines Table */
+.failingPipelinesTable {
+  overflow: hidden;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #333;
+  font-weight: 600;
+  color: #cccccc;
+  font-size: 0.875rem;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #2a2a2a;
+  align-items: center;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.pipelineName {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.name {
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.source {
+  color: #888;
+  font-size: 0.75rem;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.status.healthy {
+  background: rgba(82, 196, 26, 0.1);
+  color: #52c41a;
+}
+
+.status.warning {
+  background: rgba(250, 173, 20, 0.1);
+  color: #faad14;
+}
+
+.status.failed {
+  background: rgba(245, 34, 45, 0.1);
+  color: #f5222d;
+}
+
+.status.processing {
+  background: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+}
+
+.failureRate {
+  color: #f5222d;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.lastRun {
+  color: #cccccc;
+  font-size: 0.875rem;
+}
+
+.recentAlertsCard {
+  background: #252526;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.alertsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.alertItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 6px;
+  border-left: 4px solid #333;
+}
+
+.alertItem.critical {
+  border-left-color: #f5222d;
+}
+
+.alertItem.high {
+  border-left-color: #ff7a45;
+}
+
+.alertItem.medium {
+  border-left-color: #faad14;
+}
+
+.alertItem.low {
+  border-left-color: #52c41a;
+}
+
+.alertInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.alertMessage {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.alertTime {
+  color: #888;
+  font-size: 0.875rem;
+}
+
+.alertSeverity {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.alertSeverity.critical {
+  background: rgba(245, 34, 45, 0.1);
+  color: #f5222d;
+}
+
+.alertSeverity.high {
+  background: rgba(255, 122, 69, 0.1);
+  color: #ff7a45;
+}
+
+.alertSeverity.medium {
+  background: rgba(250, 173, 20, 0.1);
+  color: #faad14;
+}
+
+.alertSeverity.low {
+  background: rgba(82, 196, 26, 0.1);
+  color: #52c41a;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .metricsHeader {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .overview {
+    padding: 1rem;
+  }
+  
+  .headerContent {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .metricsHeader {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .metricCard, .chartCard {
+    padding: 1rem;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+  }
+  
+  .tableHeader,
+  .tableRow {
+    grid-template-columns: 1.5fr 0.8fr 0.8fr 0.8fr;
+    gap: 0.5rem;
+  }
+  
+  .name {
+    font-size: 0.8rem;
+  }
+  
+  .source {
+    font-size: 0.7rem;
+  }
+}
