@@ -1,4 +1,4 @@
-import { useState, useRef, memo, useMemo } from 'react';
+import { useState, useRef, memo, useMemo, useEffect } from 'react';
 import {
   Database,
   ArrowRight,
@@ -97,8 +97,9 @@ interface DataConnection {
     ];
 
     pipelineTypes.forEach(({ type, x }) => {
-      const filteredPipelines = mockPipelines.filter(p => selectedSource === 'all' || p.source === selectedSource);
-      const typeNodes = filteredPipelines
+      // Show all pipelines, don't filter by selectedSource here
+      const allPipelines = mockPipelines;
+      const typeNodes = allPipelines
         .slice(0, 8)
         .map((pipeline, index) => ({
           id: `${type}-${pipeline.id}`, // Make ID unique per type
@@ -233,8 +234,36 @@ interface DataConnection {
     return { nodes, connections };
   };
 
-  // Use useMemo to prevent regeneration on every render, only when selectedSource changes
-  const { nodes, connections } = useMemo(() => generateLineageData(), [selectedSource]);
+  // Use useMemo to prevent regeneration on every render, but regenerate all connections
+  const { nodes: allNodes, connections: allConnections } = useMemo(() => generateLineageData(), []);
+
+  // Filter connections based on selected source
+  const filteredConnections = useMemo(() => {
+    if (selectedSource === 'all') {
+      return allConnections;
+    }
+    
+    // Only show connections that involve the selected source
+    return allConnections.filter(conn => {
+      const fromNode = allNodes.find(n => n.id === conn.from);
+      const toNode = allNodes.find(n => n.id === conn.to);
+      return (fromNode?.source === selectedSource) || (toNode?.source === selectedSource) || 
+             (fromNode?.type === 'destination' && allConnections.some(c => {
+               const sourceNode = allNodes.find(n => n.id === c.from);
+               return c.to === fromNode.id && sourceNode?.source === selectedSource;
+             }));
+    });
+  }, [allNodes, allConnections, selectedSource]);
+
+  // Use filtered data
+  const nodes = allNodes;
+  const connections = filteredConnections;
+
+  // Clear highlighted path when source changes
+  useEffect(() => {
+    setHighlightedPath([]);
+    setSelectedNode(null);
+  }, [selectedSource]);
 
   // Filter nodes based on search
   const filteredNodes = nodes.filter(node =>
@@ -268,14 +297,60 @@ interface DataConnection {
 
   const handleNodeClick = (node: LineageNode) => {
     setSelectedNode(node);
-    highlightPath(node.id);
+    
+    // If clicking on a source node, update the selectedSource filter
+    if (node.type === 'source' && node.source) {
+      setSelectedSource(node.source);
+      // Don't highlight path when filtering by source - just clear any existing highlights
+      setHighlightedPath([]);
+    } else {
+      // For non-source nodes, highlight the path
+      highlightPath(node.id);
+    }
   };
 
   const getNodeColor = (node: LineageNode) => {
+    // If there's a highlighted path and this node is not in it, dim it
     if (highlightedPath.length > 0 && !highlightedPath.includes(node.id)) {
       return '#444';
     }
     
+    // If a specific source is selected, apply source filtering
+    if (selectedSource !== 'all') {
+      // Highlight the selected source
+      if (node.type === 'source' && node.source === selectedSource) {
+        return '#0078d4'; // Bright blue for selected source
+      }
+      // Dim other sources when a specific source is selected
+      if (node.type === 'source' && node.source !== selectedSource) {
+        return '#333'; // Dimmed color for non-selected sources
+      }
+      // For pipeline nodes, check if they have connections from the selected source
+      if (node.type !== 'source' && node.type !== 'destination') {
+        // Check if this node has any connections in the current filtered connections
+        const hasConnections = connections.some(conn => 
+          conn.to === node.id || conn.from === node.id
+        );
+        if (hasConnections) {
+          // Normal colors for connected pipeline nodes
+          switch (node.type) {
+            case 'ingestion': return '#52c41a';
+            case 'transformation': return '#faad14';
+            case 'enrichment': return '#8b5cf6';
+            default: return '#888';
+          }
+        } else {
+          return '#333'; // Dim disconnected pipeline nodes
+        }
+      }
+      // Destinations: check if they have connections in current filtered set
+      if (node.type === 'destination') {
+        const hasConnections = connections.some(conn => conn.to === node.id);
+        return hasConnections ? '#ef4444' : '#333';
+      }
+    }
+    
+    // Default colors when no source is selected
     switch (node.type) {
       case 'source': return '#0078d4';
       case 'ingestion': return '#52c41a';
@@ -294,7 +369,10 @@ interface DataConnection {
       stroke: connection.health === 'error' ? '#ef4444' :
               connection.health === 'warning' ? '#faad14' : '#52c41a',
       opacity: highlightedPath.length > 0 ? (isHighlighted ? '1' : '0.2') : '0.8',
-      strokeDasharray: connection.volume === 'low' ? '5,5' : 'none'
+      strokeDasharray: connection.volume === 'low' ? '5,5' : 'none',
+      markerEnd: connection.health === 'error' ? 'url(#arrowhead-error)' :
+                 connection.health === 'warning' ? 'url(#arrowhead-warning)' : 
+                 'url(#arrowhead-healthy)'
     };
     
     return baseStyle;
@@ -347,11 +425,26 @@ interface DataConnection {
             onClick={() => {
               setSelectedNode(null);
               setHighlightedPath([]);
+              setSelectedSource('all');
             }}
           >
             Clear Selection
           </button>
         </div>
+
+        {/* Selected Source Indicator */}
+        {selectedSource !== 'all' && (
+          <div className={styles.filterIndicator}>
+            <span>Showing data flow for: <strong>{selectedSource}</strong></span>
+            <button 
+              className={styles.clearFilterButton}
+              onClick={() => setSelectedSource('all')}
+              title="Show all sources"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         <div className={styles.contentGrid}>
           {/* Main Visualization */}
@@ -404,8 +497,9 @@ interface DataConnection {
                     />
                   </linearGradient>
                   
+                  {/* Dynamic arrow markers for different connection colors */}
                   <marker
-                    id="arrowhead"
+                    id="arrowhead-healthy"
                     markerWidth="6"
                     markerHeight="4"
                     refX="5"
@@ -413,6 +507,28 @@ interface DataConnection {
                     orient="auto"
                   >
                     <polygon points="0 0, 6 2, 0 4" fill="#52c41a" />
+                  </marker>
+                  
+                  <marker
+                    id="arrowhead-warning"
+                    markerWidth="6"
+                    markerHeight="4"
+                    refX="5"
+                    refY="2"
+                    orient="auto"
+                  >
+                    <polygon points="0 0, 6 2, 0 4" fill="#faad14" />
+                  </marker>
+                  
+                  <marker
+                    id="arrowhead-error"
+                    markerWidth="6"
+                    markerHeight="4"
+                    refX="5"
+                    refY="2"
+                    orient="auto"
+                  >
+                    <polygon points="0 0, 6 2, 0 4" fill="#ef4444" />
                   </marker>
                   
                   <filter id="glow">
@@ -450,8 +566,11 @@ interface DataConnection {
                           y1={fromNode.y + 20}
                           x2={toNode.x}
                           y2={toNode.y + 20}
-                          {...style}
-                          markerEnd="url(#arrowhead)"
+                          stroke={style.stroke}
+                          strokeWidth={style.strokeWidth}
+                          opacity={style.opacity}
+                          strokeDasharray={style.strokeDasharray}
+                          markerEnd={style.markerEnd}
                           className={styles.connectionLine}
                         />
                         {conn.animated && (
@@ -472,7 +591,10 @@ interface DataConnection {
                   })}
 
                 {/* Render nodes */}
-                {filteredNodes.map(node => (
+                {filteredNodes.map(node => {
+                  const isSelectedSource = node.type === 'source' && selectedSource !== 'all' && node.source === selectedSource;
+                  
+                  return (
                   <g 
                     key={node.id}
                     className={styles.nodeGroup}
@@ -488,7 +610,9 @@ interface DataConnection {
                       fill={getNodeColor(node)}
                       rx="6"
                       className={`${styles.nodeRect} ${selectedNode?.id === node.id ? styles.selectedNode : ''}`}
-                      filter={selectedNode?.id === node.id ? "url(#glow)" : "none"}
+                      filter={selectedNode?.id === node.id || isSelectedSource ? "url(#glow)" : "none"}
+                      stroke={isSelectedSource ? "#ffffff" : "transparent"}
+                      strokeWidth={isSelectedSource ? "2" : "0"}
                     />
                     <text
                       x={node.x + 70}
@@ -522,7 +646,8 @@ interface DataConnection {
                             node.status === 'failed' ? '#ef4444' : '#1890ff'}
                     />
                   </g>
-                ))}
+                  );
+                })}
                 
                 {/* Render tooltips separately to ensure they appear on top */}
                 {hoveredNode && filteredNodes.map(node => {
