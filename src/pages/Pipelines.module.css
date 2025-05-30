@@ -265,6 +265,26 @@
   border-bottom: 1px solid #333;
 }
 
+.columnHeaders {
+  display: grid;
+  grid-template-columns: 250px 120px 100px 100px 120px 80px 120px 50px;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+  font-weight: 600;
+  color: #cccccc;
+  font-size: 0.85rem;
+}
+
+.headerCell {
+  color: #888;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+}
+
 .resultCount {
   color: #cccccc;
   font-size: 0.9rem;
@@ -315,6 +335,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   background: #1e1e1e;
+  min-height: 90px;
+  position: relative;
 }
 
 .pipelineRow:hover {
@@ -323,19 +345,21 @@
 
 .pipelineRow.expanded {
   background: #252526;
+  min-height: 470px;
 }
 
 .rowContent {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 50px;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
 }
 
 .pipelineInfo {
-  display: flex;
+  display: grid;
+  grid-template-columns: 250px 120px 100px 100px 120px 80px 120px;
   align-items: center;
-  gap: 2rem;
+  gap: 1rem;
   flex: 1;
 }
 
@@ -481,6 +505,8 @@
   color: #cccccc;
   cursor: pointer;
   transition: all 0.2s ease;
+  pointer-events: auto;
+  z-index: 10;
 }
 
 .actionButton:hover {

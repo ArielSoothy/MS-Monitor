@@ -1,4 +1,4 @@
-import { useState, useRef, memo } from 'react';
+import { useState, useRef, memo, useMemo } from 'react';
 import {
   Database,
   ArrowRight,
@@ -40,9 +40,27 @@ interface DataConnection {
   volume: 'low' | 'medium' | 'high';
   health: 'healthy' | 'warning' | 'error';
   animated: boolean;
-}const DataLineage = memo(() => {  const [searchTerm, setSearchTerm] = useState('');  const [selectedSource, setSelectedSource] = useState<PipelineSource | 'all'>('all');  const [selectedNode, setSelectedNode] = useState<LineageNode | null>(null);  const [hoveredNode, setHoveredNode] = useState<string | null>(null);  const [highlightedPath, setHighlightedPath] = useState<string[]>([]);  const svgRef = useRef<SVGSVGElement>(null);
+}const DataLineage = memo(() => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSource, setSelectedSource] = useState<PipelineSource | 'all'>('all');
+  const [selectedNode, setSelectedNode] = useState<LineageNode | null>(null);
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
+  const svgRef = useRef<SVGSVGElement>(null);
 
-  // Generate comprehensive lineage data
+  // Create a stable random number generator for consistent data
+  const seededRandom = (seed: string) => {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      const char = seed.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    // Convert to 0-1 range
+    return Math.abs(hash) / 2147483647;
+  };
+
+  // Generate comprehensive lineage data with stable randomization
   const generateLineageData = () => {
     const nodes: LineageNode[] = [];
     const connections: DataConnection[] = [];
@@ -50,6 +68,10 @@ interface DataConnection {
     // Data sources (left side)
     const sources: PipelineSource[] = ['LinkedIn', 'Twitter', 'Office365', 'AzureAD', 'GitHub', 'ThreatIntel', 'Exchange', 'Teams', 'SharePoint', 'PowerBI'];
     sources.forEach((source, index) => {
+      const statusSeed = seededRandom(`${source}-status`);
+      const statusOptions: PipelineStatus[] = ['healthy', 'warning', 'failed'];
+      const status = statusOptions[Math.floor(statusSeed * statusOptions.length)];
+      
       nodes.push({
         id: `source-${source}`,
         name: source,
@@ -57,13 +79,13 @@ interface DataConnection {
         source,
         x: 100,
         y: 60 + index * 60,
-        status: (['healthy', 'warning', 'failed'] as PipelineStatus[])[Math.floor(Math.random() * 3)],
-        recordsPerSecond: Math.floor(Math.random() * 1000) + 100,
-        avgProcessingTime: Math.floor(Math.random() * 500) + 50,
+        status,
+        recordsPerSecond: Math.floor(seededRandom(`${source}-records`) * 1000) + 100,
+        avgProcessingTime: Math.floor(seededRandom(`${source}-time`) * 500) + 50,
         connections: [],
         description: `Data ingestion from ${source} platform`,
-        lastUpdate: new Date(Date.now() - Math.random() * 3600000).toISOString(),
-        dataQuality: Math.floor(Math.random() * 20) + 80
+        lastUpdate: new Date(Date.now() - seededRandom(`${source}-update`) * 3600000).toISOString(),
+        dataQuality: Math.floor(seededRandom(`${source}-quality`) * 20) + 80
       });
     });
 
@@ -75,11 +97,11 @@ interface DataConnection {
     ];
 
     pipelineTypes.forEach(({ type, x }) => {
-      const typeNodes = mockPipelines
-        .filter(p => selectedSource === 'all' || p.source === selectedSource)
+      const filteredPipelines = mockPipelines.filter(p => selectedSource === 'all' || p.source === selectedSource);
+      const typeNodes = filteredPipelines
         .slice(0, 8)
         .map((pipeline, index) => ({
-          id: pipeline.id, // Use actual pipeline ID for dependency matching
+          id: `${type}-${pipeline.id}`, // Make ID unique per type
           name: `${type.charAt(0).toUpperCase() + type.slice(1)} - ${pipeline.name.split(' ').slice(0, 3).join(' ')}`,
           type: type as 'ingestion' | 'transformation' | 'enrichment',
           source: pipeline.source,
@@ -91,7 +113,7 @@ interface DataConnection {
           connections: [],
           description: `${type} pipeline: ${pipeline.name}`,
           lastUpdate: pipeline.lastRun.toISOString(),
-          dataQuality: Math.floor(Math.random() * 15) + 85,
+          dataQuality: Math.floor(seededRandom(`${pipeline.id}-quality`) * 15) + 85,
           actualPipeline: pipeline // Store reference to actual pipeline for dependencies
         }));
         
@@ -111,34 +133,42 @@ interface DataConnection {
     ];
 
     destinations.forEach((dest, index) => {
+      const statusSeed = seededRandom(`${dest}-status`);
+      const statusOptions: PipelineStatus[] = ['healthy', 'warning'];
+      const status = statusOptions[Math.floor(statusSeed * statusOptions.length)];
+      
       nodes.push({
         id: `dest-${dest}`,
         name: dest,
         type: 'destination',
         x: 800,
         y: 60 + index * 60,
-        status: (['healthy', 'warning'] as PipelineStatus[])[Math.floor(Math.random() * 2)],
-        recordsPerSecond: Math.floor(Math.random() * 500) + 50,
-        avgProcessingTime: Math.floor(Math.random() * 100) + 20,
+        status,
+        recordsPerSecond: Math.floor(seededRandom(`${dest}-records`) * 500) + 50,
+        avgProcessingTime: Math.floor(seededRandom(`${dest}-time`) * 100) + 20,
         connections: [],
         description: `Data destination: ${dest}`,
-        lastUpdate: new Date(Date.now() - Math.random() * 1800000).toISOString(),
-        dataQuality: Math.floor(Math.random() * 10) + 90
+        lastUpdate: new Date(Date.now() - seededRandom(`${dest}-update`) * 1800000).toISOString(),
+        dataQuality: Math.floor(seededRandom(`${dest}-quality`) * 10) + 90
       });
     });
 
-    // Generate connections with realistic data flow
+    // Generate connections with realistic data flow based on source filtering
     nodes.forEach(node => {
       if (node.type === 'source') {
-        // Sources connect to ingestion pipelines
+        // Sources connect to ingestion pipelines of the same source
         const ingestionNodes = nodes.filter(n => n.type === 'ingestion' && n.source === node.source);
         ingestionNodes.forEach(ingestionNode => {
           const connectionId = `${node.id}-${ingestionNode.id}`;
+          const volumeSeed = seededRandom(`${connectionId}-volume`);
+          const volumeOptions: ('low' | 'medium' | 'high')[] = ['low', 'medium', 'high'];
+          const volume = volumeOptions[Math.floor(volumeSeed * volumeOptions.length)];
+          
           connections.push({
             id: connectionId,
             from: node.id,
             to: ingestionNode.id,
-            volume: (['low', 'medium', 'high'] as ('low' | 'medium' | 'high')[])[Math.floor(Math.random() * 3)],
+            volume,
             health: node.status === 'failed' ? 'error' : node.status === 'warning' ? 'warning' : 'healthy',
             animated: true
           });
@@ -146,15 +176,19 @@ interface DataConnection {
           ingestionNode.connections.push(node.id);
         });
       } else if (node.type === 'ingestion') {
-        // Ingestion connects to transformation
-        const transformationNodes = nodes.filter(n => n.type === 'transformation').slice(0, 2);
+        // Ingestion connects to transformation pipelines of the same source
+        const transformationNodes = nodes.filter(n => n.type === 'transformation' && n.source === node.source).slice(0, 2);
         transformationNodes.forEach(transformNode => {
           const connectionId = `${node.id}-${transformNode.id}`;
+          const volumeSeed = seededRandom(`${connectionId}-volume`);
+          const volumeOptions: ('medium' | 'high')[] = ['medium', 'high'];
+          const volume = volumeOptions[Math.floor(volumeSeed * volumeOptions.length)];
+          
           connections.push({
             id: connectionId,
             from: node.id,
             to: transformNode.id,
-            volume: (['medium', 'high'] as ('medium' | 'high')[])[Math.floor(Math.random() * 2)],
+            volume,
             health: node.status === 'failed' ? 'error' : 'healthy',
             animated: true
           });
@@ -162,8 +196,8 @@ interface DataConnection {
           transformNode.connections.push(node.id);
         });
       } else if (node.type === 'transformation') {
-        // Transformation connects to enrichment
-        const enrichmentNodes = nodes.filter(n => n.type === 'enrichment').slice(0, 2);
+        // Transformation connects to enrichment pipelines of the same source
+        const enrichmentNodes = nodes.filter(n => n.type === 'enrichment' && n.source === node.source).slice(0, 2);
         enrichmentNodes.forEach(enrichNode => {
           const connectionId = `${node.id}-${enrichNode.id}`;
           connections.push({
@@ -178,7 +212,7 @@ interface DataConnection {
           enrichNode.connections.push(node.id);
         });
       } else if (node.type === 'enrichment') {
-        // Enrichment connects to destinations
+        // Enrichment connects to destinations (cross-source connections allowed here)
         const destNodes = nodes.filter(n => n.type === 'destination').slice(0, 3);
         destNodes.forEach(destNode => {
           const connectionId = `${node.id}-${destNode.id}`;
@@ -199,7 +233,8 @@ interface DataConnection {
     return { nodes, connections };
   };
 
-  const { nodes, connections } = generateLineageData();
+  // Use useMemo to prevent regeneration on every render, only when selectedSource changes
+  const { nodes, connections } = useMemo(() => generateLineageData(), [selectedSource]);
 
   // Filter nodes based on search
   const filteredNodes = nodes.filter(node =>
@@ -371,13 +406,13 @@ interface DataConnection {
                   
                   <marker
                     id="arrowhead"
-                    markerWidth="10"
-                    markerHeight="7"
-                    refX="9"
-                    refY="3.5"
+                    markerWidth="6"
+                    markerHeight="4"
+                    refX="5"
+                    refY="2"
                     orient="auto"
                   >
-                    <polygon points="0 0, 10 3.5, 0 7" fill="#52c41a" />
+                    <polygon points="0 0, 6 2, 0 4" fill="#52c41a" />
                   </marker>
                   
                   <filter id="glow">
@@ -390,11 +425,11 @@ interface DataConnection {
                 </defs>
 
                 {/* Section labels */}
-                <text x="100" y="30" className={styles.sectionLabel}>Data Sources</text>
-                <text x="300" y="30" className={styles.sectionLabel}>Ingestion</text>
-                <text x="450" y="30" className={styles.sectionLabel}>Transformation</text>
-                <text x="600" y="30" className={styles.sectionLabel}>Enrichment</text>
-                <text x="800" y="30" className={styles.sectionLabel}>Destinations</text>
+                <text x="170" y="30" className={styles.sectionLabel}>Data Sources</text>
+                <text x="370" y="30" className={styles.sectionLabel}>Ingestion</text>
+                <text x="520" y="30" className={styles.sectionLabel}>Transformation</text>
+                <text x="670" y="30" className={styles.sectionLabel}>Enrichment</text>
+                <text x="870" y="30" className={styles.sectionLabel}>Destinations</text>
 
                 {/* Render connections */}
                 {connections
@@ -486,56 +521,65 @@ interface DataConnection {
                             node.status === 'warning' ? '#faad14' :
                             node.status === 'failed' ? '#ef4444' : '#1890ff'}
                     />
-                    
-                    {/* Hover tooltip */}
-                    {hoveredNode === node.id && (
-                      <g className={styles.tooltip}>
-                        <rect
-                          x={node.x + 150}
-                          y={node.y - 10}
-                          width="200"
-                          height="60"
-                          fill="rgba(0,0,0,0.9)"
-                          rx="4"
-                          stroke="#444"
-                        />
-                        <text
-                          x={node.x + 160}
-                          y={node.y + 5}
-                          fill="white"
-                          fontSize="10"
-                          fontWeight="600"
-                        >
-                          {node.name}
-                        </text>
-                        <text
-                          x={node.x + 160}
-                          y={node.y + 18}
-                          fill="#ccc"
-                          fontSize="9"
-                        >
-                          Records/sec: {node.recordsPerSecond}
-                        </text>
-                        <text
-                          x={node.x + 160}
-                          y={node.y + 30}
-                          fill="#ccc"
-                          fontSize="9"
-                        >
-                          Avg Time: {node.avgProcessingTime}ms
-                        </text>
-                        <text
-                          x={node.x + 160}
-                          y={node.y + 42}
-                          fill="#ccc"
-                          fontSize="9"
-                        >
-                          Quality: {node.dataQuality}%
-                        </text>
-                      </g>
-                    )}
                   </g>
                 ))}
+                
+                {/* Render tooltips separately to ensure they appear on top */}
+                {hoveredNode && filteredNodes.map(node => {
+                  if (hoveredNode !== node.id) return null;
+                  
+                  // Smart positioning: if node is too far right, show tooltip on the left
+                  const tooltipX = node.x > 600 ? node.x - 210 : node.x + 150;
+                  const tooltipY = node.y - 10;
+                  
+                  return (
+                    <g key={`tooltip-${node.id}`} className={styles.tooltip}>
+                      <rect
+                        x={tooltipX}
+                        y={tooltipY}
+                        width="200"
+                        height="60"
+                        fill="rgba(0,0,0,0.95)"
+                        rx="6"
+                        stroke="#555"
+                        strokeWidth="1"
+                      />
+                      <text
+                        x={tooltipX + 10}
+                        y={tooltipY + 15}
+                        fill="white"
+                        fontSize="11"
+                        fontWeight="600"
+                      >
+                        {node.name}
+                      </text>
+                      <text
+                        x={tooltipX + 10}
+                        y={tooltipY + 28}
+                        fill="#ccc"
+                        fontSize="9"
+                      >
+                        Records/sec: {node.recordsPerSecond}
+                      </text>
+                      <text
+                        x={tooltipX + 10}
+                        y={tooltipY + 40}
+                        fill="#ccc"
+                        fontSize="9"
+                      >
+                        Avg Time: {node.avgProcessingTime}ms
+                      </text>
+                      <text
+                        x={tooltipX + 10}
+                        y={tooltipY + 52}
+                        fill="#ccc"
+                        fontSize="9"
+                      >
+                        Quality: {node.dataQuality}%
+                      </text>
+                    </g>
+                  );
+                })}
               </svg>
             </div>
           </div>

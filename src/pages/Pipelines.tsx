@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo } from 'react';
+import React, { useState, useMemo, memo, useRef, useCallback } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { 
@@ -31,6 +31,7 @@ const Pipelines = memo(() => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const listRef = useRef<List>(null);
 
   // Generate mock 24-hour processing time data for each pipeline
   const generateProcessingTimeData = () => {
@@ -179,15 +180,34 @@ const Pipelines = memo(() => {
     setStatusFilters(newFilters);
   };
 
-  const toggleExpanded = (pipelineId: string) => {
-    const newExpanded = new Set(expandedRows);
-    if (newExpanded.has(pipelineId)) {
-      newExpanded.delete(pipelineId);
-    } else {
-      newExpanded.add(pipelineId);
-    }
-    setExpandedRows(newExpanded);
-  };
+  const toggleExpanded = useCallback((pipelineId: string) => {
+    console.log('Toggling pipeline:', pipelineId);
+    
+    setExpandedRows(prev => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(pipelineId)) {
+        newExpanded.delete(pipelineId);
+      } else {
+        newExpanded.add(pipelineId);
+      }
+      
+      // Immediate reset for virtual list height recalculation
+      setTimeout(() => {
+        if (listRef.current) {
+          listRef.current.resetAfterIndex(0);
+        }
+      }, 0);
+      
+      // Secondary reset for reliability
+      setTimeout(() => {
+        if (listRef.current) {
+          listRef.current.resetAfterIndex(0);
+        }
+      }, 50);
+      
+      return newExpanded;
+    });
+  }, []);
 
   const getStatusIcon = (status: PipelineStatus) => {
     switch (status) {
@@ -227,13 +247,23 @@ const Pipelines = memo(() => {
   const PipelineRow = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const pipeline = filteredPipelines[index];
     const isExpanded = expandedRows.has(pipeline.id);
-    const rowHeight = isExpanded ? 400 : 80;
+
+    const handleRowClick = (e: React.MouseEvent) => {
+      // Prevent click if clicking on action buttons
+      const target = e.target as HTMLElement;
+      if (target.closest('button') || target.closest('.actionButton')) {
+        return;
+      }
+      console.log('Pipeline clicked:', pipeline.name);
+      toggleExpanded(pipeline.id);
+    };
 
     return (
-      <div style={{ ...style, height: rowHeight }} className={styles.virtualRow}>
+      <div style={style} className={styles.virtualRow}>
         <div 
           className={`${styles.pipelineRow} ${isExpanded ? styles.expanded : ''}`}
-          onClick={() => toggleExpanded(pipeline.id)}
+          onClick={handleRowClick}
+          data-pipeline-id={pipeline.id}
         >
           <div className={styles.rowContent}>
             <div className={styles.pipelineInfo}>
@@ -421,6 +451,31 @@ const Pipelines = memo(() => {
       <div className={styles.header}>
         <h1 className={styles.title}>Pipeline Management</h1>
         <p className={styles.subtitle}>Monitor and manage your threat intelligence data pipelines</p>
+        {/* Debug: Show expanded count */}
+        <div style={{ color: '#888', fontSize: '0.8rem', marginTop: '10px' }}>
+          Expanded pipelines: {expandedRows.size} | 
+          Expanded IDs: [{Array.from(expandedRows).join(', ')}] |
+          <button 
+            onClick={() => {
+              console.log('Test toggle first pipeline');
+              if (filteredPipelines.length > 0) {
+                toggleExpanded(filteredPipelines[0].id);
+              }
+            }}
+            style={{ marginLeft: '10px', padding: '4px 8px', background: '#333', color: '#fff', border: '1px solid #555', borderRadius: '4px' }}
+          >
+            Test Toggle First Pipeline
+          </button>
+          <button 
+            onClick={() => {
+              console.log('Clear all expanded');
+              setExpandedRows(new Set());
+            }}
+            style={{ marginLeft: '10px', padding: '4px 8px', background: '#333', color: '#fff', border: '1px solid #555', borderRadius: '4px' }}
+          >
+            Clear All
+          </button>
+        </div>
       </div>
 
       {/* Enhanced Filters and Search */}
@@ -538,13 +593,34 @@ const Pipelines = memo(() => {
           </span>
         </div>
         
+        {/* Column Headers */}
+        <div className={styles.columnHeaders}>
+          <div className={styles.headerCell}>Pipeline</div>
+          <div className={styles.headerCell}>Status</div>
+          <div className={styles.headerCell}>Last Run</div>
+          <div className={styles.headerCell}>Avg Time</div>
+          <div className={styles.headerCell}>Records/Hour</div>
+          <div className={styles.headerCell}>Failure</div>
+          <div className={styles.headerCell}>Actions</div>
+          <div className={styles.headerCell}></div>
+        </div>
+        
         <div className={styles.virtualContainer}>
           <List
+            ref={listRef}
             height={600}
             width="100%"
             itemCount={filteredPipelines.length}
-            itemSize={(index: number) => expandedRows.has(filteredPipelines[index].id) ? 400 : 80}
+            itemSize={(index: number) => {
+              const pipeline = filteredPipelines[index];
+              const isExpanded = expandedRows.has(pipeline.id);
+              // Increased heights with more consistent calculations
+              const collapsedHeight = 100; // Base height for collapsed row
+              const expandedHeight = 480;  // Height for expanded row with all details
+              return isExpanded ? expandedHeight : collapsedHeight;
+            }}
             className={styles.virtualList}
+            key={`${expandedRows.size}-${Array.from(expandedRows).join(',')}`} // More specific key for re-renders
           >
             {PipelineRow}
           </List>

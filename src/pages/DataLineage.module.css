@@ -117,6 +117,34 @@
   border-color: #666;
 }
 
+.filterIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(0, 120, 212, 0.1), rgba(82, 196, 26, 0.1));
+  border: 1px solid #0078d4;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.clearFilterButton {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.clearFilterButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .contentGrid {
   display: grid;
   grid-template-columns: 1fr 350px;
@@ -247,7 +275,8 @@
 
 .tooltip {
   pointer-events: none;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+  z-index: 1000;
 }
 
 .sidePanel {
