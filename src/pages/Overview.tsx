@@ -77,25 +77,46 @@ const Overview = memo(() => {
     .sort((a, b) => b.failureRate - a.failureRate)
     .slice(0, 5);
 
-  // Team-based analytics
+  // Team-based analytics with enhanced calculations
   const teamMetrics = pipelines.reduce((acc, pipeline) => {
     const team = pipeline.ownerTeam || 'Unknown';
     if (!acc[team]) {
-      acc[team] = { total: 0, healthy: 0, failed: 0, warning: 0 };
+      acc[team] = { 
+        total: 0, 
+        healthy: 0, 
+        failed: 0, 
+        warning: 0, 
+        processing: 0,
+        avgFailureRate: 0,
+        totalFailureRate: 0
+      };
     }
     acc[team].total++;
     acc[team][pipeline.status as keyof typeof acc[typeof team]]++;
+    acc[team].totalFailureRate += pipeline.failureRate;
     return acc;
   }, {} as Record<string, any>);
 
-  const teamHealthData = Object.entries(teamMetrics).map(([team, metrics]) => ({
-    team,
-    healthPercentage: Math.round((metrics.healthy / metrics.total) * 100),
-    total: metrics.total,
-    healthy: metrics.healthy,
-    failed: metrics.failed,
-    warning: metrics.warning
-  })).sort((a, b) => b.healthPercentage - a.healthPercentage);
+  const teamHealthData = Object.entries(teamMetrics)
+    .map(([team, metrics]) => {
+      const healthPercentage = Math.round((metrics.healthy / metrics.total) * 100);
+      const avgFailureRate = Math.round((metrics.totalFailureRate / metrics.total) * 100) / 100;
+      
+      return {
+        team: team.length > 15 ? team.substring(0, 15) + '...' : team,
+        fullTeam: team,
+        healthPercentage,
+        avgFailureRate,
+        total: metrics.total,
+        healthy: metrics.healthy,
+        failed: metrics.failed,
+        warning: metrics.warning,
+        processing: metrics.processing
+      };
+    })
+    .filter(team => team.total >= 3) // Only show teams with at least 3 pipelines
+    .sort((a, b) => b.healthPercentage - a.healthPercentage)
+    .slice(0, 8); // Show top 8 teams
 
   // Data classification insights
   const classificationData = pipelines.reduce((acc, pipeline) => {
@@ -127,26 +148,6 @@ const Overview = memo(() => {
   });
 
   const slaComplianceRate = Math.round(((pipelines.length - slaBreaches.length) / pipelines.length) * 100);
-
-  // Regional distribution
-  const regionalData = pipelines.reduce((acc, pipeline) => {
-    const region = pipeline.region || 'Unknown';
-    if (!acc[region]) {
-      acc[region] = { total: 0, healthy: 0, failed: 0 };
-    }
-    acc[region].total++;
-    if (pipeline.status === 'healthy') acc[region].healthy++;
-    if (pipeline.status === 'failed') acc[region].failed++;
-    return acc;
-  }, {} as Record<string, any>);
-
-  const regionalChartData = Object.entries(regionalData).map(([region, data]) => ({
-    region,
-    total: data.total,
-    healthy: data.healthy,
-    failed: data.failed,
-    healthPercentage: Math.round((data.healthy / data.total) * 100)
-  }));
 
   const getHealthScoreColor = (score: number) => {
     if (score >= 90) return '#52c41a';
@@ -304,40 +305,111 @@ const Overview = memo(() => {
 
         {/* Team Health Performance */}
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Team Health Performance</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={teamHealthData.slice(0, 6)} layout="horizontal">
+          <h3 className={styles.chartTitle}>
+            Team Health Performance
+            <span className={styles.chartSubtitle}>Health Score by Team (min. 3 pipelines)</span>
+          </h3>
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={teamHealthData} layout="horizontal" margin={{ top: 5, right: 30, left: 120, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#333" />
               <XAxis 
                 type="number" 
-                tick={{ fill: '#ccc' }}
+                tick={{ fill: '#ccc', fontSize: 12 }}
                 domain={[0, 100]}
+                tickFormatter={(value) => `${value}%`}
               />
               <YAxis 
                 type="category" 
                 dataKey="team" 
-                tick={{ fill: '#ccc', fontSize: 11 }}
-                width={100}
+                tick={{ fill: '#ccc', fontSize: 10 }}
+                width={115}
               />
               <Tooltip 
                 formatter={(value, name) => {
                   if (name === 'healthPercentage') return [`${value}%`, 'Health Score'];
                   return [value, name];
                 }}
-                labelFormatter={(label) => `Team: ${label}`}
+                labelFormatter={(label) => {
+                  const teamData = teamHealthData.find(t => t.team === label);
+                  return teamData ? `Team: ${teamData.fullTeam}` : `Team: ${label}`;
+                }}
                 contentStyle={{ 
                   backgroundColor: '#252526', 
                   border: '1px solid #333',
                   borderRadius: '6px'
-                }} 
+                }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload[0]) {
+                    const data = payload[0].payload;
+                    return (
+                      <div style={{ 
+                        backgroundColor: '#252526', 
+                        border: '1px solid #333',
+                        borderRadius: '6px',
+                        padding: '8px'
+                      }}>
+                        <p style={{ color: '#fff', margin: 0, fontWeight: 'bold' }}>
+                          {data.fullTeam}
+                        </p>
+                        <p style={{ color: '#52c41a', margin: '4px 0' }}>
+                          Health Score: {data.healthPercentage}%
+                        </p>
+                        <p style={{ color: '#ccc', margin: '2px 0', fontSize: '12px' }}>
+                          Total Pipelines: {data.total}
+                        </p>
+                        <p style={{ color: '#52c41a', margin: '2px 0', fontSize: '12px' }}>
+                          Healthy: {data.healthy}
+                        </p>
+                        <p style={{ color: '#faad14', margin: '2px 0', fontSize: '12px' }}>
+                          Warning: {data.warning}
+                        </p>
+                        <p style={{ color: '#f5222d', margin: '2px 0', fontSize: '12px' }}>
+                          Failed: {data.failed}
+                        </p>
+                        <p style={{ color: '#1890ff', margin: '2px 0', fontSize: '12px' }}>
+                          Processing: {data.processing}
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
               />
               <Bar 
                 dataKey="healthPercentage" 
-                fill="#52c41a"
                 radius={[0, 4, 4, 0]}
-              />
+              >
+                {teamHealthData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={
+                      entry.healthPercentage >= 90 ? '#52c41a' :
+                      entry.healthPercentage >= 75 ? '#faad14' :
+                      entry.healthPercentage >= 60 ? '#ff7a45' : '#f5222d'
+                    } 
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
+          <div className={styles.teamHealthLegend}>
+            <div className={styles.legendItem}>
+              <div className={styles.legendColor} style={{ backgroundColor: '#52c41a' }} />
+              <span>Excellent (90%+)</span>
+            </div>
+            <div className={styles.legendItem}>
+              <div className={styles.legendColor} style={{ backgroundColor: '#faad14' }} />
+              <span>Good (75-89%)</span>
+            </div>
+            <div className={styles.legendItem}>
+              <div className={styles.legendColor} style={{ backgroundColor: '#ff7a45' }} />
+              <span>Fair (60-74%)</span>
+            </div>
+            <div className={styles.legendItem}>
+              <div className={styles.legendColor} style={{ backgroundColor: '#f5222d' }} />
+              <span>Poor (&lt;60%)</span>
+            </div>
+          </div>
         </div>
 
         {/* Data Classification Security */}
@@ -405,38 +477,6 @@ const Overview = memo(() => {
                 activeDot={{ r: 5, stroke: '#1890ff', strokeWidth: 2 }}
               />
             </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Regional Distribution */}
-        <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Regional Pipeline Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={regionalChartData}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                dataKey="total"
-                label={({ region, total }) => `${region}: ${total}`}
-              >
-                {regionalChartData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1'][index % 5]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                formatter={(value, _, props) => [
-                  `${value} pipelines (${props.payload.healthPercentage}% healthy)`, 
-                  props.payload.region
-                ]}
-                contentStyle={{ 
-                  backgroundColor: '#252526', 
-                  border: '1px solid #333',
-                  borderRadius: '6px'
-                }} 
-              />
-            </PieChart>
           </ResponsiveContainer>
         </div>
 

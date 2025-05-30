@@ -54,7 +54,7 @@ const Navigation = () => {
         <ul className={styles.navList}>
           <li>
             <NavLink 
-              to="/" 
+              to="/overview" 
               className={({ isActive }) => 
                 `${styles.navLink} ${isActive ? styles.active : ''}`
               }

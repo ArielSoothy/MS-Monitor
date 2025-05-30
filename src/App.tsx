@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSkeleton from './components/LoadingSkeleton';
@@ -36,10 +36,12 @@ function AppContent() {
             }
           >
             <Routes>
-              <Route path="/" element={<Overview />} />
+              <Route path="/" element={<Navigate to="/overview" replace />} />
+              <Route path="/overview" element={<Overview />} />
               <Route path="/pipelines" element={<Pipelines />} />
               <Route path="/data-lineage" element={<DataLineage />} />
               <Route path="/alerts" element={<Alerts />} />
+              <Route path="*" element={<Navigate to="/overview" replace />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>

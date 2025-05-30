@@ -61,7 +61,7 @@ export const createNavigationShortcuts = (navigate: (path: string) => void) => [
   {
     key: '1',
     description: 'Go to Overview',
-    action: () => navigate('/'),
+    action: () => navigate('/overview'),
     altKey: true
   },
   {
