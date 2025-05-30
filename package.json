@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://arielsooth.github.io/ms-monitor-dashboard",
+  "homepage": "https://ArielSoothy.github.io/MS-Monitor/",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
