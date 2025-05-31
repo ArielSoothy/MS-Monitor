@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard } from 'lucide-react';
+import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Brain, Zap } from 'lucide-react';
 import { mockAlerts } from '../data/mockData';
 import AboutModal from './AboutModal';
 import KeyboardHelpModal from './KeyboardHelpModal';
@@ -40,7 +40,9 @@ const Navigation = () => {
     { key: '1', description: 'Go to Overview', altKey: true },
     { key: '2', description: 'Go to Pipelines', altKey: true },
     { key: '3', description: 'Go to Data Lineage', altKey: true },
-    { key: '4', description: 'Go to Alerts', altKey: true },
+    { key: '4', description: 'Go to Predictive Insights', altKey: true },
+    { key: '5', description: 'Go to AI Agent', altKey: true },
+    { key: '6', description: 'Go to Alerts', altKey: true },
   ];
 
   return (
@@ -83,6 +85,28 @@ const Navigation = () => {
             >
               <Database className={styles.navIcon} />
               Data Lineage
+            </NavLink>
+          </li>
+          <li>
+            <NavLink 
+              to="/predictive-insights" 
+              className={({ isActive }) => 
+                `${styles.navLink} ${isActive ? styles.active : ''}`
+              }
+            >
+              <Brain className={styles.navIcon} />
+              Predictive Insights
+            </NavLink>
+          </li>
+          <li>
+            <NavLink 
+              to="/ai-agent" 
+              className={({ isActive }) => 
+                `${styles.navLink} ${isActive ? styles.active : ''}`
+              }
+            >
+              <Zap className={styles.navIcon} />
+              AI Agent
             </NavLink>
           </li>
           <li>

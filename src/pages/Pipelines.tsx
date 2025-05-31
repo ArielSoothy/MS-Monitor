@@ -14,10 +14,14 @@ import {
   ChevronUp,
   Settings,
   Activity,
-  AlertCircle
+  AlertCircle,
+  HelpCircle
 } from 'lucide-react';
 import { mockPipelines } from '../data/mockData';
 import type { Pipeline, PipelineStatus, PipelineSource } from '../types';
+import HowItWorksModal from '../components/HowItWorksModal';
+import InfoTooltip from '../components/InfoTooltip';
+import { getTooltipContent } from '../utils/tooltipContent';
 import styles from './Pipelines.module.css';
 
 const Pipelines = memo(() => {
@@ -31,6 +35,7 @@ const Pipelines = memo(() => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const listRef = useRef<List>(null);
 
   // Generate mock 24-hour processing time data for each pipeline
@@ -273,12 +278,33 @@ const Pipelines = memo(() => {
                 <div className={styles.pipelineMetadata}>
                   <span className={styles.metadataItem}>
                     <span className={styles.metadataLabel}>Team:</span> {pipeline.ownerTeam}
+                    {getTooltipContent('ownerTeamFilter') && (
+                      <InfoTooltip 
+                        {...getTooltipContent('ownerTeamFilter')!} 
+                        position="top"
+                        size="small"
+                      />
+                    )}
                   </span>
                   <span className={styles.metadataItem}>
                     <span className={styles.metadataLabel}>Region:</span> {pipeline.region}
+                    {getTooltipContent('pipelineRegion') && (
+                      <InfoTooltip 
+                        {...getTooltipContent('pipelineRegion')!} 
+                        position="top"
+                        size="small"
+                      />
+                    )}
                   </span>
                   <span className={`${styles.metadataItem} ${styles.classification} ${styles[pipeline.dataClassification.toLowerCase()]}`}>
                     {pipeline.dataClassification}
+                    {getTooltipContent('dataClassificationFilter') && (
+                      <InfoTooltip 
+                        {...getTooltipContent('dataClassificationFilter')!} 
+                        position="top"
+                        size="small"
+                      />
+                    )}
                   </span>
                 </div>
               </div>
@@ -343,6 +369,13 @@ const Pipelines = memo(() => {
                   <h4 className={styles.sectionTitle}>
                     <Activity className={styles.sectionIcon} />
                     24-Hour Processing Time Trend
+                    {getTooltipContent('processingTimeTrend') && (
+                      <InfoTooltip 
+                        {...getTooltipContent('processingTimeTrend')!} 
+                        position="right"
+                        size="medium"
+                      />
+                    )}
                   </h4>
                   <div className={styles.chartContainer}>
                     <ResponsiveContainer width="100%" height={200}>
@@ -384,6 +417,13 @@ const Pipelines = memo(() => {
                   <h4 className={styles.sectionTitle}>
                     <AlertCircle className={styles.sectionIcon} />
                     Recent Issues
+                    {getTooltipContent('recentIssues') && (
+                      <InfoTooltip 
+                        {...getTooltipContent('recentIssues')!} 
+                        position="right"
+                        size="medium"
+                      />
+                    )}
                   </h4>
                   <div className={styles.errorsList}>
                     {getRecentErrors(pipeline).length > 0 ? (
@@ -406,6 +446,13 @@ const Pipelines = memo(() => {
                   <h4 className={styles.sectionTitle}>
                     <Settings className={styles.sectionIcon} />
                     Configuration
+                    {getTooltipContent('pipelineConfiguration') && (
+                      <InfoTooltip 
+                        {...getTooltipContent('pipelineConfiguration')!} 
+                        position="right"
+                        size="medium"
+                      />
+                    )}
                   </h4>
                   <div className={styles.configGrid}>
                     {Object.entries(getConfigDetails(pipeline)).map(([key, value]) => (
@@ -424,6 +471,13 @@ const Pipelines = memo(() => {
                   <h4 className={styles.sectionTitle}>
                     <Activity className={styles.sectionIcon} />
                     Dependencies
+                    {getTooltipContent('pipelineDependencies') && (
+                      <InfoTooltip 
+                        {...getTooltipContent('pipelineDependencies')!} 
+                        position="right"
+                        size="medium"
+                      />
+                    )}
                   </h4>
                   <div className={styles.dependenciesList}>
                     {getDependencies(pipeline).length > 0 ? (
@@ -449,8 +503,21 @@ const Pipelines = memo(() => {
   return (
     <div className={styles.pipelines}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Pipeline Management</h1>
-        <p className={styles.subtitle}>Monitor and manage your threat intelligence data pipelines</p>
+        <div className={styles.headerContent}>
+          <div className={styles.titleSection}>
+            <h1 className={styles.title}>
+              Pipeline Management
+              <button 
+                className={styles.infoButton}
+                onClick={() => setShowHowItWorks(true)}
+                title="How does this system work?"
+              >
+                <HelpCircle size={18} />
+              </button>
+            </h1>
+            <p className={styles.subtitle}>Monitor and manage your threat intelligence data pipelines</p>
+          </div>
+        </div>
         {/* Debug: Show expanded count */}
         <div style={{ color: '#888', fontSize: '0.8rem', marginTop: '10px' }}>
           Expanded pipelines: {expandedRows.size} | 
@@ -489,6 +556,14 @@ const Pipelines = memo(() => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
+          {getTooltipContent('pipelineSearch') && (
+            <InfoTooltip 
+              {...getTooltipContent('pipelineSearch')!} 
+              position="bottom"
+              size="medium"
+              className={styles.searchTooltip}
+            />
+          )}
         </div>
         
         <button 
@@ -498,6 +573,13 @@ const Pipelines = memo(() => {
           <Filter size={16} />
           Filters
           <ChevronDown className={`${styles.toggleIcon} ${showFilters ? styles.rotated : ''}`} />
+          {getTooltipContent('pipelineStatusFilter') && (
+            <InfoTooltip 
+              {...getTooltipContent('pipelineStatusFilter')!} 
+              position="bottom"
+              size="medium"
+            />
+          )}
         </button>
         
         <div className={styles.sortControls}>
@@ -512,6 +594,13 @@ const Pipelines = memo(() => {
             <option value="source">Sort by Source</option>
             <option value="failureRate">Sort by Failure Rate</option>
           </select>
+          {getTooltipContent('pipelineSorting') && (
+            <InfoTooltip 
+              {...getTooltipContent('pipelineSorting')!} 
+              position="bottom"
+              size="medium"
+            />
+          )}
           
           <button
             className={styles.sortOrder}
@@ -526,7 +615,16 @@ const Pipelines = memo(() => {
       {showFilters && (
         <div className={styles.filtersPanel}>
           <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Status:</label>
+            <label className={styles.filterLabel}>
+              Status:
+              {getTooltipContent('pipelineStatusFilter') && (
+                <InfoTooltip 
+                  {...getTooltipContent('pipelineStatusFilter')!} 
+                  position="right"
+                  size="small"
+                />
+              )}
+            </label>
             <div className={styles.statusFilters}>
               {(['healthy', 'warning', 'failed', 'processing'] as PipelineStatus[]).map(status => (
                 <button
@@ -542,7 +640,16 @@ const Pipelines = memo(() => {
           </div>
           
           <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Source System:</label>
+            <label className={styles.filterLabel}>
+              Source System:
+              {getTooltipContent('sourceSystemFilter') && (
+                <InfoTooltip 
+                  {...getTooltipContent('sourceSystemFilter')!} 
+                  position="right"
+                  size="small"
+                />
+              )}
+            </label>
             <select
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value as PipelineSource | 'all')}
@@ -556,7 +663,16 @@ const Pipelines = memo(() => {
           </div>
           
           <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Owner Team:</label>
+            <label className={styles.filterLabel}>
+              Owner Team:
+              {getTooltipContent('ownerTeamFilter') && (
+                <InfoTooltip 
+                  {...getTooltipContent('ownerTeamFilter')!} 
+                  position="right"
+                  size="small"
+                />
+              )}
+            </label>
             <select
               value={teamFilter}
               onChange={(e) => setTeamFilter(e.target.value)}
@@ -570,7 +686,16 @@ const Pipelines = memo(() => {
           </div>
           
           <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Classification:</label>
+            <label className={styles.filterLabel}>
+              Classification:
+              {getTooltipContent('dataClassificationFilter') && (
+                <InfoTooltip 
+                  {...getTooltipContent('dataClassificationFilter')!} 
+                  position="right"
+                  size="small"
+                />
+              )}
+            </label>
             <select
               value={classificationFilter}
               onChange={(e) => setClassificationFilter(e.target.value)}
@@ -596,12 +721,66 @@ const Pipelines = memo(() => {
         {/* Column Headers */}
         <div className={styles.columnHeaders}>
           <div className={styles.headerCell}>Pipeline</div>
-          <div className={styles.headerCell}>Status</div>
-          <div className={styles.headerCell}>Last Run</div>
-          <div className={styles.headerCell}>Avg Time</div>
-          <div className={styles.headerCell}>Records/Hour</div>
-          <div className={styles.headerCell}>Failure</div>
-          <div className={styles.headerCell}>Actions</div>
+          <div className={styles.headerCell}>
+            Status
+            {getTooltipContent('pipelineStatusFilter') && (
+              <InfoTooltip 
+                {...getTooltipContent('pipelineStatusFilter')!} 
+                position="bottom"
+                size="small"
+              />
+            )}
+          </div>
+          <div className={styles.headerCell}>
+            Last Run
+            {getTooltipContent('pipelineLastRun') && (
+              <InfoTooltip 
+                {...getTooltipContent('pipelineLastRun')!} 
+                position="bottom"
+                size="small"
+              />
+            )}
+          </div>
+          <div className={styles.headerCell}>
+            Avg Time
+            {getTooltipContent('avgProcessingTime') && (
+              <InfoTooltip 
+                {...getTooltipContent('avgProcessingTime')!} 
+                position="bottom"
+                size="small"
+              />
+            )}
+          </div>
+          <div className={styles.headerCell}>
+            Records/Hour
+            {getTooltipContent('recordsPerHour') && (
+              <InfoTooltip 
+                {...getTooltipContent('recordsPerHour')!} 
+                position="bottom"
+                size="small"
+              />
+            )}
+          </div>
+          <div className={styles.headerCell}>
+            Failure
+            {getTooltipContent('pipelineFailureRate') && (
+              <InfoTooltip 
+                {...getTooltipContent('pipelineFailureRate')!} 
+                position="bottom"
+                size="small"
+              />
+            )}
+          </div>
+          <div className={styles.headerCell}>
+            Actions
+            {getTooltipContent('pipelineActions') && (
+              <InfoTooltip 
+                {...getTooltipContent('pipelineActions')!} 
+                position="bottom"
+                size="small"
+              />
+            )}
+          </div>
           <div className={styles.headerCell}></div>
         </div>
         
@@ -626,6 +805,12 @@ const Pipelines = memo(() => {
           </List>
         </div>
       </div>
+      
+      <HowItWorksModal 
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+        section="pipelines"
+      />
     </div>
   );
 });

@@ -8,6 +8,14 @@ Visit the live dashboard: [MS Monitor Dashboard](https://ArielSoothy.github.io/M
 
 ## ✨ Features
 
+### 🤖 **NEW: Autonomous Investigation Agent**
+- **AI-Powered Investigation**: Autonomous detection and investigation of pipeline anomalies
+- **Pattern Recognition**: Identifies complex failure patterns across multiple data sources
+- **Root Cause Analysis**: Generates hypotheses and provides actionable recommendations
+- **Historical Correlation**: References incident history for pattern matching
+- **Natural Language Reporting**: Produces human-readable investigation summaries
+- **Real-Time Monitoring**: Continuous autonomous monitoring with configurable triggers
+
 ### Pipeline Monitoring
 - **160 realistic pipelines** across 10 data sources (LinkedIn, Twitter, Office365, AzureAD, GitHub, ThreatIntel, Exchange, Teams, SharePoint, PowerBI)
 - **Real-time status tracking** with health indicators

@@ -10,6 +10,16 @@
   margin-bottom: 2rem;
 }
 
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.titleSection {
+  flex: 1;
+}
+
 .title {
   font-size: 2.5rem;
   font-weight: 700;
@@ -19,6 +29,29 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.infoButton {
+  background: none;
+  border: none;
+  color: #0078d4;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0.8;
+}
+
+.infoButton:hover {
+  background-color: rgba(0, 120, 212, 0.1);
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 .subtitle {
@@ -287,6 +320,13 @@
   display: flex;
   flex-direction: column;
   max-height: 800px;
+  width: 380px;
+  background: rgba(0, 0, 0, 0.95);
+  border-left: 1px solid #333;
+  overflow-y: auto;
+  max-height: 100vh;
+  position: sticky;
+  top: 0;
 }
 
 .sidePanelHeader {
@@ -585,4 +625,357 @@
   .lineageSvg {
     min-height: 400px;
   }
+}
+
+/* Error indicators and interaction hints */
+.errorBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #dc3545;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #1e1e1e;
+  z-index: 10;
+}
+
+.errorBadge.warning {
+  background: #ffa500;
+}
+
+.nodeWithErrors {
+  cursor: pointer;
+  position: relative;
+}
+
+.nodeWithErrors:hover .errorBadge {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+.clickHint {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.nodeWithErrors:hover .clickHint {
+  opacity: 1;
+}
+
+.errorNode {
+  stroke: #dc3545 !important;
+  stroke-width: 2px;
+  filter: drop-shadow(0 0 6px rgba(220, 53, 69, 0.4));
+}
+
+.warningNode {
+  stroke: #ffa500 !important;
+  stroke-width: 2px;
+  filter: drop-shadow(0 0 6px rgba(255, 165, 0, 0.4));
+}
+
+/* Microsoft Technology Stack Details Styles */
+.techDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.techItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+  border-left: 3px solid #0078d4;
+}
+
+.techItem strong {
+  color: #0078d4;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.protocolTag, .serviceTag, .apiTag, .networkTag, .alertRule {
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.protocolTag {
+  background: rgba(82, 196, 26, 0.1);
+  border-color: #52c41a;
+  color: #52c41a;
+}
+
+.serviceTag {
+  background: rgba(0, 120, 212, 0.1);
+  border-color: #0078d4;
+  color: #0078d4;
+}
+
+.apiTag {
+  background: rgba(255, 165, 0, 0.1);
+  border-color: #ffa500;
+  color: #ffa500;
+}
+
+.networkTag {
+  background: rgba(138, 43, 226, 0.1);
+  border-color: #8a2be2;
+  color: #8a2be2;
+}
+
+.alertRule {
+  background: rgba(220, 53, 69, 0.1);
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.alertList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.troubleshootingActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 120, 212, 0.1);
+  border: 1px solid #0078d4;
+  border-radius: 4px;
+  color: #0078d4;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionButton:hover {
+  background: rgba(0, 120, 212, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+}
+
+.actionButton:active {
+  transform: translateY(0);
+}
+
+/* Error Information Display Styles */
+.errorDetails {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.errorHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.errorIcon {
+  color: #f44336;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.errorMessage {
+  color: #ffffff;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.errorMeta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.errorCode {
+  background: rgba(244, 67, 54, 0.2);
+  color: #ff9999;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.errorTime {
+  color: #cccccc;
+  font-size: 0.75rem;
+}
+
+.suggestedActions {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(244, 67, 54, 0.2);
+}
+
+.suggestedActions strong {
+  color: #ffffff;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.suggestedActions ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #cccccc;
+}
+
+.suggestedActions li {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.viewFullErrorButton {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.viewFullErrorButton:hover {
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.viewFullErrorButton:active {
+  transform: translateY(0);
+}
+
+/* Monitoring Links Styles */
+.monitoringLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.logLink {
+  background: rgba(0, 120, 212, 0.1);
+  border: 1px solid rgba(0, 120, 212, 0.3);
+  color: #0078d4;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.logLink:hover {
+  background: rgba(0, 120, 212, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 120, 212, 0.2);
+}
+
+.communicationLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #3c3c3c;
+}
+
+.commLink {
+  background: rgba(82, 196, 26, 0.1);
+  border: 1px solid rgba(82, 196, 26, 0.3);
+  color: #52c41a;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.commLink:hover {
+  background: rgba(82, 196, 26, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(82, 196, 26, 0.2);
+}
+
+/* Enhanced Error Badge in Side Panel Title */
+.detailTitle .errorBadge {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
 }

@@ -1,0 +1,896 @@
+/* Predictive Insights Page Styles */
+.container {
+  min-height: 100vh;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 24px;
+  position: relative;
+}
+
+/* Training Overlay */
+.trainingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(26, 26, 26, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.trainingContent {
+  text-align: center;
+  padding: 40px;
+  background-color: #2d2d2d;
+  border-radius: 12px;
+  border: 1px solid #404040;
+  max-width: 400px;
+}
+
+.spinningIcon {
+  color: #0078d4;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.trainingContent h2 {
+  margin: 0 0 12px 0;
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.trainingContent p {
+  color: #cccccc;
+  margin-bottom: 24px;
+}
+
+.trainingProgress {
+  width: 100%;
+  height: 4px;
+  background-color: #404040;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressBar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #0078d4, #00bcf2);
+  animation: progress 1.5s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.headerIcon {
+  color: #0078d4;
+  flex-shrink: 0;
+}
+
+.headerTitle h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.infoButton {
+  background: none;
+  border: none;
+  color: #0078d4;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0.8;
+}
+
+.infoButton:hover {
+  background-color: rgba(0, 120, 212, 0.1);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.headerTitle p {
+  margin: 4px 0 0 0;
+  color: #cccccc;
+  font-size: 14px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.howItWorksButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #0078d4, #106ebe);
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+}
+
+.howItWorksButton:hover {
+  background: linear-gradient(135deg, #106ebe, #005a9e);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.4);
+}
+
+.howItWorksButton:active {
+  transform: translateY(0);
+}
+
+.lastUpdate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cccccc;
+  font-size: 14px;
+}
+
+.modelButton {
+  background-color: #0078d4;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.modelButton:hover {
+  background-color: #106ebe;
+}
+
+/* Disclaimer */
+.disclaimer {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-left: 4px solid #ffa500;
+  padding: 12px 16px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  color: #ffa500;
+  font-size: 14px;
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.statCard {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.statIcon {
+  padding: 12px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.iconAccuracy {
+  background-color: rgba(0, 120, 212, 0.1);
+  color: #0078d4;
+}
+
+.iconRisk {
+  background-color: rgba(255, 165, 0, 0.1);
+  color: #ffa500;
+}
+
+.iconConfidence {
+  background-color: rgba(16, 124, 16, 0.1);
+  color: #10b981;
+}
+
+.iconSamples {
+  background-color: rgba(147, 51, 234, 0.1);
+  color: #9333ea;
+}
+
+.statContent {
+  flex: 1;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  color: #cccccc;
+  font-size: 14px;
+}
+
+/* Main Content */
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.section {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* No Risk State */
+.noRisk {
+  text-align: center;
+  padding: 60px 20px;
+  color: #cccccc;
+}
+
+.noRisk svg {
+  color: #10b981;
+  margin-bottom: 16px;
+}
+
+.noRisk h3 {
+  margin: 0 0 8px 0;
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.noRisk p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Risk Grid */
+.riskGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.riskCard {
+  background-color: #1a1a1a;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.riskCard:hover {
+  background-color: #333333;
+  transform: translateY(-2px);
+}
+
+.riskCard.critical {
+  border-left-color: #dc3545;
+}
+
+.riskCard.warning {
+  border-left-color: #ffa500;
+}
+
+.riskCard.healthy {
+  border-left-color: #10b981;
+}
+
+.riskHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.riskTitle {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.riskScore {
+  font-weight: 600;
+  font-size: 18px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.critical .riskScore {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.warning .riskScore {
+  background-color: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+}
+
+.riskDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confidence {
+  color: #cccccc;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.reasoning ul {
+  margin: 0;
+  padding-left: 16px;
+  color: #cccccc;
+  font-size: 14px;
+}
+
+.reasoning li {
+  margin-bottom: 4px;
+}
+
+/* Model Details */
+.modelDetails {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 32px;
+}
+
+@media (max-width: 768px) {
+  .modelDetails {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modelInfo h3 {
+  margin: 0 0 16px 0;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.modelStats {
+  color: #cccccc;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.featureImportance h3 {
+  margin: 0 0 16px 0;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.importanceChart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.importanceRow {
+  display: grid;
+  grid-template-columns: 150px 1fr 50px;
+  align-items: center;
+  gap: 12px;
+}
+
+.featureName {
+  font-size: 14px;
+  color: #cccccc;
+}
+
+.importanceBar {
+  height: 8px;
+  background-color: #404040;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.importanceFill {
+  height: 100%;
+  background: linear-gradient(90deg, #0078d4, #00bcf2);
+  transition: width 0.3s ease;
+}
+
+.importanceValue {
+  font-size: 14px;
+  color: #cccccc;
+  text-align: right;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalContent {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 12px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #404040;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #cccccc;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.closeButton:hover {
+  background-color: #404040;
+  color: #ffffff;
+}
+
+.modalBody {
+  padding: 24px;
+}
+
+/* Prediction Summary */
+.predictionSummary {
+  margin-bottom: 32px;
+}
+
+.predictionResult {
+  text-align: center;
+  padding: 24px;
+  border-radius: 8px;
+  border: 2px solid;
+}
+
+.willFail {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: #dc3545;
+}
+
+.willNotFail {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+}
+
+.predictionText {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.predictionConfidence {
+  color: #cccccc;
+  margin-bottom: 8px;
+}
+
+.riskScoreDisplay {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Analysis Section */
+.analysisSection {
+  margin-bottom: 32px;
+}
+
+.analysisSection h3 {
+  margin: 0 0 16px 0;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.reasoningList {
+  margin: 0;
+  padding-left: 20px;
+  color: #cccccc;
+  line-height: 1.6;
+}
+
+.reasoningList li {
+  margin-bottom: 8px;
+}
+
+/* Features Section */
+.featuresSection h3 {
+  margin: 0 0 20px 0;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.featureCard {
+  background-color: #1a1a1a;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.featureValue {
+  font-size: 24px;
+  font-weight: 600;
+  color: #0078d4;
+  margin-bottom: 8px;
+}
+
+.featureName {
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.featureDescription {
+  color: #cccccc;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Model Explanation Modal */
+.modelExplanationModal {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 12px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.explanationSection {
+  margin-bottom: 32px;
+}
+
+.explanationSection h3 {
+  margin: 0 0 16px 0;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.explanationSection p {
+  color: #cccccc;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* Algorithm Steps */
+.algorithmSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.stepNumber {
+  background-color: #0078d4;
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.stepContent h4 {
+  margin: 0 0 8px 0;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.stepContent p {
+  margin: 0;
+  color: #cccccc;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Feature Explanations */
+.featureExplanations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.featureExplanation {
+  background-color: #1a1a1a;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.featureExplanation h4 {
+  margin: 0 0 12px 0;
+  color: #ffffff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.featureExplanation p {
+  margin: 0;
+  color: #cccccc;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Decision Example */
+.decisionExample {
+  background-color: #1a1a1a;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.decisionPath {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.decisionNode {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.decisionNode strong {
+  color: #ffffff;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.decisionBranch {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.yesPath {
+  color: #dc3545;
+  font-weight: 600;
+  padding: 4px 8px;
+  background-color: rgba(220, 53, 69, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.noPath {
+  color: #10b981;
+  font-weight: 600;
+  padding: 4px 8px;
+  background-color: rgba(16, 185, 129, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Why It Works */
+.whyItWorks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.benefit {
+  background-color: #1a1a1a;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.benefit h4 {
+  margin: 0 0 8px 0;
+  color: #0078d4;
+  font-size: 16px;
+}
+
+.benefit p {
+  margin: 0;
+  color: #cccccc;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Limitations */
+.limitations {
+  color: #cccccc;
+  line-height: 1.6;
+  padding-left: 20px;
+}
+
+.limitations li {
+  margin-bottom: 8px;
+}
+
+.limitations strong {
+  color: #ffa500;
+}
+
+/* Explanation Footer */
+.explanationFooter {
+  background-color: rgba(0, 120, 212, 0.1);
+  border: 1px solid rgba(0, 120, 212, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  margin-top: 24px;
+}
+
+.explanationFooter p {
+  margin: 0;
+  color: #0078d4;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .headerContent {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .riskGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .importanceRow {
+    grid-template-columns: 120px 1fr 40px;
+    gap: 8px;
+  }
+  
+  .featureGrid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  
+  .modalContent {
+    margin: 10px;
+    max-height: calc(100vh - 20px);
+  }
+  
+  .modelExplanationModal {
+    margin: 10px;
+    max-height: calc(100vh - 20px);
+  }
+  
+  .featureExplanations {
+    grid-template-columns: 1fr;
+  }
+  
+  .whyItWorks {
+    grid-template-columns: 1fr;
+  }
+  
+  .algorithmSteps {
+    gap: 16px;
+  }
+  
+  .decisionBranch {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

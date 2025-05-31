@@ -10,10 +10,15 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Zap
+  Zap,
+  HelpCircle
 } from 'lucide-react';
 import { mockPipelines } from '../data/mockData';
 import type { PipelineSource, PipelineStatus } from '../types';
+import ErrorDetailsModal from '../components/ErrorDetailsModal';
+import HowItWorksModal from '../components/HowItWorksModal';
+import InfoTooltip from '../components/InfoTooltip';
+import { getTooltipContent } from '../utils/tooltipContent';
 import styles from './DataLineage.module.css';
 
 interface LineageNode {
@@ -31,6 +36,36 @@ interface LineageNode {
   lastUpdate: string;
   dataQuality: number;
   actualPipeline?: any; // Reference to actual pipeline for dependencies
+  destinationTypes?: string[]; // For destination routing logic
+  priority?: number; // For destination priority
+  // Enhanced error tracking
+  hasErrors?: boolean;
+  errorCount?: number;
+  pipelineData?: any; // Full pipeline data for error modal
+  // Microsoft Technology Stack Details
+  technology: string; // Specific Microsoft service (Azure Data Factory, Event Hubs, etc.)
+  resourceGroup: string;
+  subscriptionId: string;
+  region: string;
+  computeType?: string; // For processing nodes
+  storageType?: string; // For destination nodes
+  throughputUnits?: number; // For Event Hubs
+  partitionCount?: number;
+  retentionDays?: number;
+  protocols?: string[]; // HTTPS, AMQP, Kafka, etc.
+  authentication?: string; // Managed Identity, Service Principal, etc.
+  monitoring?: {
+    applicationInsights?: string;
+    logAnalyticsWorkspace?: string;
+    kustoCluster?: string;
+    alertRules?: string[];
+  };
+  dependencies?: {
+    keyVault?: string;
+    serviceAccounts?: string[];
+    externalApis?: string[];
+    networkConnections?: string[];
+  };
 }
 
 interface DataConnection {
@@ -46,6 +81,8 @@ interface DataConnection {
   const [selectedNode, setSelectedNode] = useState<LineageNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Create a stable random number generator for consistent data
@@ -72,89 +109,227 @@ interface DataConnection {
       const statusOptions: PipelineStatus[] = ['healthy', 'warning', 'failed'];
       const status = statusOptions[Math.floor(statusSeed * statusOptions.length)];
       
+      // Find a pipeline from this source to use for error data
+      const sourcePipelines = mockPipelines.filter(p => p.source === source);
+      const sourcePipeline = sourcePipelines.length > 0 ? sourcePipelines[0] : null;
+      
       nodes.push({
         id: `source-${source}`,
         name: source,
         type: 'source',
         source,
-        x: 100,
-        y: 60 + index * 60,
+        x: 50,
+        y: 80 + index * 80,
         status,
         recordsPerSecond: Math.floor(seededRandom(`${source}-records`) * 1000) + 100,
         avgProcessingTime: Math.floor(seededRandom(`${source}-time`) * 500) + 50,
         connections: [],
         description: `Data ingestion from ${source} platform`,
         lastUpdate: new Date(Date.now() - seededRandom(`${source}-update`) * 3600000).toISOString(),
-        dataQuality: Math.floor(seededRandom(`${source}-quality`) * 20) + 80
+        dataQuality: Math.floor(seededRandom(`${source}-quality`) * 20) + 80,
+        pipelineData: sourcePipeline, // Add pipeline data for error modal
+        hasErrors: status === 'failed' || status === 'warning',
+        errorCount: sourcePipeline?.errorHistory?.length || (status === 'failed' ? 3 : status === 'warning' ? 1 : 0),
+        // Microsoft Technology Stack Details
+        technology: source === 'Office365' || source === 'Exchange' || source === 'Teams' || source === 'SharePoint' ? 'Microsoft Graph API' :
+                   source === 'AzureAD' ? 'Azure Active Directory Logs' :
+                   source === 'LinkedIn' || source === 'Twitter' ? 'Azure Event Hubs' :
+                   source === 'GitHub' ? 'GitHub REST API → Azure Logic Apps' :
+                   source === 'ThreatIntel' ? 'Microsoft Defender for Threat Intelligence API' :
+                   'Azure Event Hubs',
+        resourceGroup: 'rg-mstic-prod-eastus2',
+        subscriptionId: 'mstic-prod-subscription',
+        region: 'East US 2',
+        throughputUnits: ['LinkedIn', 'Twitter'].includes(source) ? 20 : 10,
+        partitionCount: ['LinkedIn', 'Twitter'].includes(source) ? 32 : 16,
+        retentionDays: 7,
+        protocols: source === 'Office365' || source === 'AzureAD' ? ['HTTPS', 'OAuth 2.0'] :
+                  source === 'GitHub' ? ['HTTPS', 'Webhook'] :
+                  ['HTTPS', 'AMQP 1.0', 'Kafka'],
+        authentication: source === 'Office365' || source === 'AzureAD' ? 'Managed Identity + Application Registration' :
+                       source === 'GitHub' ? 'GitHub App + Personal Access Token' :
+                       'Managed Identity + Shared Access Key',
+        monitoring: {
+          applicationInsights: 'ai-mstic-ingestion-prod',
+          logAnalyticsWorkspace: 'law-mstic-prod-eastus2',
+          kustoCluster: 'msticdata.eastus2.kusto.windows.net',
+          alertRules: [`${source}_ingestion_failure`, `${source}_throughput_low`, `${source}_latency_high`]
+        },
+        dependencies: {
+          keyVault: 'kv-mstic-secrets-prod',
+          serviceAccounts: [`sa-${source.toLowerCase()}-ingestion`],
+          externalApis: source === 'Office365' ? ['graph.microsoft.com'] :
+                       source === 'GitHub' ? ['api.github.com'] :
+                       source === 'LinkedIn' ? ['api.linkedin.com'] :
+                       source === 'Twitter' ? ['api.twitter.com'] :
+                       [],
+          networkConnections: ['Virtual Network Gateway', 'Private Endpoints', 'Service Endpoints']
+        }
       });
     });
 
     // Processing pipelines (middle section)
     const pipelineTypes = [
-      { type: 'ingestion', x: 300 },
-      { type: 'transformation', x: 450 },
-      { type: 'enrichment', x: 600 }
+      { type: 'ingestion', x: 350 },
+      { type: 'transformation', x: 650 },
+      { type: 'enrichment', x: 950 }
     ];
 
     pipelineTypes.forEach(({ type, x }) => {
-      // Show all pipelines, don't filter by selectedSource here
-      const allPipelines = mockPipelines;
-      const typeNodes = allPipelines
-        .slice(0, 8)
-        .map((pipeline, index) => ({
-          id: `${type}-${pipeline.id}`, // Make ID unique per type
-          name: `${type.charAt(0).toUpperCase() + type.slice(1)} - ${pipeline.name.split(' ').slice(0, 3).join(' ')}`,
-          type: type as 'ingestion' | 'transformation' | 'enrichment',
-          source: pipeline.source,
-          x,
-          y: 60 + index * 60,
-          status: pipeline.status,
-          recordsPerSecond: Math.floor(pipeline.recordsProcessed / 60),
-          avgProcessingTime: pipeline.avgProcessingTime,
-          connections: [],
-          description: `${type} pipeline: ${pipeline.name}`,
-          lastUpdate: pipeline.lastRun.toISOString(),
-          dataQuality: Math.floor(seededRandom(`${pipeline.id}-quality`) * 15) + 85,
-          actualPipeline: pipeline // Store reference to actual pipeline for dependencies
-        }));
+      // Ensure we have pipelines from all sources by selecting pipelines more evenly
+      const sourceGroups: { [key: string]: any[] } = {};
+      mockPipelines.forEach(pipeline => {
+        if (!sourceGroups[pipeline.source]) {
+          sourceGroups[pipeline.source] = [];
+        }
+        sourceGroups[pipeline.source].push(pipeline);
+      });
+      
+      // Select 1 pipeline from each source (up to 10 sources)
+      const selectedPipelines: any[] = [];
+      sources.forEach(source => {
+        const sourcePipelines = sourceGroups[source] || [];
+        if (sourcePipelines.length > 0) {
+          // Use seeded random to get consistent selection for each type
+          const index = Math.floor(seededRandom(`${type}-${source}`) * sourcePipelines.length);
+          selectedPipelines.push(sourcePipelines[index]);
+        }
+      });
+      
+      const typeNodes = selectedPipelines.map((pipeline, index) => ({
+        id: `${type}-${pipeline.id}`, // Make ID unique per type
+        name: `${type.charAt(0).toUpperCase() + type.slice(1)} - ${pipeline.name.split(' ').slice(0, 3).join(' ')}`,
+        type: type as 'ingestion' | 'transformation' | 'enrichment',
+        source: pipeline.source,
+        x,
+        y: 80 + index * 80,
+        status: pipeline.status,
+        recordsPerSecond: Math.floor(pipeline.recordsProcessed / 60),
+        avgProcessingTime: pipeline.avgProcessingTime,
+        connections: [],
+        description: `${type} pipeline: ${pipeline.name}`,
+        lastUpdate: pipeline.lastRun.toISOString(),
+        dataQuality: Math.floor(seededRandom(`${pipeline.id}-quality`) * 15) + 85,
+        actualPipeline: pipeline, // Store reference to actual pipeline for dependencies
+        pipelineData: pipeline, // Full pipeline data for error modal
+        hasErrors: pipeline.status === 'failed' || pipeline.status === 'warning',
+        errorCount: pipeline.errorHistory?.length || 0,
+        // Microsoft Technology Stack Details for Processing Pipelines
+        technology: type === 'ingestion' ? 'Azure Data Factory' :
+                   type === 'transformation' ? 'Azure Synapse Analytics (Spark Pools)' :
+                   'Azure Databricks + Azure Functions',
+        resourceGroup: `rg-mstic-${type}-prod-eastus2`,
+        subscriptionId: 'mstic-prod-subscription',
+        region: 'East US 2',
+        computeType: type === 'ingestion' ? 'Integration Runtime (Auto-resolve)' :
+                    type === 'transformation' ? 'Spark Pool (Medium: 8-32 nodes)' :
+                    'Databricks Cluster (Standard_DS3_v2)',
+        partitionCount: type === 'transformation' ? 64 : 32,
+        retentionDays: 30,
+        protocols: type === 'ingestion' ? ['HTTPS', 'ODBC', 'JDBC'] :
+                  type === 'transformation' ? ['Spark SQL', 'Delta Lake'] :
+                  ['Python', 'Scala', 'Delta Lake', 'MLflow'],
+        authentication: 'Managed Identity + Azure Key Vault',
+        monitoring: {
+          applicationInsights: `ai-mstic-${type}-prod`,
+          logAnalyticsWorkspace: 'law-mstic-prod-eastus2',
+          kustoCluster: 'msticdata.eastus2.kusto.windows.net',
+          alertRules: [`${type}_pipeline_failure`, `${type}_processing_delay`, `${type}_resource_exhaustion`]
+        },
+        dependencies: {
+          keyVault: 'kv-mstic-secrets-prod',
+          serviceAccounts: [`sa-${type}-${pipeline.source.toLowerCase()}`],
+          externalApis: type === 'enrichment' ? ['threatintelligence.microsoft.com', 'virusshare.com'] : [],
+          networkConnections: ['Azure Virtual Network', 'Private Link', 'Managed Virtual Network']
+        }
+      }));
         
       nodes.push(...typeNodes);
     });
 
-    // Destinations (right side)
+    // Destinations (right side) - organized by purpose for realistic MSTIC routing
     const destinations = [
-      'MSTIC Data Lake',
-      'Threat Intelligence DB', 
-      'Security Analytics Store',
-      'Alert System',
-      'ML Training Data',
-      'Compliance Archive',
-      'Real-time Dashboard',
-      'API Gateway'
+      { name: 'MSTIC Data Lake', types: ['storage', 'archive'], priority: 1 },
+      { name: 'Threat Intelligence DB', types: ['threat', 'intel'], priority: 1 },
+      { name: 'Security Analytics Store', types: ['analytics', 'ml'], priority: 2 },
+      { name: 'Alert System', types: ['realtime', 'alerts'], priority: 1 },
+      { name: 'ML Training Data', types: ['ml', 'training'], priority: 3 },
+      { name: 'Compliance Archive', types: ['compliance', 'audit'], priority: 2 },
+      { name: 'Real-time Dashboard', types: ['realtime', 'dashboard'], priority: 1 },
+      { name: 'API Gateway', types: ['api', 'external'], priority: 2 }
     ];
 
     destinations.forEach((dest, index) => {
-      const statusSeed = seededRandom(`${dest}-status`);
+      const statusSeed = seededRandom(`${dest.name}-status`);
       const statusOptions: PipelineStatus[] = ['healthy', 'warning'];
       const status = statusOptions[Math.floor(statusSeed * statusOptions.length)];
       
       nodes.push({
-        id: `dest-${dest}`,
-        name: dest,
+        id: `dest-${dest.name}`,
+        name: dest.name,
         type: 'destination',
-        x: 800,
-        y: 60 + index * 60,
+        x: 1250,
+        y: 80 + index * 80,
         status,
-        recordsPerSecond: Math.floor(seededRandom(`${dest}-records`) * 500) + 50,
-        avgProcessingTime: Math.floor(seededRandom(`${dest}-time`) * 100) + 20,
+        recordsPerSecond: Math.floor(seededRandom(`${dest.name}-records`) * 500) + 50,
+        avgProcessingTime: Math.floor(seededRandom(`${dest.name}-time`) * 100) + 20,
         connections: [],
-        description: `Data destination: ${dest}`,
-        lastUpdate: new Date(Date.now() - seededRandom(`${dest}-update`) * 1800000).toISOString(),
-        dataQuality: Math.floor(seededRandom(`${dest}-quality`) * 10) + 90
+        description: `Data destination: ${dest.name}`,
+        lastUpdate: new Date(Date.now() - seededRandom(`${dest.name}-update`) * 1800000).toISOString(),
+        dataQuality: Math.floor(seededRandom(`${dest.name}-quality`) * 10) + 90,
+        destinationTypes: dest.types,
+        priority: dest.priority,
+        // Microsoft Technology Stack Details for Destinations
+        technology: dest.name.includes('Data Lake') ? 'Azure Data Lake Storage Gen2 (ADLS)' :
+                   dest.name.includes('DB') || dest.name.includes('Database') ? 'Azure SQL Database (Premium)' :
+                   dest.name.includes('Analytics') ? 'Azure Synapse Analytics (SQL Pool)' :
+                   dest.name.includes('Alert') ? 'Azure Logic Apps + Service Bus' :
+                   dest.name.includes('ML') ? 'Azure Machine Learning Studio' :
+                   dest.name.includes('Compliance') ? 'Azure Purview + Archive Storage' :
+                   dest.name.includes('Dashboard') ? 'Power BI Premium + Azure SignalR' :
+                   'Azure API Management + Application Gateway',
+        resourceGroup: `rg-mstic-storage-prod-eastus2`,
+        subscriptionId: 'mstic-prod-subscription',
+        region: 'East US 2',
+        storageType: dest.name.includes('Data Lake') ? 'Hot (Standard LRS) + Cool Archive' :
+                    dest.name.includes('Analytics') ? 'Premium SSD + Columnstore Index' :
+                    dest.name.includes('ML') ? 'Standard SSD + Blob Storage' :
+                    dest.name.includes('Compliance') ? 'Archive Storage (GRS)' :
+                    'Standard Storage (ZRS)',
+        partitionCount: dest.name.includes('Data Lake') ? 128 :
+                       dest.name.includes('Analytics') ? 256 :
+                       dest.name.includes('Alert') ? 64 : 32,
+        retentionDays: dest.name.includes('Compliance') ? 2555 : // 7 years
+                      dest.name.includes('Archive') ? 365 :
+                      dest.name.includes('ML') ? 180 :
+                      90,
+        protocols: dest.name.includes('Data Lake') ? ['HTTPS', 'REST API', 'ABFS'] :
+                  dest.name.includes('DB') ? ['TDS', 'HTTPS', 'ODBC'] :
+                  dest.name.includes('Alert') ? ['HTTPS', 'AMQP', 'Service Bus'] :
+                  dest.name.includes('API') ? ['HTTPS', 'OAuth 2.0', 'OpenAPI'] :
+                  ['HTTPS', 'WebSocket', 'REST API'],
+        authentication: dest.name.includes('Data Lake') ? 'Managed Identity + ACLs + RBAC' :
+                       dest.name.includes('DB') ? 'Managed Identity + SQL Authentication' :
+                       dest.name.includes('ML') ? 'Service Principal + Workspace MSI' :
+                       'Managed Identity + Key Vault',
+        monitoring: {
+          applicationInsights: `ai-mstic-destinations-prod`,
+          logAnalyticsWorkspace: 'law-mstic-prod-eastus2',
+          kustoCluster: 'msticdata.eastus2.kusto.windows.net',
+          alertRules: [`${dest.name.replace(/\s+/g, '_').toLowerCase()}_capacity`, 
+                      `${dest.name.replace(/\s+/g, '_').toLowerCase()}_latency`,
+                      `${dest.name.replace(/\s+/g, '_').toLowerCase()}_availability`]
+        },
+        dependencies: {
+          keyVault: 'kv-mstic-secrets-prod',
+          serviceAccounts: [`sa-${dest.name.replace(/\s+/g, '-').toLowerCase()}`],
+          externalApis: dest.name.includes('API') ? ['partner-apis.microsoft.com'] : [],
+          networkConnections: ['Private Endpoints', 'VNet Integration', 'Service Endpoints']
+        }
       });
     });
 
-    // Generate connections with realistic data flow based on source filtering
+    // Generate connections with realistic data flow and failure handling
     nodes.forEach(node => {
       if (node.type === 'source') {
         // Sources connect to ingestion pipelines of the same source
@@ -171,63 +346,97 @@ interface DataConnection {
             to: ingestionNode.id,
             volume,
             health: node.status === 'failed' ? 'error' : node.status === 'warning' ? 'warning' : 'healthy',
-            animated: true
+            animated: node.status !== 'failed' // No animation if source is failed
           });
           node.connections.push(ingestionNode.id);
           ingestionNode.connections.push(node.id);
         });
       } else if (node.type === 'ingestion') {
-        // Ingestion connects to transformation pipelines of the same source
-        const transformationNodes = nodes.filter(n => n.type === 'transformation' && n.source === node.source).slice(0, 2);
-        transformationNodes.forEach(transformNode => {
-          const connectionId = `${node.id}-${transformNode.id}`;
-          const volumeSeed = seededRandom(`${connectionId}-volume`);
-          const volumeOptions: ('medium' | 'high')[] = ['medium', 'high'];
-          const volume = volumeOptions[Math.floor(volumeSeed * volumeOptions.length)];
-          
-          connections.push({
-            id: connectionId,
-            from: node.id,
-            to: transformNode.id,
-            volume,
-            health: node.status === 'failed' ? 'error' : 'healthy',
-            animated: true
+        // Only connect if the source is not failed
+        const sourceNode = nodes.find(n => n.type === 'source' && n.source === node.source);
+        if (sourceNode?.status !== 'failed') {
+          const transformationNodes = nodes.filter(n => n.type === 'transformation' && n.source === node.source).slice(0, 2);
+          transformationNodes.forEach(transformNode => {
+            const connectionId = `${node.id}-${transformNode.id}`;
+            const volumeSeed = seededRandom(`${connectionId}-volume`);
+            const volumeOptions: ('medium' | 'high')[] = ['medium', 'high'];
+            const volume = volumeOptions[Math.floor(volumeSeed * volumeOptions.length)];
+            
+            connections.push({
+              id: connectionId,
+              from: node.id,
+              to: transformNode.id,
+              volume,
+              health: node.status === 'failed' ? 'error' : node.status === 'warning' ? 'warning' : 'healthy',
+              animated: node.status !== 'failed'
+            });
+            node.connections.push(transformNode.id);
+            transformNode.connections.push(node.id);
           });
-          node.connections.push(transformNode.id);
-          transformNode.connections.push(node.id);
-        });
+        }
       } else if (node.type === 'transformation') {
-        // Transformation connects to enrichment pipelines of the same source
-        const enrichmentNodes = nodes.filter(n => n.type === 'enrichment' && n.source === node.source).slice(0, 2);
-        enrichmentNodes.forEach(enrichNode => {
-          const connectionId = `${node.id}-${enrichNode.id}`;
-          connections.push({
-            id: connectionId,
-            from: node.id,
-            to: enrichNode.id,
-            volume: 'high',
-            health: 'healthy',
-            animated: true
+        // Only connect if upstream is healthy
+        const ingestionNode = nodes.find(n => n.type === 'ingestion' && n.source === node.source);
+        const sourceNode = nodes.find(n => n.type === 'source' && n.source === node.source);
+        if (sourceNode?.status !== 'failed' && ingestionNode?.status !== 'failed') {
+          const enrichmentNodes = nodes.filter(n => n.type === 'enrichment' && n.source === node.source).slice(0, 2);
+          enrichmentNodes.forEach(enrichNode => {
+            const connectionId = `${node.id}-${enrichNode.id}`;
+            connections.push({
+              id: connectionId,
+              from: node.id,
+              to: enrichNode.id,
+              volume: 'high',
+              health: node.status === 'failed' ? 'error' : node.status === 'warning' ? 'warning' : 'healthy',
+              animated: node.status !== 'failed'
+            });
+            node.connections.push(enrichNode.id);
+            enrichNode.connections.push(node.id);
           });
-          node.connections.push(enrichNode.id);
-          enrichNode.connections.push(node.id);
-        });
+        }
       } else if (node.type === 'enrichment') {
-        // Enrichment connects to destinations (cross-source connections allowed here)
-        const destNodes = nodes.filter(n => n.type === 'destination').slice(0, 3);
-        destNodes.forEach(destNode => {
-          const connectionId = `${node.id}-${destNode.id}`;
-          connections.push({
-            id: connectionId,
-            from: node.id,
-            to: destNode.id,
-            volume: 'high',
-            health: 'healthy',
-            animated: true
+        // Smart destination routing based on source type and pipeline health
+        const sourceNode = nodes.find(n => n.type === 'source' && n.source === node.source);
+        const ingestionNode = nodes.find(n => n.type === 'ingestion' && n.source === node.source);
+        const transformationNode = nodes.find(n => n.type === 'transformation' && n.source === node.source);
+        
+        // Only connect if entire pipeline upstream is healthy
+        if (sourceNode?.status !== 'failed' && ingestionNode?.status !== 'failed' && transformationNode?.status !== 'failed') {
+          // Smart routing based on data source type
+          const destinationMappings = {
+            'LinkedIn': ['Threat Intelligence DB', 'MSTIC Data Lake', 'ML Training Data'],
+            'Twitter': ['Real-time Dashboard', 'Alert System', 'Security Analytics Store'],
+            'Office365': ['Compliance Archive', 'Security Analytics Store', 'Alert System'],
+            'AzureAD': ['Security Analytics Store', 'Alert System', 'Threat Intelligence DB'],
+            'GitHub': ['Threat Intelligence DB', 'Security Analytics Store', 'API Gateway'],
+            'ThreatIntel': ['Alert System', 'Threat Intelligence DB', 'Real-time Dashboard'],
+            'Exchange': ['Compliance Archive', 'Security Analytics Store', 'Alert System'],
+            'Teams': ['Compliance Archive', 'Real-time Dashboard', 'Security Analytics Store'],
+            'SharePoint': ['Compliance Archive', 'MSTIC Data Lake', 'Security Analytics Store'],
+            'PowerBI': ['Real-time Dashboard', 'Security Analytics Store', 'API Gateway']
+          };
+          
+          const targetDestinations = destinationMappings[node.source as keyof typeof destinationMappings] || 
+                                   ['MSTIC Data Lake', 'Security Analytics Store', 'Alert System'];
+          
+          const destNodes = nodes.filter(n => 
+            n.type === 'destination' && targetDestinations.includes(n.name)
+          );
+          
+          destNodes.forEach(destNode => {
+            const connectionId = `${node.id}-${destNode.id}`;
+            connections.push({
+              id: connectionId,
+              from: node.id,
+              to: destNode.id,
+              volume: 'high',
+              health: node.status === 'failed' ? 'error' : node.status === 'warning' ? 'warning' : 'healthy',
+              animated: node.status !== 'failed'
+            });
+            node.connections.push(destNode.id);
+            destNode.connections.push(node.id);
           });
-          node.connections.push(destNode.id);
-          destNode.connections.push(node.id);
-        });
+        }
       }
     });
 
@@ -235,7 +444,16 @@ interface DataConnection {
   };
 
   // Use useMemo to prevent regeneration on every render, but regenerate all connections
-  const { nodes: allNodes, connections: allConnections } = useMemo(() => generateLineageData(), []);
+  const { nodes: allNodes, connections: allConnections } = useMemo(() => {
+    const result = generateLineageData();
+    const nodesWithErrors = result.nodes.filter(n => n.hasErrors);
+    console.log('Generated nodes:', {
+      total: result.nodes.length,
+      withErrors: nodesWithErrors.length,
+      errorNodes: nodesWithErrors.map(n => ({ id: n.id, name: n.name, status: n.status, errorCount: n.errorCount }))
+    });
+    return result;
+  }, []);
 
   // Filter connections based on selected source
   const filteredConnections = useMemo(() => {
@@ -243,15 +461,31 @@ interface DataConnection {
       return allConnections;
     }
     
-    // Only show connections that involve the selected source
+    // Show all connections that are part of the selected source's data flow path
     return allConnections.filter(conn => {
       const fromNode = allNodes.find(n => n.id === conn.from);
       const toNode = allNodes.find(n => n.id === conn.to);
-      return (fromNode?.source === selectedSource) || (toNode?.source === selectedSource) || 
-             (fromNode?.type === 'destination' && allConnections.some(c => {
-               const sourceNode = allNodes.find(n => n.id === c.from);
-               return c.to === fromNode.id && sourceNode?.source === selectedSource;
-             }));
+      
+      // Direct connections involving the selected source
+      if (fromNode?.source === selectedSource || toNode?.source === selectedSource) {
+        return true;
+      }
+      
+      // For destination connections, check if there's a path from the selected source
+      if (toNode?.type === 'destination') {
+        // Find if there's any pipeline in the enrichment stage that connects to this destination
+        // and that pipeline is part of the selected source flow
+        const enrichmentConnections = allConnections.filter(c => 
+          c.to === toNode.id && allNodes.find(n => n.id === c.from)?.type === 'enrichment'
+        );
+        
+        return enrichmentConnections.some(enrichConn => {
+          const enrichNode = allNodes.find(n => n.id === enrichConn.from);
+          return enrichNode?.source === selectedSource;
+        });
+      }
+      
+      return false;
     });
   }, [allNodes, allConnections, selectedSource]);
 
@@ -296,16 +530,38 @@ interface DataConnection {
   };
 
   const handleNodeClick = (node: LineageNode) => {
+    // Always set the selected node first - this fixes the double-click issue
     setSelectedNode(node);
     
     // If clicking on a source node, update the selectedSource filter
     if (node.type === 'source' && node.source) {
       setSelectedSource(node.source);
-      // Don't highlight path when filtering by source - just clear any existing highlights
+      // Clear any existing highlights to show the full source flow
       setHighlightedPath([]);
     } else {
       // For non-source nodes, highlight the path
       highlightPath(node.id);
+    }
+  };
+
+  const handleNodeDoubleClick = (node: LineageNode) => {
+    console.log('Node double-clicked:', {
+      id: node.id,
+      name: node.name,
+      status: node.status,
+      hasErrors: node.hasErrors,
+      errorCount: node.errorCount,
+      hasPipelineData: !!node.pipelineData,
+      pipelineDataKeys: node.pipelineData ? Object.keys(node.pipelineData) : []
+    });
+    
+    // Open error details modal on double-click for failed/warning nodes
+    if ((node.status === 'failed' || node.status === 'warning') && node.pipelineData) {
+      console.log('Opening error modal for node:', node.name);
+      setSelectedNode(node);
+      setShowErrorModal(true);
+    } else {
+      console.log('Not opening modal - conditions not met');
     }
   };
 
@@ -325,14 +581,10 @@ interface DataConnection {
       if (node.type === 'source' && node.source !== selectedSource) {
         return '#333'; // Dimmed color for non-selected sources
       }
-      // For pipeline nodes, check if they have connections from the selected source
+      // For pipeline nodes, check if they belong to the selected source
       if (node.type !== 'source' && node.type !== 'destination') {
-        // Check if this node has any connections in the current filtered connections
-        const hasConnections = connections.some(conn => 
-          conn.to === node.id || conn.from === node.id
-        );
-        if (hasConnections) {
-          // Normal colors for connected pipeline nodes
+        if (node.source === selectedSource) {
+          // Normal colors for pipeline nodes of the selected source
           switch (node.type) {
             case 'ingestion': return '#52c41a';
             case 'transformation': return '#faad14';
@@ -340,7 +592,7 @@ interface DataConnection {
             default: return '#888';
           }
         } else {
-          return '#333'; // Dim disconnected pipeline nodes
+          return '#333'; // Dim pipeline nodes from other sources
         }
       }
       // Destinations: check if they have connections in current filtered set
@@ -393,8 +645,21 @@ interface DataConnection {
   return (
     <div className={styles.dataLineage}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Interactive Data Lineage</h1>
-        <p className={styles.subtitle}>Visualize and explore data flow through your threat intelligence pipelines</p>
+        <div className={styles.headerContent}>
+          <div className={styles.titleSection}>
+            <h1 className={styles.title}>
+              Interactive Data Lineage
+              <button 
+                className={styles.infoButton}
+                onClick={() => setShowHowItWorks(true)}
+                title="How does this system work?"
+              >
+                <HelpCircle size={18} />
+              </button>
+            </h1>
+            <p className={styles.subtitle}>Visualize and explore data flow through your threat intelligence pipelines</p>
+          </div>
+        </div>
       </div>
 
       <div className={styles.mainContent}>
@@ -429,6 +694,23 @@ interface DataConnection {
             }}
           >
             Clear Selection
+          </button>
+          <button 
+            className={styles.clearButton}
+            onClick={() => {
+              // Find a node with errors for testing
+              const errorNode = allNodes.find(n => n.hasErrors && n.pipelineData);
+              if (errorNode) {
+                console.log('Test: Opening modal for', errorNode.name);
+                setSelectedNode(errorNode);
+                setShowErrorModal(true);
+              } else {
+                console.log('Test: No error nodes found');
+              }
+            }}
+            style={{ background: '#dc3545' }}
+          >
+            Test Error Modal
           </button>
         </div>
 
@@ -478,7 +760,7 @@ interface DataConnection {
               <svg 
                 ref={svgRef}
                 className={styles.lineageSvg}
-                viewBox="0 0 1000 800"
+                viewBox="0 0 1600 900"
                 preserveAspectRatio="xMidYMid meet"
               >
                 {/* Animated gradient definitions */}
@@ -541,11 +823,11 @@ interface DataConnection {
                 </defs>
 
                 {/* Section labels */}
-                <text x="170" y="30" className={styles.sectionLabel}>Data Sources</text>
-                <text x="370" y="30" className={styles.sectionLabel}>Ingestion</text>
-                <text x="520" y="30" className={styles.sectionLabel}>Transformation</text>
-                <text x="670" y="30" className={styles.sectionLabel}>Enrichment</text>
-                <text x="870" y="30" className={styles.sectionLabel}>Destinations</text>
+                <text x="120" y="50" className={styles.sectionLabel}>Data Sources</text>
+                <text x="420" y="50" className={styles.sectionLabel}>Ingestion</text>
+                <text x="720" y="50" className={styles.sectionLabel}>Transformation</text>
+                <text x="1020" y="50" className={styles.sectionLabel}>Enrichment</text>
+                <text x="1320" y="50" className={styles.sectionLabel}>Destinations</text>
 
                 {/* Render connections */}
                 {connections
@@ -562,10 +844,10 @@ interface DataConnection {
                     return (
                       <g key={conn.id}>
                         <line
-                          x1={fromNode.x + 140}
-                          y1={fromNode.y + 20}
-                          x2={toNode.x}
-                          y2={toNode.y + 20}
+                          x1={fromNode.x + 180}
+                          y1={fromNode.y + 22}
+                          x2={toNode.x - 20}
+                          y2={toNode.y + 22}
                           stroke={style.stroke}
                           strokeWidth={style.strokeWidth}
                           opacity={style.opacity}
@@ -582,7 +864,7 @@ interface DataConnection {
                             <animateMotion
                               dur="3s"
                               repeatCount="indefinite"
-                              path={`M${fromNode.x + 140},${fromNode.y + 20} L${toNode.x},${toNode.y + 20}`}
+                              path={`M${fromNode.x + 180},${fromNode.y + 22} L${toNode.x - 20},${toNode.y + 22}`}
                             />
                           </circle>
                         )}
@@ -599,14 +881,15 @@ interface DataConnection {
                     key={node.id}
                     className={styles.nodeGroup}
                     onClick={() => handleNodeClick(node)}
+                    onDoubleClick={() => handleNodeDoubleClick(node)}
                     onMouseEnter={() => setHoveredNode(node.id)}
                     onMouseLeave={() => setHoveredNode(null)}
                   >
                     <rect
                       x={node.x}
                       y={node.y}
-                      width="140"
-                      height="40"
+                      width="180"
+                      height="45"
                       fill={getNodeColor(node)}
                       rx="6"
                       className={`${styles.nodeRect} ${selectedNode?.id === node.id ? styles.selectedNode : ''}`}
@@ -615,22 +898,38 @@ interface DataConnection {
                       strokeWidth={isSelectedSource ? "2" : "0"}
                     />
                     <text
-                      x={node.x + 70}
-                      y={node.y + 16}
+                      x={node.x + 90}
+                      y={node.y + 18}
                       textAnchor="middle"
                       fill="white"
-                      fontSize="10"
+                      fontSize="11"
                       fontWeight="600"
                       className={styles.nodeText}
                     >
-                      {node.name.length > 16 ? `${node.name.substring(0, 13)}...` : node.name}
+                      {node.name.length > 20 ? `${node.name.substring(0, 17)}...` : node.name}
                     </text>
+                    
+                    {/* Microsoft Technology Label */}
                     <text
-                      x={node.x + 70}
+                      x={node.x + 90}
                       y={node.y + 30}
                       textAnchor="middle"
-                      fill="rgba(255,255,255,0.8)"
+                      fill="#0078d4"
                       fontSize="8"
+                      fontWeight="500"
+                    >
+                      {node.technology.length > 30 ? 
+                        node.technology.split(' ')[0] + (node.technology.includes('Azure') ? ' ' + node.technology.split(' ')[1] : '') :
+                        node.technology
+                      }
+                    </text>
+                    
+                    <text
+                      x={node.x + 90}
+                      y={node.y + 40}
+                      textAnchor="middle"
+                      fill="rgba(255,255,255,0.8)"
+                      fontSize="9"
                       className={styles.nodeSubtext}
                     >
                       {node.recordsPerSecond}/s
@@ -638,13 +937,76 @@ interface DataConnection {
                     
                     {/* Status indicator */}
                     <circle
-                      cx={node.x + 125}
-                      cy={node.y + 10}
-                      r="4"
+                      cx={node.x + 160}
+                      cy={node.y + 12}
+                      r="5"
                       fill={node.status === 'healthy' ? '#52c41a' :
                             node.status === 'warning' ? '#faad14' :
                             node.status === 'failed' ? '#ef4444' : '#1890ff'}
                     />
+                    
+                    {/* ENHANCED Error count indicator - BIGGER and MORE VISIBLE */}
+                    {node.hasErrors && node.errorCount && node.errorCount > 0 && (
+                      <g>
+                        <circle
+                          cx={node.x + 170}
+                          cy={node.y + 35}
+                          r="12"
+                          fill="#ef4444"
+                          stroke="#ffffff"
+                          strokeWidth="2"
+                        />
+                        <text
+                          x={node.x + 170}
+                          y={node.y + 40}
+                          textAnchor="middle"
+                          fill="white"
+                          fontSize="11"
+                          fontWeight="700"
+                        >
+                          {node.errorCount > 9 ? '9+' : node.errorCount}
+                        </text>
+                      </g>
+                    )}
+                    
+                    {/* Enhanced visual indicator for nodes with errors - THICKER BORDER */}
+                    {node.hasErrors && (
+                      <rect
+                        x={node.x - 3}
+                        y={node.y - 3}
+                        width="186"
+                        height="51"
+                        fill="none"
+                        stroke={node.status === 'failed' ? '#ef4444' : '#faad14'}
+                        strokeWidth="3"
+                        rx="8"
+                        className={styles.errorBorder}
+                      />
+                    )}
+                    
+                    {/* Double-click hint for error nodes */}
+                    {node.hasErrors && hoveredNode === node.id && (
+                      <g>
+                        <rect
+                          x={node.x + 20}
+                          y={node.y + 55}
+                          width="140"
+                          height="20"
+                          fill="rgba(0, 0, 0, 0.8)"
+                          rx="4"
+                        />
+                        <text
+                          x={node.x + 90}
+                          y={node.y + 68}
+                          textAnchor="middle"
+                          fill="#faad14"
+                          fontSize="10"
+                          fontWeight="600"
+                        >
+                          Double-click for error details
+                        </text>
+                      </g>
+                    )}
                   </g>
                   );
                 })}
@@ -654,7 +1016,7 @@ interface DataConnection {
                   if (hoveredNode !== node.id) return null;
                   
                   // Smart positioning: if node is too far right, show tooltip on the left
-                  const tooltipX = node.x > 600 ? node.x - 210 : node.x + 150;
+                  const tooltipX = node.x > 1000 ? node.x - 210 : node.x + 190;
                   const tooltipY = node.y - 10;
                   
                   return (
@@ -662,8 +1024,8 @@ interface DataConnection {
                       <rect
                         x={tooltipX}
                         y={tooltipY}
-                        width="200"
-                        height="60"
+                        width="220"
+                        height="85"
                         fill="rgba(0,0,0,0.95)"
                         rx="6"
                         stroke="#555"
@@ -681,10 +1043,11 @@ interface DataConnection {
                       <text
                         x={tooltipX + 10}
                         y={tooltipY + 28}
-                        fill="#ccc"
+                        fill="#0078d4"
                         fontSize="9"
+                        fontWeight="500"
                       >
-                        Records/sec: {node.recordsPerSecond}
+                        {node.technology}
                       </text>
                       <text
                         x={tooltipX + 10}
@@ -692,7 +1055,7 @@ interface DataConnection {
                         fill="#ccc"
                         fontSize="9"
                       >
-                        Avg Time: {node.avgProcessingTime}ms
+                        Records/sec: {node.recordsPerSecond}
                       </text>
                       <text
                         x={tooltipX + 10}
@@ -700,7 +1063,23 @@ interface DataConnection {
                         fill="#ccc"
                         fontSize="9"
                       >
-                        Quality: {node.dataQuality}%
+                        Avg Time: {node.avgProcessingTime}ms
+                      </text>
+                      <text
+                        x={tooltipX + 10}
+                        y={tooltipY + 64}
+                        fill="#ccc"
+                        fontSize="9"
+                      >
+                        Quality: {node.dataQuality}% | RG: {node.resourceGroup.split('-').slice(-2).join('-')}
+                      </text>
+                      <text
+                        x={tooltipX + 10}
+                        y={tooltipY + 76}
+                        fill="#52c41a"
+                        fontSize="8"
+                      >
+                        Click for detailed tech specs →
                       </text>
                     </g>
                   );
@@ -729,7 +1108,15 @@ interface DataConnection {
                       <Activity size={16} />
                       <div>
                         <div className={styles.metricValue}>{selectedNode.recordsPerSecond}/s</div>
-                        <div className={styles.metricLabel}>Records per second</div>
+                        <div className={styles.metricLabel}>
+                          Records per second
+                          <InfoTooltip 
+                            content={getTooltipContent('recordsPerSecond')?.content || "Current throughput rate"}
+                            title={getTooltipContent('recordsPerSecond')?.title}
+                            detailedContent={getTooltipContent('recordsPerSecond')?.detailedContent}
+                            size="small"
+                          />
+                        </div>
                       </div>
                     </div>
                     
@@ -737,7 +1124,15 @@ interface DataConnection {
                       <Clock size={16} />
                       <div>
                         <div className={styles.metricValue}>{selectedNode.avgProcessingTime}ms</div>
-                        <div className={styles.metricLabel}>Avg processing time</div>
+                        <div className={styles.metricLabel}>
+                          Avg processing time
+                          <InfoTooltip 
+                            content={getTooltipContent('avgProcessingTime')?.content || "Mean processing time per record"}
+                            title={getTooltipContent('avgProcessingTime')?.title}
+                            detailedContent={getTooltipContent('avgProcessingTime')?.detailedContent}
+                            size="small"
+                          />
+                        </div>
                       </div>
                     </div>
                     
@@ -745,7 +1140,15 @@ interface DataConnection {
                       <BarChart3 size={16} />
                       <div>
                         <div className={styles.metricValue}>{selectedNode.dataQuality}%</div>
-                        <div className={styles.metricLabel}>Data quality</div>
+                        <div className={styles.metricLabel}>
+                          Data quality
+                          <InfoTooltip 
+                            content={getTooltipContent('dataQuality')?.content || "Data completeness and accuracy score"}
+                            title={getTooltipContent('dataQuality')?.title}
+                            detailedContent={getTooltipContent('dataQuality')?.detailedContent}
+                            size="small"
+                          />
+                        </div>
                       </div>
                     </div>
                     
@@ -753,7 +1156,15 @@ interface DataConnection {
                       <Zap size={16} />
                       <div>
                         <div className={styles.metricValue}>{selectedNode.connections.length}</div>
-                        <div className={styles.metricLabel}>Connections</div>
+                        <div className={styles.metricLabel}>
+                          Connections
+                          <InfoTooltip 
+                            content={getTooltipContent('connections')?.content || "Number of connected pipeline components"}
+                            title={getTooltipContent('connections')?.title}
+                            detailedContent={getTooltipContent('connections')?.detailedContent}
+                            size="small"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -790,6 +1201,321 @@ interface DataConnection {
                         {new Date(selectedNode.lastUpdate).toLocaleString()}
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* Microsoft Technology Stack Details */}
+                <div className={styles.detailSection}>
+                  <h4 className={styles.detailTitle}>🏗️ Microsoft Technology Stack</h4>
+                  <div className={styles.techDetails}>
+                    <div className={styles.techItem}>
+                      <strong>Service:</strong> {selectedNode.technology}
+                      {selectedNode.technology.includes('Event Hub') && (
+                        <InfoTooltip 
+                          content={getTooltipContent('eventHubs')?.content || "Real-time data streaming platform"}
+                          title={getTooltipContent('eventHubs')?.title}
+                          detailedContent={getTooltipContent('eventHubs')?.detailedContent}
+                          size="small"
+                        />
+                      )}
+                      {selectedNode.technology.includes('Data Factory') && (
+                        <InfoTooltip 
+                          content={getTooltipContent('azureDataFactory')?.content || "Cloud-based data integration service"}
+                          title={getTooltipContent('azureDataFactory')?.title}
+                          detailedContent={getTooltipContent('azureDataFactory')?.detailedContent}
+                          size="small"
+                        />
+                      )}
+                      {selectedNode.technology.includes('Stream Analytics') && (
+                        <InfoTooltip 
+                          content={getTooltipContent('streamAnalytics')?.content || "Real-time analytics service"}
+                          title={getTooltipContent('streamAnalytics')?.title}
+                          detailedContent={getTooltipContent('streamAnalytics')?.detailedContent}
+                          size="small"
+                        />
+                      )}
+                      {selectedNode.technology.includes('Cosmos') && (
+                        <InfoTooltip 
+                          content={getTooltipContent('cosmosDB')?.content || "Globally distributed database service"}
+                          title={getTooltipContent('cosmosDB')?.title}
+                          detailedContent={getTooltipContent('cosmosDB')?.detailedContent}
+                          size="small"
+                        />
+                      )}
+                      {selectedNode.technology.includes('Data Lake') && (
+                        <InfoTooltip 
+                          content={getTooltipContent('dataLake')?.content || "Scalable data storage for big data"}
+                          title={getTooltipContent('dataLake')?.title}
+                          detailedContent={getTooltipContent('dataLake')?.detailedContent}
+                          size="small"
+                        />
+                      )}
+                    </div>
+                    <div className={styles.techItem}>
+                      <strong>Resource Group:</strong> {selectedNode.resourceGroup}
+                    </div>
+                    <div className={styles.techItem}>
+                      <strong>Region:</strong> {selectedNode.region}
+                    </div>
+                    {selectedNode.computeType && (
+                      <div className={styles.techItem}>
+                        <strong>Compute:</strong> {selectedNode.computeType}
+                      </div>
+                    )}
+                    {selectedNode.storageType && (
+                      <div className={styles.techItem}>
+                        <strong>Storage:</strong> {selectedNode.storageType}
+                      </div>
+                    )}
+                    {selectedNode.throughputUnits && (
+                      <div className={styles.techItem}>
+                        <strong>Throughput Units:</strong> {selectedNode.throughputUnits}
+                      </div>
+                    )}
+                    <div className={styles.techItem}>
+                      <strong>Partitions:</strong> {selectedNode.partitionCount}
+                    </div>
+                    <div className={styles.techItem}>
+                      <strong>Retention:</strong> {selectedNode.retentionDays} days
+                    </div>
+                  </div>
+                </div>
+
+                {/* Protocols & Authentication */}
+                <div className={styles.detailSection}>
+                  <h4 className={styles.detailTitle}>🔐 Protocols & Security</h4>
+                  <div className={styles.techDetails}>
+                    <div className={styles.techItem}>
+                      <strong>Protocols:</strong> 
+                      <InfoTooltip 
+                        content="Communication protocols used for data transfer and API access"
+                        title="Communication Protocols"
+                        detailedContent="Includes HTTPS for secure web communication, AMQP for messaging, and Kafka for streaming protocols."
+                        size="small"
+                      />
+                      <div className={styles.tagList}>
+                        {selectedNode.protocols?.map((protocol, idx) => (
+                          <span key={idx} className={styles.protocolTag}>{protocol}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className={styles.techItem}>
+                      <strong>Authentication:</strong> {selectedNode.authentication}
+                      <InfoTooltip 
+                        content={getTooltipContent('managedIdentity')?.content || "Azure's secure authentication solution"}
+                        title={getTooltipContent('managedIdentity')?.title}
+                        detailedContent={getTooltipContent('managedIdentity')?.detailedContent}
+                        size="small"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Monitoring & Observability */}
+                <div className={styles.detailSection}>
+                  <h4 className={styles.detailTitle}>📊 Monitoring & Observability</h4>
+                  <div className={styles.techDetails}>
+                    <div className={styles.techItem}>
+                      <strong>Application Insights:</strong> {selectedNode.monitoring?.applicationInsights}
+                      <InfoTooltip 
+                        content={getTooltipContent('applicationInsights')?.content || "Application performance monitoring service"}
+                        title={getTooltipContent('applicationInsights')?.title}
+                        detailedContent={getTooltipContent('applicationInsights')?.detailedContent}
+                        size="small"
+                      />
+                    </div>
+                    <div className={styles.techItem}>
+                      <strong>Log Analytics:</strong> {selectedNode.monitoring?.logAnalyticsWorkspace}
+                      <InfoTooltip 
+                        content={getTooltipContent('logAnalytics')?.content || "Centralized logging service"}
+                        title={getTooltipContent('logAnalytics')?.title}
+                        detailedContent={getTooltipContent('logAnalytics')?.detailedContent}
+                        size="small"
+                      />
+                    </div>
+                    <div className={styles.techItem}>
+                      <strong>Kusto Cluster:</strong> {selectedNode.monitoring?.kustoCluster}
+                      <InfoTooltip 
+                        content={getTooltipContent('kusto')?.content || "Fast data exploration service"}
+                        title={getTooltipContent('kusto')?.title}
+                        detailedContent={getTooltipContent('kusto')?.detailedContent}
+                        size="small"
+                      />
+                    </div>
+                    <div className={styles.techItem}>
+                      <strong>Alert Rules:</strong>
+                      <InfoTooltip 
+                        content="Automated monitoring rules that trigger notifications based on system conditions"
+                        title="Alert Rules"
+                        detailedContent="Include performance thresholds, error rate monitoring, resource utilization alerts, and custom business logic triggers."
+                        size="small"
+                      />
+                      <div className={styles.alertList}>
+                        {selectedNode.monitoring?.alertRules?.map((rule, idx) => (
+                          <span key={idx} className={styles.alertRule}>{rule}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dependencies & External Connections */}
+                <div className={styles.detailSection}>
+                  <h4 className={styles.detailTitle}>🔗 Dependencies & External APIs</h4>
+                  <div className={styles.techDetails}>
+                    <div className={styles.techItem}>
+                      <strong>Key Vault:</strong> {selectedNode.dependencies?.keyVault}
+                    </div>
+                    <div className={styles.techItem}>
+                      <strong>Service Accounts:</strong>
+                      <div className={styles.tagList}>
+                        {selectedNode.dependencies?.serviceAccounts?.map((sa, idx) => (
+                          <span key={idx} className={styles.serviceTag}>{sa}</span>
+                        ))}
+                      </div>
+                    </div>
+                    {selectedNode.dependencies?.externalApis && selectedNode.dependencies.externalApis.length > 0 && (
+                      <div className={styles.techItem}>
+                        <strong>External APIs:</strong>
+                        <div className={styles.tagList}>
+                          {selectedNode.dependencies.externalApis.map((api, idx) => (
+                            <span key={idx} className={styles.apiTag}>{api}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className={styles.techItem}>
+                      <strong>Network:</strong>
+                      <div className={styles.tagList}>
+                        {selectedNode.dependencies?.networkConnections?.map((net, idx) => (
+                          <span key={idx} className={styles.networkTag}>{net}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Error Information & Status */}
+                {(selectedNode.hasErrors || selectedNode.status === 'failed' || selectedNode.status === 'warning') && (
+                  <div className={styles.detailSection}>
+                    <h4 className={styles.detailTitle}>
+                      🚨 Error Information & Diagnostics
+                      {selectedNode.errorCount && selectedNode.errorCount > 0 && (
+                        <span className={styles.errorBadge}>{selectedNode.errorCount} errors</span>
+                      )}
+                    </h4>
+                    
+                    {selectedNode.pipelineData?.currentError && (
+                      <div className={styles.errorDetails}>
+                        <div className={styles.errorHeader}>
+                          <AlertTriangle size={16} className={styles.errorIcon} />
+                          <div>
+                            <div className={styles.errorMessage}>
+                              {selectedNode.pipelineData.currentError.errorMessage}
+                            </div>
+                            <div className={styles.errorMeta}>
+                              <span className={styles.errorCode}>
+                                {selectedNode.pipelineData.currentError.errorCode}
+                              </span>
+                              <span className={styles.errorTime}>
+                                {new Date(selectedNode.pipelineData.currentError.timestamp).toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {selectedNode.pipelineData.currentError.suggestedActions && (
+                          <div className={styles.suggestedActions}>
+                            <strong>Quick Actions:</strong>
+                            <ul>
+                              {selectedNode.pipelineData.currentError.suggestedActions.slice(0, 3).map((action: string, idx: number) => (
+                                <li key={idx}>{action}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        <button 
+                          className={styles.viewFullErrorButton}
+                          onClick={() => setShowErrorModal(true)}
+                        >
+                          <AlertTriangle size={14} />
+                          View Complete Error Details
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Logging & Monitoring Links */}
+                <div className={styles.detailSection}>
+                  <h4 className={styles.detailTitle}>📊 Logs & Monitoring</h4>
+                  <div className={styles.monitoringLinks}>
+                    {selectedNode.pipelineData?.logReferences?.slice(0, 3).map((log: any, idx: number) => (
+                      <button 
+                        key={idx}
+                        className={styles.logLink}
+                        onClick={() => window.open(log.logUrl, '_blank')}
+                      >
+                        <Database size={14} />
+                        {log.logSystem.toUpperCase()} Logs
+                      </button>
+                    )) || (
+                      <>
+                        <button 
+                          className={styles.logLink}
+                          onClick={() => window.open(`https://portal.azure.com/#@microsoft.onmicrosoft.com/resource/subscriptions/${selectedNode.subscriptionId}/resourceGroups/${selectedNode.resourceGroup}/providers/Microsoft.Insights/components/${selectedNode.monitoring?.applicationInsights}/logs`, '_blank')}
+                        >
+                          <Database size={14} />
+                          Application Insights
+                        </button>
+                        <button 
+                          className={styles.logLink}
+                          onClick={() => window.open(`https://portal.azure.com/#@microsoft.onmicrosoft.com/resource/subscriptions/${selectedNode.subscriptionId}/resourceGroups/${selectedNode.resourceGroup}/providers/Microsoft.OperationalInsights/workspaces/${selectedNode.monitoring?.logAnalyticsWorkspace}`, '_blank')}
+                        >
+                          <Database size={14} />
+                          Log Analytics
+                        </button>
+                        <button 
+                          className={styles.logLink}
+                          onClick={() => window.open(`https://${selectedNode.monitoring?.kustoCluster}.kusto.windows.net`, '_blank')}
+                        >
+                          <Database size={14} />
+                          Kusto Explorer
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  
+                  {/* Team Communication Links */}
+                  <div className={styles.communicationLinks}>
+                    {selectedNode.pipelineData?.slackChannel && (
+                      <button 
+                        className={styles.commLink}
+                        onClick={() => window.open(`slack://channel?team=T123&id=${selectedNode.pipelineData.slackChannel}`, '_blank')}
+                      >
+                        <Database size={14} />
+                        Slack: #{selectedNode.pipelineData.slackChannel}
+                      </button>
+                    )}
+                    {selectedNode.pipelineData?.teamsChannel && (
+                      <button 
+                        className={styles.commLink}
+                        onClick={() => window.open(selectedNode.pipelineData.teamsChannel, '_blank')}
+                      >
+                        <Database size={14} />
+                        Teams Channel
+                      </button>
+                    )}
+                    {selectedNode.pipelineData?.grafanaUrl && (
+                      <button 
+                        className={styles.commLink}
+                        onClick={() => window.open(selectedNode.pipelineData.grafanaUrl, '_blank')}
+                      >
+                        <BarChart3 size={14} />
+                        Grafana Dashboard
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -842,6 +1568,33 @@ interface DataConnection {
           </div>
         </div>
       </div>
+      
+      {/* Error Details Modal */}
+      {showErrorModal && selectedNode && selectedNode.pipelineData && (
+        <ErrorDetailsModal
+          isOpen={showErrorModal}
+          onClose={() => setShowErrorModal(false)}
+          pipelineName={selectedNode.pipelineData.name}
+          currentError={selectedNode.pipelineData.currentError}
+          errorHistory={selectedNode.pipelineData.errorHistory || []}
+          logReferences={selectedNode.pipelineData.logReferences || []}
+          metricsHistory={selectedNode.pipelineData.metricsHistory || []}
+          impactAnalysis={selectedNode.pipelineData.impactAnalysis}
+          runbooks={selectedNode.pipelineData.runbooks || []}
+          oncallTeam={selectedNode.pipelineData.oncallTeam || 'MSTIC Data Engineering'}
+          slackChannel={selectedNode.pipelineData.slackChannel}
+          teamsChannel={selectedNode.pipelineData.teamsChannel}
+          dashboardUrl={selectedNode.pipelineData.dashboardUrl}
+          grafanaUrl={selectedNode.pipelineData.grafanaUrl}
+          healthCheckUrl={selectedNode.pipelineData.healthCheckUrl}
+        />
+      )}
+      
+      <HowItWorksModal 
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+        section="dataLineage"
+      />
     </div>
   );
 });

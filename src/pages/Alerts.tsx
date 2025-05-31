@@ -10,11 +10,22 @@ import {
   ChevronDown,
   ChevronRight,
   TrendingUp,
-  Timer
+  Timer,
+  HelpCircle,
+  ExternalLink,
+  Users,
+  Database,
+  Shield,
+  FileText,
+  MessageSquare,
+  Mail
 } from 'lucide-react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 import { mockAlerts, mockPipelines, mockAlertRules, mockAlertTrends } from '../data/mockData';
 import type { Alert, AlertRule } from '../types';
+import HowItWorksModal from '../components/HowItWorksModal';
+import InfoTooltip from '../components/InfoTooltip';
+import { getTooltipContent } from '../utils/tooltipContent';
 import styles from './Alerts.module.css';
 
 const Alerts = memo(() => {
@@ -26,6 +37,7 @@ const Alerts = memo(() => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedAlert, setExpandedAlert] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'active' | 'rules' | 'history'>('active');
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   // Filter and sort alerts
   const filteredAlerts = useMemo(() => {
@@ -168,7 +180,16 @@ const Alerts = memo(() => {
         </div>
         <div className={styles.cardContent}>
           <div className={styles.cardValue}>{criticalAlerts.length}</div>
-          <div className={styles.cardLabel}>Critical Alerts</div>
+          <div className={styles.cardLabel}>
+            Critical Alerts
+            {getTooltipContent('criticalAlerts') && (
+              <InfoTooltip 
+                {...getTooltipContent('criticalAlerts')!} 
+                position="bottom"
+                size="small"
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -178,7 +199,16 @@ const Alerts = memo(() => {
         </div>
         <div className={styles.cardContent}>
           <div className={styles.cardValue}>{warningAlerts.length}</div>
-          <div className={styles.cardLabel}>Warning Alerts</div>
+          <div className={styles.cardLabel}>
+            Warning Alerts
+            {getTooltipContent('warningAlerts') && (
+              <InfoTooltip 
+                {...getTooltipContent('warningAlerts')!} 
+                position="bottom"
+                size="small"
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -188,7 +218,16 @@ const Alerts = memo(() => {
         </div>
         <div className={styles.cardContent}>
           <div className={styles.cardValue}>{infoAlerts.length}</div>
-          <div className={styles.cardLabel}>Info Alerts</div>
+          <div className={styles.cardLabel}>
+            Info Alerts
+            {getTooltipContent('infoAlerts') && (
+              <InfoTooltip 
+                {...getTooltipContent('infoAlerts')!} 
+                position="bottom"
+                size="small"
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -198,7 +237,16 @@ const Alerts = memo(() => {
         </div>
         <div className={styles.cardContent}>
           <div className={styles.cardValue}>{mttr.toFixed(1)}h</div>
-          <div className={styles.cardLabel}>Mean Time to Resolution</div>
+          <div className={styles.cardLabel}>
+            Mean Time to Resolution
+            {getTooltipContent('mttr') && (
+              <InfoTooltip 
+                {...getTooltipContent('mttr')!} 
+                position="bottom"
+                size="small"
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -207,34 +255,104 @@ const Alerts = memo(() => {
   const renderTrendChart = () => (
     <div className={styles.chartSection}>
       <div className={styles.chartHeader}>
-        <h3 className={styles.chartTitle}>Alert Trends (Last 7 Days)</h3>
+        <h3 className={styles.chartTitle}>
+          Alert Trends (Last 7 Days)
+          {getTooltipContent('alertTrends') && (
+            <InfoTooltip 
+              {...getTooltipContent('alertTrends')!} 
+              position="bottom"
+              size="medium"
+            />
+          )}
+        </h3>
         <TrendingUp className={styles.chartIcon} />
       </div>
       <div className={styles.chartContainer}>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={mockAlertTrends}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+        <ResponsiveContainer width="100%" height={330}>
+          <BarChart data={mockAlertTrends} margin={{ top: 20, right: 30, left: 40, bottom: 60 }}>
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke="#404040" 
+              strokeOpacity={0.5}
+            />
             <XAxis 
               dataKey="date" 
-              stroke="var(--text-secondary)"
+              stroke="#cccccc"
               fontSize={12}
+              fontWeight={500}
+              tick={{ fill: '#cccccc' }}
+              axisLine={{ stroke: '#666666' }}
+              tickLine={{ stroke: '#666666' }}
             />
             <YAxis 
-              stroke="var(--text-secondary)"
+              stroke="#cccccc"
               fontSize={12}
+              fontWeight={500}
+              tick={{ fill: '#cccccc' }}
+              axisLine={{ stroke: '#666666' }}
+              tickLine={{ stroke: '#666666' }}
+              label={{ 
+                value: 'Number of Alerts', 
+                angle: -90, 
+                position: 'insideLeft',
+                style: { textAnchor: 'middle', fill: '#cccccc', fontSize: '12px' }
+              }}
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'var(--bg-secondary)', 
-                border: '1px solid var(--border-light)',
+                backgroundColor: '#2d2d2d', 
+                border: '1px solid #555555',
                 borderRadius: '8px',
-                color: 'var(--text-primary)'
+                color: '#ffffff',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
               }}
+              cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+              labelStyle={{ color: '#ffffff', fontWeight: '600' }}
             />
-            <Bar dataKey="critical" fill="#dc3545" name="Critical" />
-            <Bar dataKey="high" fill="#fd7e14" name="High" />
-            <Bar dataKey="medium" fill="#ffc107" name="Medium" />
-            <Bar dataKey="low" fill="#28a745" name="Low" />
+            <Legend 
+              wrapperStyle={{ 
+                paddingTop: '20px',
+                fontSize: '14px'
+              }}
+              iconType="rect"
+              formatter={(value) => (
+                <span style={{ color: '#cccccc', fontWeight: '500' }}>
+                  {value}
+                </span>
+              )}
+            />
+            <Bar 
+              dataKey="critical" 
+              fill="#dc3545" 
+              name="Critical" 
+              radius={[3, 3, 0, 0]}
+              animationDuration={800}
+              animationBegin={0}
+            />
+            <Bar 
+              dataKey="high" 
+              fill="#fd7e14" 
+              name="High" 
+              radius={[3, 3, 0, 0]}
+              animationDuration={800}
+              animationBegin={100}
+            />
+            <Bar 
+              dataKey="medium" 
+              fill="#ffc107" 
+              name="Medium" 
+              radius={[3, 3, 0, 0]}
+              animationDuration={800}
+              animationBegin={200}
+            />
+            <Bar 
+              dataKey="low" 
+              fill="#28a745" 
+              name="Low" 
+              radius={[3, 3, 0, 0]}
+              animationDuration={800}
+              animationBegin={300}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -257,11 +375,19 @@ const Alerts = memo(() => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className={styles.searchInput}
             />
+            {getTooltipContent('alertSearch') && (
+              <InfoTooltip 
+                {...getTooltipContent('alertSearch')!} 
+                position="top"
+                size="small"
+              />
+            )}
           </div>
           <select
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value as any)}
             className={styles.filterSelect}
+            title="Filter by severity"
           >
             <option value="all">All Severities</option>
             <option value="critical">Critical</option>
@@ -269,6 +395,13 @@ const Alerts = memo(() => {
             <option value="medium">Medium</option>
             <option value="low">Low</option>
           </select>
+          {getTooltipContent('alertSeverityFilter') && (
+            <InfoTooltip 
+              {...getTooltipContent('alertSeverityFilter')!} 
+              position="top"
+              size="small"
+            />
+          )}
           <select
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
@@ -277,6 +410,7 @@ const Alerts = memo(() => {
               setSortOrder(order as any);
             }}
             className={styles.filterSelect}
+            title="Sort alerts"
           >
             <option value="timestamp-desc">Newest First</option>
             <option value="timestamp-asc">Oldest First</option>
@@ -285,6 +419,13 @@ const Alerts = memo(() => {
             <option value="duration-desc">Duration (Longest First)</option>
             <option value="duration-asc">Duration (Shortest First)</option>
           </select>
+          {getTooltipContent('alertSorting') && (
+            <InfoTooltip 
+              {...getTooltipContent('alertSorting')!} 
+              position="top"
+              size="small"
+            />
+          )}
         </div>
       </div>
 
@@ -330,6 +471,13 @@ const Alerts = memo(() => {
                     title="Acknowledge"
                   >
                     <Check size={16} />
+                    {getTooltipContent('alertAcknowledge') && (
+                      <InfoTooltip 
+                        {...getTooltipContent('alertAcknowledge')!} 
+                        position="top"
+                        size="small"
+                      />
+                    )}
                   </button>
                 )}
                 <button
@@ -341,6 +489,13 @@ const Alerts = memo(() => {
                   title="Resolve"
                 >
                   <Eye size={16} />
+                  {getTooltipContent('alertResolve') && (
+                    <InfoTooltip 
+                      {...getTooltipContent('alertResolve')!} 
+                      position="top"
+                      size="small"
+                    />
+                  )}
                 </button>
                 <button
                   onClick={(e) => {
@@ -351,6 +506,13 @@ const Alerts = memo(() => {
                   title="Dismiss"
                 >
                   <X size={16} />
+                  {getTooltipContent('alertDismiss') && (
+                    <InfoTooltip 
+                      {...getTooltipContent('alertDismiss')!} 
+                      position="top"
+                      size="small"
+                    />
+                  )}
                 </button>
               </div>
             </div>
@@ -358,6 +520,7 @@ const Alerts = memo(() => {
             {expandedAlert === alert.id && (
               <div className={styles.alertDetails}>
                 <div className={styles.detailsContent}>
+                  {/* Basic Alert Information */}
                   <div className={styles.detailsSection}>
                     <h4>Alert Details</h4>
                     <p><strong>Description:</strong> {alert.description}</p>
@@ -368,6 +531,172 @@ const Alerts = memo(() => {
                       <p><strong>Acknowledged by:</strong> {alert.acknowledgedBy}</p>
                     )}
                   </div>
+
+                  {/* Point of Contact Section */}
+                  <div className={styles.detailsSection}>
+                    <h4>
+                      <Users size={16} className={styles.sectionIcon} />
+                      Point of Contact
+                    </h4>
+                    <div className={styles.contactInfo}>
+                      <p><strong>Team:</strong> {alert.pointOfContact.team}</p>
+                      <p><strong>Primary Contact:</strong> {alert.pointOfContact.primaryContact}</p>
+                      <div className={styles.contactLinks}>
+                        <a href={`mailto:${alert.pointOfContact.email}`} className={styles.contactLink}>
+                          <Mail size={14} />
+                          {alert.pointOfContact.email}
+                        </a>
+                        {alert.pointOfContact.slackChannel && (
+                          <a href={`slack://channel?team=microsoft&id=${alert.pointOfContact.slackChannel}`} className={styles.contactLink}>
+                            <MessageSquare size={14} />
+                            {alert.pointOfContact.slackChannel}
+                          </a>
+                        )}
+                      </div>
+                      <div className={styles.escalationPath}>
+                        <strong>Escalation Path:</strong>
+                        <div className={styles.escalationSteps}>
+                          {alert.pointOfContact.escalationPath.map((step, index) => (
+                            <span key={index} className={styles.escalationStep}>
+                              {index + 1}. {step}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Log References Section */}
+                  <div className={styles.detailsSection}>
+                    <h4>
+                      <Database size={16} className={styles.sectionIcon} />
+                      Log References
+                    </h4>
+                    <div className={styles.logReferences}>
+                      {alert.logReferences.map((logRef, index) => (
+                        <div key={index} className={styles.logReference}>
+                          <div className={styles.logSystem}>
+                            <strong>{logRef.logSystem.toUpperCase()}</strong>
+                            <span className={styles.correlationId}>ID: {logRef.correlationId}</span>
+                          </div>
+                          <a 
+                            href={logRef.logUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className={styles.logLink}
+                          >
+                            <ExternalLink size={14} />
+                            View Logs
+                          </a>
+                          {logRef.queryTemplate && (
+                            <div className={styles.queryTemplate}>
+                              <strong>Query:</strong>
+                              <code className={styles.queryCode}>{logRef.queryTemplate}</code>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Impact Assessment Section */}
+                  <div className={styles.detailsSection}>
+                    <h4>
+                      <Shield size={16} className={styles.sectionIcon} />
+                      Impact Assessment
+                    </h4>
+                    <div className={styles.impactGrid}>
+                      <div className={styles.impactItem}>
+                        <strong>Business Impact:</strong>
+                        <span className={`${styles.impactBadge} ${styles[alert.impactAssessment.businessImpact]}`}>
+                          {alert.impactAssessment.businessImpact.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className={styles.impactItem}>
+                        <strong>Data Classification:</strong>
+                        <span className={`${styles.classificationBadge} ${styles[alert.impactAssessment.dataClassification]}`}>
+                          {alert.impactAssessment.dataClassification.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className={styles.impactItem}>
+                        <strong>Customer Impact:</strong>
+                        <span className={alert.impactAssessment.customerImpact ? styles.hasImpact : styles.noImpact}>
+                          {alert.impactAssessment.customerImpact ? 'YES' : 'NO'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className={styles.affectedSystems}>
+                      <strong>Affected Systems:</strong>
+                      <div className={styles.systemsList}>
+                        {alert.impactAssessment.affectedSystems.map((system, index) => (
+                          <span key={index} className={styles.systemTag}>{system}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Troubleshooting Section */}
+                  <div className={styles.detailsSection}>
+                    <h4>
+                      <FileText size={16} className={styles.sectionIcon} />
+                      Troubleshooting Resources
+                    </h4>
+                    <div className={styles.troubleshootingGrid}>
+                      <div className={styles.troubleshootingItem}>
+                        <strong>Related Incidents:</strong>
+                        <div className={styles.incidentList}>
+                          {alert.troubleshooting.relatedIncidents.map((incident, index) => (
+                            <a key={index} href={`#/incidents/${incident}`} className={styles.incidentLink}>
+                              {incident}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={styles.troubleshootingItem}>
+                        <strong>Runbooks:</strong>
+                        <div className={styles.runbookList}>
+                          {alert.troubleshooting.runbooks.map((runbook, index) => (
+                            <a key={index} href={runbook} target="_blank" rel="noopener noreferrer" className={styles.runbookLink}>
+                              <ExternalLink size={12} />
+                              Runbook {index + 1}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.knownIssues}>
+                      <strong>Known Issues:</strong>
+                      <ul className={styles.issuesList}>
+                        {alert.troubleshooting.knownIssues.map((issue, index) => (
+                          <li key={index}>{issue}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Alert Context Section */}
+                  <div className={styles.detailsSection}>
+                    <h4>Alert Context</h4>
+                    <div className={styles.contextGrid}>
+                      <div className={styles.contextItem}>
+                        <strong>Rule:</strong> {alert.alertContext.alertRule}
+                      </div>
+                      <div className={styles.contextItem}>
+                        <strong>Condition:</strong> {alert.alertContext.triggerCondition}
+                      </div>
+                      <div className={styles.contextItem}>
+                        <strong>Threshold:</strong> {alert.alertContext.threshold}
+                      </div>
+                      <div className={styles.contextItem}>
+                        <strong>Actual Value:</strong> {alert.alertContext.actualValue}
+                      </div>
+                      <div className={styles.contextItem}>
+                        <strong>Frequency:</strong> {alert.alertContext.frequency} occurrences
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Original Recommended Actions */}
                   {alert.actions && alert.actions.length > 0 && (
                     <div className={styles.detailsSection}>
                       <h4>Recommended Actions</h4>
@@ -402,7 +731,16 @@ const Alerts = memo(() => {
   const renderAlertRules = () => (
     <div className={styles.rulesSection}>
       <div className={styles.rulesHeader}>
-        <h3 className={styles.sectionTitle}>Alert Rules</h3>
+        <h3 className={styles.sectionTitle}>
+          Alert Rules
+          {getTooltipContent('alertRules') && (
+            <InfoTooltip 
+              {...getTooltipContent('alertRules')!} 
+              position="bottom"
+              size="medium"
+            />
+          )}
+        </h3>
         <p className={styles.sectionSubtitle}>Configure threshold-based alert rules for your pipelines</p>
       </div>
       
@@ -453,7 +791,16 @@ const Alerts = memo(() => {
   const renderAlertHistory = () => (
     <div className={styles.historySection}>
       <div className={styles.historyHeader}>
-        <h3 className={styles.sectionTitle}>Alert History</h3>
+        <h3 className={styles.sectionTitle}>
+          Alert History
+          {getTooltipContent('alertHistory') && (
+            <InfoTooltip 
+              {...getTooltipContent('alertHistory')!} 
+              position="bottom"
+              size="medium"
+            />
+          )}
+        </h3>
         <div className={styles.searchBox}>
           <Search size={16} className={styles.searchIcon} />
           <input
@@ -463,6 +810,13 @@ const Alerts = memo(() => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
+          {getTooltipContent('alertSearch') && (
+            <InfoTooltip 
+              {...getTooltipContent('alertSearch')!} 
+              position="top"
+              size="small"
+            />
+          )}
         </div>
       </div>
       
@@ -510,8 +864,21 @@ const Alerts = memo(() => {
   return (
     <div className={styles.alerts}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Alert Management</h1>
-        <p className={styles.subtitle}>Monitor and manage security alerts from your threat intelligence pipelines</p>
+        <div className={styles.headerContent}>
+          <div className={styles.titleSection}>
+            <h1 className={styles.title}>
+              Alert Management
+              <button 
+                className={styles.infoButton}
+                onClick={() => setShowHowItWorks(true)}
+                title="How does this system work?"
+              >
+                <HelpCircle size={18} />
+              </button>
+            </h1>
+            <p className={styles.subtitle}>Monitor and manage security alerts from your threat intelligence pipelines</p>
+          </div>
+        </div>
       </div>
 
       {renderSummaryCards()}
@@ -545,6 +912,12 @@ const Alerts = memo(() => {
           {activeTab === 'history' && renderAlertHistory()}
         </div>
       </div>
+      
+      <HowItWorksModal 
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+        section="alerts"
+      />
     </div>
   );
 });

@@ -34,17 +34,76 @@
   align-items: flex-start;
 }
 
+.titleSection {
+  flex: 1;
+}
+
 .title {
   font-size: 2rem;
   font-weight: 600;
   color: #ffffff;
   margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.infoButton {
+  background: none;
+  border: none;
+  color: #0078d4;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0.8;
+}
+
+.infoButton:hover {
+  background-color: rgba(0, 120, 212, 0.1);
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 .subtitle {
   color: #cccccc;
   margin: 0;
   font-size: 1rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.howItWorksButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #0078d4, #106ebe);
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+}
+
+.howItWorksButton:hover {
+  background: linear-gradient(135deg, #106ebe, #005a9e);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.4);
+}
+
+.howItWorksButton:active {
+  transform: translateY(0);
 }
 
 .refreshInfo {

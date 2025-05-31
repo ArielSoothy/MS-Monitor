@@ -78,6 +78,12 @@ export const createNavigationShortcuts = (navigate: (path: string) => void) => [
   },
   {
     key: '4',
+    description: 'Go to Predictive Insights',
+    action: () => navigate('/predictive-insights'),
+    altKey: true
+  },
+  {
+    key: '5',
     description: 'Go to Alerts',
     action: () => navigate('/alerts'),
     altKey: true

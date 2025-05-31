@@ -360,6 +360,253 @@ function simulateCorrelatedFailures(pipelines: Pipeline[]): void {
   });
 }
 
+// Enhanced error tracking and monitoring data generators
+function generateErrorDetails(status: PipelineStatus, source: PipelineSource, process: string): {
+  currentError?: any;
+  errorHistory: any[];
+  logReferences: any[];
+  metricsHistory: any[];
+  impactAnalysis?: any;
+  runbooks: any[];
+} {
+  const errorTypes = ['connection', 'data_quality', 'timeout', 'authentication', 'rate_limit', 'parsing', 'validation', 'infrastructure'];
+  
+  // Generate current error for failed pipelines
+  const currentError = status === 'failed' ? {
+    errorCode: `E${Math.floor(Math.random() * 9000) + 1000}`,
+    errorMessage: getFailureReason(source, status) || 'Unknown error occurred',
+    stackTrace: generateStackTrace(source, process),
+    errorType: getRandomElement(errorTypes),
+    timestamp: new Date(Date.now() - Math.random() * 2 * 60 * 60 * 1000), // Within last 2 hours
+    context: generateErrorContext(source, process),
+    suggestedActions: generateSuggestedActions(source, process),
+    severity: status === 'failed' ? getRandomElement(['high', 'critical']) : 
+              status === 'warning' ? getRandomElement(['medium', 'high']) : 'low'
+  } : undefined;
+
+  // Generate error history (last 10 errors)
+  const errorHistory = Array.from({ length: Math.floor(Math.random() * 10) + 3 }, (_, index) => ({
+    errorCode: `E${Math.floor(Math.random() * 9000) + 1000}`,
+    errorMessage: getRandomElement([
+      'Connection timeout to external API',
+      'Rate limit exceeded',
+      'Authentication token expired',
+      'Invalid data format received',
+      'Database connection lost',
+      'Memory limit exceeded',
+      'Network connectivity issues',
+      'Service temporarily unavailable'
+    ]),
+    errorType: getRandomElement(errorTypes),
+    timestamp: new Date(Date.now() - (index + 1) * 24 * 60 * 60 * 1000 - Math.random() * 12 * 60 * 60 * 1000),
+    severity: getRandomElement(['low', 'medium', 'high', 'critical']),
+    suggestedActions: ['Check service status', 'Retry operation', 'Contact support team']
+  }));
+
+  // Generate log references
+  const logSystems = ['azure_monitor', 'elasticsearch', 'splunk', 'cloudwatch'];
+  const correlationId = `corr-${Math.random().toString(36).substr(2, 9)}`;
+  
+  const logReferences = [
+    {
+      logSystem: getRandomElement(logSystems),
+      logUrl: `https://portal.azure.com/#view/Microsoft_Azure_MonitoringMetrics/AzureMonitoringBrowseBlade/~/logs`,
+      queryTemplate: generateLogQuery(source, process, correlationId),
+      correlationId,
+      timeRange: {
+        start: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+        end: new Date()
+      }
+    },
+    {
+      logSystem: 'elasticsearch',
+      logUrl: `https://kibana.example.com/app/discover`,
+      queryTemplate: `source:"${source.toLowerCase()}" AND process:"${process}" AND correlationId:"${correlationId}"`,
+      correlationId,
+      timeRange: {
+        start: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        end: new Date()
+      }
+    }
+  ];
+
+  // Generate metrics history (last 24 hours)
+  const metricsHistory = Array.from({ length: 24 }, (_, index) => ({
+    timestamp: new Date(Date.now() - (23 - index) * 60 * 60 * 1000),
+    recordsPerSecond: Math.floor(Math.random() * 1000) + 100,
+    avgProcessingTime: Math.floor(Math.random() * 200) + 50,
+    errorRate: Math.random() * (status === 'failed' ? 15 : status === 'warning' ? 5 : 2),
+    dataQuality: Math.floor(Math.random() * 20) + 80,
+    cpuUsage: Math.random() * 100,
+    memoryUsage: Math.random() * 100
+  }));
+
+  // Generate impact analysis for failed pipelines
+  const impactAnalysis = status === 'failed' ? {
+    affectedDownstreamPipelines: generateDownstreamPipelines(source),
+    affectedDestinations: generateAffectedDestinations(source),
+    estimatedDataLoss: Math.floor(Math.random() * 100000) + 10000,
+    businessImpactLevel: getRandomElement(['medium', 'high', 'critical']),
+    recoveryTimeEstimate: Math.floor(Math.random() * 120) + 30 // 30-150 minutes
+  } : undefined;
+
+  // Generate runbooks
+  const runbooks = [
+    {
+      title: `${source} Pipeline Recovery Runbook`,
+      url: `https://docs.microsoft.com/mstic/runbooks/${source.toLowerCase()}-recovery`,
+      description: `Step-by-step guide to recover ${source} data ingestion pipeline`,
+      estimatedResolutionTime: 45
+    },
+    {
+      title: `${process} Process Troubleshooting`,
+      url: `https://docs.microsoft.com/mstic/runbooks/${process.toLowerCase()}-troubleshooting`,
+      description: `Common issues and solutions for ${process} processes`,
+      estimatedResolutionTime: 30
+    },
+    {
+      title: 'API Rate Limit Handling',
+      url: 'https://docs.microsoft.com/mstic/runbooks/api-rate-limits',
+      description: 'How to handle and prevent API rate limit issues',
+      estimatedResolutionTime: 15
+    }
+  ];
+
+  return {
+    currentError,
+    errorHistory,
+    logReferences,
+    metricsHistory,
+    impactAnalysis,
+    runbooks
+  };
+}
+
+function generateStackTrace(source: PipelineSource, process: string): string {
+  const baseStackTrace = `
+Microsoft.MSTIC.DataPipeline.${source}.${process}Exception: Pipeline execution failed
+   at Microsoft.MSTIC.DataPipeline.${source}.${process}Service.ProcessData(DataBatch batch) in C:\\src\\pipelines\\${source}\\${process}Service.cs:line 142
+   at Microsoft.MSTIC.DataPipeline.Core.PipelineExecutor.ExecuteStep[T](IPipelineStep step, T input) in C:\\src\\core\\PipelineExecutor.cs:line 89
+   at Microsoft.MSTIC.DataPipeline.Core.PipelineOrchestrator.RunPipeline(PipelineDefinition definition) in C:\\src\\core\\PipelineOrchestrator.cs:line 56
+   at Microsoft.MSTIC.DataPipeline.Host.PipelineWorker.DoWork(CancellationToken cancellationToken) in C:\\src\\host\\PipelineWorker.cs:line 33`;
+  
+  return baseStackTrace.trim();
+}
+
+function generateErrorContext(source: PipelineSource, process: string): Record<string, any> {
+  const baseContext = {
+    pipelineId: `${source}_${process}_${Math.random().toString(36).substr(2, 8)}`,
+    batchId: `batch_${Date.now()}`,
+    region: getRandomElement(['us-east-1', 'eu-west-1', 'ap-southeast-2']),
+    instanceId: `worker-${Math.floor(Math.random() * 100)}`,
+    version: '2.3.1'
+  };
+
+  // Add source-specific context
+  if (['LinkedIn', 'Twitter'].includes(source)) {
+    return {
+      ...baseContext,
+      apiEndpoint: `https://api.${source.toLowerCase()}.com/v2/data`,
+      rateLimitRemaining: Math.floor(Math.random() * 100),
+      requestsInWindow: Math.floor(Math.random() * 300),
+      windowResetTime: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+    };
+  }
+
+  if (['AzureAD', 'Office365'].includes(source)) {
+    return {
+      ...baseContext,
+      tenantId: '12345678-1234-1234-1234-123456789012',
+      applicationId: '87654321-4321-4321-4321-210987654321',
+      scopes: ['https://graph.microsoft.com/.default'],
+      tokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+    };
+  }
+
+  return baseContext;
+}
+
+function generateSuggestedActions(source: PipelineSource, _process: string): string[] {
+  const commonActions = [
+    'Check service health dashboard',
+    'Verify network connectivity',
+    'Review recent deployment changes',
+    'Check resource utilization metrics'
+  ];
+
+  const sourceSpecificActions: Record<string, string[]> = {
+    LinkedIn: [
+      'Verify LinkedIn API credentials',
+      'Check API rate limit status',
+      'Review LinkedIn developer portal for service announcements'
+    ],
+    Twitter: [
+      'Check Twitter API v2 bearer token',
+      'Verify tweet filtering parameters',
+      'Review Twitter API status page'
+    ],
+    AzureAD: [
+      'Renew Azure AD application certificate',
+      'Check tenant-specific permissions',
+      'Verify Microsoft Graph API availability'
+    ],
+    Office365: [
+      'Check Exchange Online connection',
+      'Verify Office 365 service health',
+      'Review compliance settings'
+    ]
+  };
+
+  return [
+    ...commonActions,
+    ...(sourceSpecificActions[source] || [])
+  ];
+}
+
+function generateLogQuery(source: PipelineSource, process: string, correlationId: string): string {
+  return `KustoQuery
+| where TimeGenerated >= ago(4h)
+| where Source == "${source}"
+| where Process == "${process}"
+| where CorrelationId == "${correlationId}"
+| where Level in ("Error", "Warning")
+| order by TimeGenerated desc`;
+}
+
+function generateDownstreamPipelines(source: PipelineSource): string[] {
+  const downstreamMap: Record<PipelineSource, string[]> = {
+    LinkedIn: ['LinkedIn_ProfileData_Analysis_US', 'LinkedIn_CompanyIntel_Enrichment_EU'],
+    Twitter: ['Twitter_ThreatFeeds_RealTimeAnalysis_Global', 'Twitter_SentimentData_Processing_US'],
+    Office365: ['Office365_EmailIntel_Analysis_US', 'Office365_UserActivity_Monitoring_EU'],
+    AzureAD: ['AzureAD_IdentityData_RiskAnalysis_Global', 'AzureAD_SignInLogs_Monitoring_US'],
+    GitHub: ['GitHub_RepoIntel_Analysis_US', 'GitHub_ThreatActors_Monitoring_Global'],
+    ThreatIntel: ['ThreatIntel_IOCs_Processing_Global', 'ThreatIntel_Campaigns_Analysis_US'],
+    Exchange: ['Exchange_EmailSecurity_Analysis_US', 'Exchange_ThreatDetection_RealTime_EU'],
+    Teams: ['Teams_CollabData_Analysis_US', 'Teams_SecurityLogs_Monitoring_EU'],
+    SharePoint: ['SharePoint_ContentIntel_Analysis_US', 'SharePoint_AccessLogs_Monitoring_EU'],
+    PowerBI: ['PowerBI_UsageAnalytics_Processing_US', 'PowerBI_SecurityMetrics_Analysis_Global']
+  };
+  
+  return downstreamMap[source] || [];
+}
+
+function generateAffectedDestinations(source: PipelineSource): string[] {
+  const destinationMap: Record<PipelineSource, string[]> = {
+    LinkedIn: ['MSTIC Data Lake', 'Threat Intelligence DB', 'ML Training Data'],
+    Twitter: ['Real-time Dashboard', 'Alert System', 'Security Analytics Store'],
+    Office365: ['Compliance Archive', 'Security Analytics Store', 'Alert System'],
+    AzureAD: ['Security Analytics Store', 'Alert System', 'Threat Intelligence DB'],
+    GitHub: ['Threat Intelligence DB', 'Security Analytics Store', 'API Gateway'],
+    ThreatIntel: ['Alert System', 'Threat Intelligence DB', 'Real-time Dashboard'],
+    Exchange: ['Compliance Archive', 'Security Analytics Store', 'Alert System'],
+    Teams: ['Compliance Archive', 'Real-time Dashboard', 'Security Analytics Store'],
+    SharePoint: ['Compliance Archive', 'MSTIC Data Lake', 'Security Analytics Store'],
+    PowerBI: ['Real-time Dashboard', 'Security Analytics Store', 'API Gateway']
+  };
+  
+  return destinationMap[source] || ['MSTIC Data Lake'];
+}
+
 export function generateMockPipelines(): Pipeline[] {
   const pipelines: Pipeline[] = [];
   let idCounter = 1;
@@ -398,6 +645,9 @@ export function generateMockPipelines(): Pipeline[] {
           if (status === 'failed') baseFailureRate = Math.random() * 15 + 5; // 5-20%
           else if (status === 'warning') baseFailureRate = Math.random() * 8 + 2; // 2-10%
           else baseFailureRate = Math.random() * 3; // 0-3%
+
+          // Generate enhanced error tracking data
+          const errorTrackingData = generateErrorDetails(status, config.source, process);
           
           const pipeline: Pipeline = {
             id: `pipeline-${idCounter++}`,
@@ -415,7 +665,22 @@ export function generateMockPipelines(): Pipeline[] {
             dataType,
             process,
             lastFailureReason: getFailureReason(config.source, status),
-            maintenanceWindow: maintenanceWindows[team] || 'Not scheduled'
+            maintenanceWindow: maintenanceWindows[team] || 'Not scheduled',
+            
+            // Enhanced error tracking and monitoring
+            currentError: errorTrackingData.currentError,
+            errorHistory: errorTrackingData.errorHistory,
+            logReferences: errorTrackingData.logReferences,
+            metricsHistory: errorTrackingData.metricsHistory,
+            impactAnalysis: errorTrackingData.impactAnalysis,
+            runbooks: errorTrackingData.runbooks,
+            alertingEnabled: true,
+            oncallTeam: team,
+            slackChannel: `mstic-${team.toLowerCase().replace(/\s+/g, '-')}`,
+            teamsChannel: `https://teams.microsoft.com/l/channel/mstic-${team.toLowerCase().replace(/\s+/g, '-')}`,
+            dashboardUrl: `https://portal.azure.com/dashboard/mstic/${config.source.toLowerCase()}-${process.toLowerCase()}`,
+            grafanaUrl: `https://grafana.mstic.microsoft.com/d/pipeline-${config.source.toLowerCase()}`,
+            healthCheckUrl: `https://healthcheck.mstic.microsoft.com/api/v1/pipelines/${config.source.toLowerCase()}/${process.toLowerCase()}`
           };
 
           pipelines.push(pipeline);
@@ -470,6 +735,74 @@ export function generateMockAlerts(pipelines: Pipeline[]): Alert[] {
     'Data validation checks have failed multiple times'
   ];
 
+  const msticTeams = [
+    { team: 'Threat Intelligence', contact: 'John Doe', email: 'john.doe@microsoft.com', slack: '#ti-ops' },
+    { team: 'Security Analytics', contact: 'Jane Smith', email: 'jane.smith@microsoft.com', slack: '#sec-analytics' },
+    { team: 'Incident Response', contact: 'Mike Johnson', email: 'mike.johnson@microsoft.com', slack: '#ir-team' },
+    { team: 'Data Engineering', contact: 'Sarah Wilson', email: 'sarah.wilson@microsoft.com', slack: '#data-eng' },
+    { team: 'Infrastructure', contact: 'David Brown', email: 'david.brown@microsoft.com', slack: '#infra-ops' }
+  ];
+
+  const generateEnhancedAlertData = (pipeline: Pipeline, severity: string, messageIndex: number) => {
+    const team = msticTeams[Math.floor(Math.random() * msticTeams.length)];
+    const correlationId = `corr-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    return {
+      logReferences: [
+        {
+          logSystem: 'azure_monitor' as const,
+          logUrl: `https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/${pipeline.id}`,
+          correlationId,
+          queryTemplate: `PipelineLogs | where CorrelationId == "${correlationId}" | order by TimeGenerated desc`,
+          timeRange: { start: new Date(Date.now() - 24*60*60*1000), end: new Date() }
+        },
+        {
+          logSystem: 'elasticsearch' as const,
+          logUrl: `https://elasticsearch.internal.microsoft.com:9200/pipeline-logs-*/_search`,
+          correlationId,
+          queryTemplate: `GET /pipeline-logs-*/_search { "query": { "term": { "pipeline_id": "${pipeline.id}" } } }`,
+          timeRange: { start: new Date(Date.now() - 24*60*60*1000), end: new Date() }
+        }
+      ],
+      pointOfContact: {
+        team: team.team,
+        primaryContact: team.contact,
+        email: team.email,
+        slackChannel: team.slack,
+        escalationPath: ['Team Lead', 'Engineering Manager', 'Director of Engineering', 'VP Engineering']
+      },
+      impactAssessment: {
+        businessImpact: severity === 'critical' ? 'critical' : severity === 'high' ? 'high' : 'medium',
+        affectedSystems: [`${pipeline.source} Data Pipeline`, 'Threat Intelligence Platform', 'Security Operations Center'],
+        dataClassification: pipeline.source === 'Office365' || pipeline.source === 'AzureAD' ? 'restricted' : 'confidential',
+        customerImpact: severity === 'critical' || severity === 'high'
+      } as const,
+      troubleshooting: {
+        knownIssues: [
+          'API rate limiting during peak hours',
+          'Network connectivity issues with external data sources',
+          'Memory spikes during large data processing batches'
+        ],
+        diagnosticQueries: [
+          'SELECT * FROM pipeline_metrics WHERE pipeline_id = ? AND timestamp > NOW() - INTERVAL 1 HOUR',
+          'SELECT error_count, error_type FROM error_logs WHERE pipeline_id = ? ORDER BY timestamp DESC LIMIT 10'
+        ],
+        relatedIncidents: [`INC-${Math.floor(Math.random() * 10000)}`, `INC-${Math.floor(Math.random() * 10000)}`],
+        runbooks: [
+          'https://docs.microsoft.com/mstic/runbooks/pipeline-troubleshooting',
+          'https://docs.microsoft.com/mstic/runbooks/data-source-connectivity'
+        ]
+      },
+      alertContext: {
+        alertRule: `rule-${messageIndex + 1}`,
+        triggerCondition: severity === 'critical' ? 'failure_rate > 15%' : 'processing_time > 60min',
+        threshold: severity === 'critical' ? 15 : 60,
+        actualValue: severity === 'critical' ? Math.floor(Math.random() * 30) + 16 : Math.floor(Math.random() * 120) + 61,
+        frequency: Math.floor(Math.random() * 10) + 1
+      }
+    };
+  };
+
   // Generate alerts for failed and warning pipelines
   pipelines
     .filter(p => p.status === 'failed' || p.status === 'warning')
@@ -482,6 +815,7 @@ export function generateMockAlerts(pipelines: Pipeline[]): Alert[] {
         const messageIndex = Math.floor(Math.random() * alertMessages.length);
         const isResolved = Math.random() < 0.3; // 30% chance of being resolved
         const timestamp = getRandomDate(3);
+        const enhancedData = generateEnhancedAlertData(pipeline, severity, messageIndex);
         
         alerts.push({
           id: `alert-${idCounter++}`,
@@ -493,28 +827,32 @@ export function generateMockAlerts(pipelines: Pipeline[]): Alert[] {
           resolved: isResolved,
           resolvedAt: isResolved ? new Date(timestamp.getTime() + Math.random() * 2 * 24 * 60 * 60 * 1000) : undefined,
           acknowledgedBy: isResolved && Math.random() < 0.8 ? 'admin@microsoft.com' : undefined,
-          actions: ['Investigate', 'Acknowledge', 'Dismiss']
+          actions: ['Investigate', 'Acknowledge', 'Dismiss'],
+          ...enhancedData
         });
       }
     });
 
   // Add some additional resolved alerts for history
   for (let i = 0; i < 15; i++) {
-    const pipelineId = pipelines[Math.floor(Math.random() * pipelines.length)].id;
+    const pipeline = pipelines[Math.floor(Math.random() * pipelines.length)];
     const messageIndex = Math.floor(Math.random() * alertMessages.length);
     const timestamp = getRandomDate(7);
+    const severity = ['low', 'medium', 'high', 'critical'][Math.floor(Math.random() * 4)];
+    const enhancedData = generateEnhancedAlertData(pipeline, severity, messageIndex);
     
     alerts.push({
       id: `alert-${idCounter++}`,
-      pipelineId,
-      severity: ['low', 'medium', 'high', 'critical'][Math.floor(Math.random() * 4)] as any,
+      pipelineId: pipeline.id,
+      severity: severity as any,
       message: alertMessages[messageIndex],
       description: descriptions[messageIndex],
       timestamp,
       resolved: true,
       resolvedAt: new Date(timestamp.getTime() + Math.random() * 2 * 24 * 60 * 60 * 1000),
       acknowledgedBy: Math.random() < 0.8 ? 'admin@microsoft.com' : undefined,
-      actions: ['Investigate', 'Acknowledge', 'Dismiss']
+      actions: ['Investigate', 'Acknowledge', 'Dismiss'],
+      ...enhancedData
     });
   }
 

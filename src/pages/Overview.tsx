@@ -1,8 +1,11 @@
 import { useState, useEffect, useMemo, memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Activity, AlertTriangle, TrendingUp, Server, RefreshCw } from 'lucide-react';
+import { Activity, AlertTriangle, TrendingUp, Server, RefreshCw, HelpCircle } from 'lucide-react';
 import { mockPipelines, mockAlerts } from '../data/mockData';
 import type { Pipeline } from '../types';
+import HowItWorksModal from '../components/HowItWorksModal';
+import InfoTooltip from '../components/InfoTooltip';
+import { getTooltipContent } from '../utils/tooltipContent';
 import styles from './Overview.module.css';
 
 const Overview = memo(() => {
@@ -11,6 +14,7 @@ const Overview = memo(() => {
   const [currentIngestionRate, setCurrentIngestionRate] = useState(1247);
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   // Generate mock ingestion rate data for the last 24 hours
   const [ingestionData] = useState(() => {
@@ -172,15 +176,26 @@ const Overview = memo(() => {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerContent}>
-          <div>
-            <h1 className={styles.title}>Threat Intelligence Pipeline Dashboard</h1>
+          <div className={styles.titleSection}>
+            <h1 className={styles.title}>
+              Threat Intelligence Pipeline Dashboard
+              <button 
+                className={styles.infoButton}
+                onClick={() => setShowHowItWorks(true)}
+                title="How does this system work?"
+              >
+                <HelpCircle size={18} />
+              </button>
+            </h1>
             <p className={styles.subtitle}>Real-time monitoring and analytics</p>
           </div>
-          <div className={styles.refreshInfo}>
-            <RefreshCw className={styles.refreshIcon} />
-            <span className={styles.refreshText}>
-              Last updated: {lastRefresh.toLocaleTimeString()}
-            </span>
+          <div className={styles.headerActions}>
+            <div className={styles.refreshInfo}>
+              <RefreshCw className={styles.refreshIcon} />
+              <span className={styles.refreshText}>
+                Last updated: {lastRefresh.toLocaleTimeString()}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -190,7 +205,16 @@ const Overview = memo(() => {
         <div className={styles.metricCard}>
           <div className={styles.metricHeader}>
             <Server className={styles.metricIcon} />
-            <span className={styles.metricTitle}>Total Pipelines</span>
+            <span className={styles.metricTitle}>
+              Total Pipelines
+              <InfoTooltip 
+                content={getTooltipContent('totalPipelines')?.content || "Total number of threat intelligence pipelines"}
+                title={getTooltipContent('totalPipelines')?.title}
+                detailedContent={getTooltipContent('totalPipelines')?.detailedContent}
+                position="top"
+                size="medium"
+              />
+            </span>
           </div>
           <div className={styles.metricValue}>{totalPipelines}</div>
           <div className={styles.metricBreakdown}>
@@ -212,7 +236,16 @@ const Overview = memo(() => {
         <div className={styles.metricCard}>
           <div className={styles.metricHeader}>
             <TrendingUp className={styles.metricIcon} />
-            <span className={styles.metricTitle}>Ingestion Rate</span>
+            <span className={styles.metricTitle}>
+              Ingestion Rate
+              <InfoTooltip 
+                content={getTooltipContent('ingestionRate')?.content || "Data ingestion rate across all pipelines"}
+                title={getTooltipContent('ingestionRate')?.title}
+                detailedContent={getTooltipContent('ingestionRate')?.detailedContent}
+                position="top"
+                size="medium"
+              />
+            </span>
           </div>
           <div className={styles.metricValue}>{currentIngestionRate.toLocaleString()}</div>
           <div className={styles.metricSubtext}>files/hour</div>
@@ -221,7 +254,16 @@ const Overview = memo(() => {
         <div className={styles.metricCard}>
           <div className={styles.metricHeader}>
             <AlertTriangle className={`${styles.metricIcon} ${styles.warning}`} />
-            <span className={styles.metricTitle}>Active Alerts</span>
+            <span className={styles.metricTitle}>
+              Active Alerts
+              <InfoTooltip 
+                content={getTooltipContent('activeAlerts')?.content || "Unresolved alerts requiring attention"}
+                title={getTooltipContent('activeAlerts')?.title}
+                detailedContent={getTooltipContent('activeAlerts')?.detailedContent}
+                position="top"
+                size="medium"
+              />
+            </span>
           </div>
           <div className={styles.metricValue}>{unresolvedAlerts}</div>
           <div className={styles.metricSubtext}>
@@ -232,10 +274,19 @@ const Overview = memo(() => {
         <div className={styles.metricCard}>
           <div className={styles.metricHeader}>
             <Activity className={styles.metricIcon} />
-            <span className={styles.metricTitle}>System Health</span>
+            <span className={styles.metricTitle}>
+              System Health
+              <InfoTooltip 
+                content={getTooltipContent('systemHealthScore')?.content || "Overall system health percentage"}
+                title={getTooltipContent('systemHealthScore')?.title}
+                detailedContent={getTooltipContent('systemHealthScore')?.detailedContent}
+                position="top"
+                size="medium"
+              />
+            </span>
           </div>
           <div 
-            className={styles.metricValue} 
+            className={styles.metricValue}
             style={{ color: getHealthScoreColor(systemHealthScore) }}
           >
             {systemHealthScore}%
@@ -246,7 +297,16 @@ const Overview = memo(() => {
         <div className={styles.metricCard}>
           <div className={styles.metricHeader}>
             <Activity className={styles.metricIcon} />
-            <span className={styles.metricTitle}>SLA Compliance</span>
+            <span className={styles.metricTitle}>
+              SLA Compliance
+              <InfoTooltip 
+                content={getTooltipContent('slaCompliance')?.content || "Percentage meeting SLA requirements"}
+                title={getTooltipContent('slaCompliance')?.title}
+                detailedContent={getTooltipContent('slaCompliance')?.detailedContent}
+                position="top"
+                size="medium"
+              />
+            </span>
           </div>
           <div 
             className={styles.metricValue} 
@@ -256,6 +316,13 @@ const Overview = memo(() => {
           </div>
           <div className={styles.metricSubtext}>
             {slaBreaches.length} SLA breaches
+            <InfoTooltip 
+              content={getTooltipContent('slaBreaches')?.content || "Pipelines exceeding SLA requirements"}
+              title={getTooltipContent('slaBreaches')?.title}
+              detailedContent={getTooltipContent('slaBreaches')?.detailedContent}
+              position="top"
+              size="small"
+            />
           </div>
         </div>
       </div>
@@ -264,7 +331,16 @@ const Overview = memo(() => {
       <div className={styles.dashboardGrid}>
         {/* Pipeline Status Donut Chart */}
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Pipeline Status Distribution</h3>
+          <h3 className={styles.chartTitle}>
+            Pipeline Status Distribution
+            <InfoTooltip 
+              content={getTooltipContent('pipelineStatusDistribution')?.content || "Breakdown of pipelines by operational status"}
+              title={getTooltipContent('pipelineStatusDistribution')?.title}
+              detailedContent={getTooltipContent('pipelineStatusDistribution')?.detailedContent}
+              position="top"
+              size="medium"
+            />
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -307,6 +383,13 @@ const Overview = memo(() => {
         <div className={styles.chartCard}>
           <h3 className={styles.chartTitle}>
             Team Health Performance
+            <InfoTooltip 
+              content={getTooltipContent('teamHealthPerformance')?.content || "Health score rankings by team"}
+              title={getTooltipContent('teamHealthPerformance')?.title}
+              detailedContent={getTooltipContent('teamHealthPerformance')?.detailedContent}
+              position="top"
+              size="medium"
+            />
             <span className={styles.chartSubtitle}>Health Score by Team (min. 3 pipelines)</span>
           </h3>
           <ResponsiveContainer width="100%" height={320}>
@@ -414,7 +497,16 @@ const Overview = memo(() => {
 
         {/* Data Classification Security */}
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Data Classification Status</h3>
+          <h3 className={styles.chartTitle}>
+            Data Classification Status
+            <InfoTooltip 
+              content={getTooltipContent('dataClassificationStatus')?.content || "Pipeline health by data security classification"}
+              title={getTooltipContent('dataClassificationStatus')?.title}
+              detailedContent={getTooltipContent('dataClassificationStatus')?.detailedContent}
+              position="top"
+              size="medium"
+            />
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={classificationChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#333" />
@@ -446,7 +538,16 @@ const Overview = memo(() => {
 
         {/* Ingestion Rate Line Chart */}
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Ingestion Rate (Last 24 Hours)</h3>
+          <h3 className={styles.chartTitle}>
+            Ingestion Rate (Last 24 Hours)
+            <InfoTooltip 
+              content={getTooltipContent('ingestionRateTrend')?.content || "Real-time data ingestion volume over 24 hours"}
+              title={getTooltipContent('ingestionRateTrend')?.title}
+              detailedContent={getTooltipContent('ingestionRateTrend')?.detailedContent}
+              position="top"
+              size="medium"
+            />
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={ingestionData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#333" />
@@ -482,7 +583,16 @@ const Overview = memo(() => {
 
         {/* Top 5 Failing Pipelines */}
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Top Failing Pipelines</h3>
+          <h3 className={styles.chartTitle}>
+            Top Failing Pipelines
+            <InfoTooltip 
+              content={getTooltipContent('topFailingPipelines')?.content || "Pipelines with highest failure rates requiring attention"}
+              title={getTooltipContent('topFailingPipelines')?.title}
+              detailedContent={getTooltipContent('topFailingPipelines')?.detailedContent}
+              position="top"
+              size="medium"
+            />
+          </h3>
           <div className={styles.failingPipelinesTable}>
             <div className={styles.tableHeader}>
               <span>Pipeline</span>
@@ -512,6 +622,12 @@ const Overview = memo(() => {
           </div>
         </div>
       </div>
+      
+      <HowItWorksModal 
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+        section="overview"
+      />
     </div>
   );
 });
