@@ -1,8 +1,9 @@
-name: Deploy to GitHub Pages (gh-pages)
+name: Deploy to GitHub Pages (gh-pages) - DISABLED
 
 on:
-  push:
-    branches: [ main ]
+  # Disabled to prevent conflicts with main deploy.yml workflow
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
 
 jobs:

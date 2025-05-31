@@ -11,14 +11,19 @@ import {
   CheckCircle,
   XCircle,
   Zap,
-  HelpCircle
+  HelpCircle,
+  X,
+  Maximize2,
+  Minimize2,
+  Server,
+  Shield,
+  Cpu,
+  HardDrive
 } from 'lucide-react';
 import { mockPipelines } from '../data/mockData';
 import type { PipelineSource, PipelineStatus } from '../types';
 import ErrorDetailsModal from '../components/ErrorDetailsModal';
 import HowItWorksModal from '../components/HowItWorksModal';
-import InfoTooltip from '../components/InfoTooltip';
-import { getTooltipContent } from '../utils/tooltipContent';
 import styles from './DataLineage.module.css';
 
 interface LineageNode {
@@ -66,6 +71,35 @@ interface LineageNode {
     externalApis?: string[];
     networkConnections?: string[];
   };
+  // Enhanced operational information for MSTIC engineers
+  slaMetrics?: {
+    uptime: number; // percentage
+    targetUptime: number; // percentage
+    mttr: number; // minutes
+    mtbf: number; // hours
+  };
+  operationalInfo?: {
+    owner: string; // Team responsible
+    escalationPath: string[]; // Contact hierarchy
+    maintenanceWindow: string; // When updates occur
+    criticalityLevel: 'low' | 'medium' | 'high' | 'critical';
+    dataClassification: 'public' | 'internal' | 'confidential' | 'restricted';
+    complianceRequirements: string[]; // GDPR, SOX, etc.
+  };
+  performanceMetrics?: {
+    avgLatency: number; // ms
+    p95Latency: number; // ms
+    errorRate: number; // percentage
+    throughputMbps: number;
+    cpuUtilization: number; // percentage
+    memoryUtilization: number; // percentage
+  };
+  troubleshooting?: {
+    commonIssues: string[];
+    runbookUrls: string[];
+    logQuerySamples: string[];
+    healthCheckEndpoints: string[];
+  };
 }
 
 interface DataConnection {
@@ -83,6 +117,10 @@ interface DataConnection {
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  // New popup states
+  const [showNodePopup, setShowNodePopup] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const [popupExpanded, setPopupExpanded] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Create a stable random number generator for consistent data
@@ -164,6 +202,54 @@ interface DataConnection {
                        source === 'Twitter' ? ['api.twitter.com'] :
                        [],
           networkConnections: ['Virtual Network Gateway', 'Private Endpoints', 'Service Endpoints']
+        },
+        // Enhanced operational information for MSTIC engineers
+        slaMetrics: {
+          uptime: Math.max(95, 100 - seededRandom(`${source}-uptime`) * 5),
+          targetUptime: 99.9,
+          mttr: Math.floor(seededRandom(`${source}-mttr`) * 30) + 5, // 5-35 minutes
+          mtbf: Math.floor(seededRandom(`${source}-mtbf`) * 168) + 24 // 24-192 hours
+        },
+        operationalInfo: {
+          owner: source === 'Office365' || source === 'AzureAD' ? 'MSTIC Identity Team' :
+                 source === 'GitHub' || source === 'LinkedIn' ? 'MSTIC External Feeds Team' :
+                 'MSTIC Data Ingestion Team',
+          escalationPath: ['On-call Engineer', 'Team Lead', 'Principal Engineer', 'Engineering Manager'],
+          maintenanceWindow: 'Sundays 02:00-04:00 UTC',
+          criticalityLevel: ['Office365', 'AzureAD', 'ThreatIntel'].includes(source) ? 'critical' :
+                           ['LinkedIn', 'Twitter'].includes(source) ? 'high' : 'medium',
+          dataClassification: ['Office365', 'AzureAD'].includes(source) ? 'confidential' : 'internal',
+          complianceRequirements: ['Office365', 'AzureAD'].includes(source) ? 
+            ['GDPR', 'SOX', 'ISO 27001', 'FedRAMP'] : 
+            ['GDPR', 'ISO 27001']
+        },
+        performanceMetrics: {
+          avgLatency: Math.floor(seededRandom(`${source}-latency`) * 200) + 50,
+          p95Latency: Math.floor(seededRandom(`${source}-p95`) * 500) + 100,
+          errorRate: Math.round(seededRandom(`${source}-errors`) * 2 * 100) / 100, // 0-2%
+          throughputMbps: Math.floor(seededRandom(`${source}-throughput`) * 100) + 10,
+          cpuUtilization: Math.floor(seededRandom(`${source}-cpu`) * 30) + 20, // 20-50%
+          memoryUtilization: Math.floor(seededRandom(`${source}-memory`) * 40) + 30 // 30-70%
+        },
+        troubleshooting: {
+          commonIssues: [
+            `${source} API rate limiting`,
+            'Authentication token expiration',
+            'Network connectivity issues',
+            'Data format validation errors'
+          ],
+          runbookUrls: [
+            `https://mstic.wiki/runbooks/${source.toLowerCase()}-ingestion`,
+            `https://mstic.wiki/troubleshooting/${source.toLowerCase()}-common-issues`
+          ],
+          logQuerySamples: [
+            `${source}Ingestion_CL | where TimeGenerated > ago(1h) | where Level == "Error"`,
+            `${source}Metrics_CL | summarize avg(RecordsPerSecond) by bin(TimeGenerated, 5m)`
+          ],
+          healthCheckEndpoints: [
+            `https://mstic-monitoring.azurewebsites.net/health/${source.toLowerCase()}`,
+            `https://mstic-api.azurewebsites.net/status/${source.toLowerCase()}`
+          ]
         }
       });
     });
@@ -241,6 +327,55 @@ interface DataConnection {
           serviceAccounts: [`sa-${type}-${pipeline.source.toLowerCase()}`],
           externalApis: type === 'enrichment' ? ['threatintelligence.microsoft.com', 'virusshare.com'] : [],
           networkConnections: ['Azure Virtual Network', 'Private Link', 'Managed Virtual Network']
+        },
+        // Enhanced operational information for processing pipelines
+        slaMetrics: {
+          uptime: Math.max(95, 100 - seededRandom(`${pipeline.id}-uptime`) * 5),
+          targetUptime: type === 'ingestion' ? 99.95 : 99.9,
+          mttr: Math.floor(seededRandom(`${pipeline.id}-mttr`) * 20) + 10,
+          mtbf: Math.floor(seededRandom(`${pipeline.id}-mtbf`) * 120) + 48
+        },
+        operationalInfo: {
+          owner: type === 'ingestion' ? 'MSTIC Data Ingestion Team' :
+                 type === 'transformation' ? 'MSTIC Data Platform Team' :
+                 'MSTIC ML Engineering Team',
+          escalationPath: ['On-call Engineer', 'Senior Engineer', 'Team Lead', 'Principal Engineer'],
+          maintenanceWindow: type === 'transformation' ? 'Saturdays 01:00-03:00 UTC' : 'Sundays 03:00-05:00 UTC',
+          criticalityLevel: (type === 'ingestion' ? 'high' : type === 'transformation' ? 'critical' : 'medium') as 'low' | 'medium' | 'high' | 'critical',
+          dataClassification: 'internal' as 'public' | 'internal' | 'confidential' | 'restricted',
+          complianceRequirements: ['GDPR', 'ISO 27001', 'SOC 2']
+        },
+        performanceMetrics: {
+          avgLatency: type === 'ingestion' ? Math.floor(seededRandom(`${pipeline.id}-lat1`) * 100) + 20 :
+                     type === 'transformation' ? Math.floor(seededRandom(`${pipeline.id}-lat2`) * 300) + 100 :
+                     Math.floor(seededRandom(`${pipeline.id}-lat3`) * 500) + 200,
+          p95Latency: type === 'ingestion' ? Math.floor(seededRandom(`${pipeline.id}-p95-1`) * 200) + 50 :
+                     type === 'transformation' ? Math.floor(seededRandom(`${pipeline.id}-p95-2`) * 600) + 200 :
+                     Math.floor(seededRandom(`${pipeline.id}-p95-3`) * 1000) + 500,
+          errorRate: Math.round(seededRandom(`${pipeline.id}-errors`) * 1.5 * 100) / 100,
+          throughputMbps: Math.floor(seededRandom(`${pipeline.id}-throughput`) * 200) + 50,
+          cpuUtilization: Math.floor(seededRandom(`${pipeline.id}-cpu`) * 40) + 30,
+          memoryUtilization: Math.floor(seededRandom(`${pipeline.id}-memory`) * 50) + 25
+        },
+        troubleshooting: {
+          commonIssues: [
+            `${type} pipeline timeout issues`,
+            'Resource scaling limitations',
+            'Data schema validation errors',
+            'Memory pressure during peak loads'
+          ],
+          runbookUrls: [
+            `https://mstic.wiki/runbooks/${type}-pipeline-troubleshooting`,
+            `https://mstic.wiki/scaling/${type}-performance-tuning`
+          ],
+          logQuerySamples: [
+            `${type.charAt(0).toUpperCase() + type.slice(1)}Pipeline_CL | where TimeGenerated > ago(1h) | where Level == "Error"`,
+            `${type.charAt(0).toUpperCase() + type.slice(1)}Metrics_CL | summarize avg(ProcessingTimeMs) by bin(TimeGenerated, 5m)`
+          ],
+          healthCheckEndpoints: [
+            `https://mstic-monitoring.azurewebsites.net/health/${type}`,
+            `https://mstic-${type}.azurewebsites.net/status`
+          ]
         }
       }));
         
@@ -325,6 +460,65 @@ interface DataConnection {
           serviceAccounts: [`sa-${dest.name.replace(/\s+/g, '-').toLowerCase()}`],
           externalApis: dest.name.includes('API') ? ['partner-apis.microsoft.com'] : [],
           networkConnections: ['Private Endpoints', 'VNet Integration', 'Service Endpoints']
+        },
+        // Enhanced operational information for destination nodes
+        slaMetrics: {
+          uptime: Math.max(98, 100 - seededRandom(`${dest.name}-uptime`) * 2),
+          targetUptime: dest.name.includes('Data Lake') || dest.name.includes('Alert') ? 99.99 : 99.9,
+          mttr: Math.floor(seededRandom(`${dest.name}-mttr`) * 15) + 5,
+          mtbf: Math.floor(seededRandom(`${dest.name}-mtbf`) * 200) + 100
+        },
+        operationalInfo: {
+          owner: dest.name.includes('Data Lake') || dest.name.includes('Analytics') ? 'MSTIC Data Platform Team' :
+                 dest.name.includes('Alert') || dest.name.includes('Dashboard') ? 'MSTIC Operations Team' :
+                 dest.name.includes('ML') ? 'MSTIC ML Engineering Team' :
+                 dest.name.includes('Compliance') ? 'MSTIC Compliance Team' :
+                 'MSTIC Infrastructure Team',
+          escalationPath: ['On-call Engineer', 'Senior Engineer', 'Team Lead', 'Engineering Manager'],
+          maintenanceWindow: dest.name.includes('Alert') ? 'None (24/7 Operations)' : 'Sundays 01:00-03:00 UTC',
+          criticalityLevel: (dest.name.includes('Alert') || dest.name.includes('Data Lake') ? 'critical' :
+                           dest.name.includes('Dashboard') || dest.name.includes('Analytics') ? 'high' :
+                           'medium') as 'low' | 'medium' | 'high' | 'critical',
+          dataClassification: (dest.name.includes('Compliance') ? 'confidential' : 'internal') as 'public' | 'internal' | 'confidential' | 'restricted',
+          complianceRequirements: dest.name.includes('Compliance') ? 
+            ['GDPR', 'SOX', 'ISO 27001', 'FedRAMP', 'HIPAA'] : 
+            ['GDPR', 'ISO 27001', 'SOC 2']
+        },
+        performanceMetrics: {
+          avgLatency: dest.name.includes('Data Lake') ? Math.floor(seededRandom(`${dest.name}-lat1`) * 50) + 10 :
+                     dest.name.includes('Alert') ? Math.floor(seededRandom(`${dest.name}-lat2`) * 100) + 50 :
+                     dest.name.includes('Analytics') ? Math.floor(seededRandom(`${dest.name}-lat3`) * 200) + 100 :
+                     Math.floor(seededRandom(`${dest.name}-lat4`) * 150) + 75,
+          p95Latency: dest.name.includes('Data Lake') ? Math.floor(seededRandom(`${dest.name}-p95-1`) * 100) + 25 :
+                     dest.name.includes('Alert') ? Math.floor(seededRandom(`${dest.name}-p95-2`) * 200) + 100 :
+                     dest.name.includes('Analytics') ? Math.floor(seededRandom(`${dest.name}-p95-3`) * 500) + 250 :
+                     Math.floor(seededRandom(`${dest.name}-p95-4`) * 300) + 150,
+          errorRate: Math.round(seededRandom(`${dest.name}-errors`) * 1 * 100) / 100, // Lower error rates for destinations
+          throughputMbps: dest.name.includes('Data Lake') ? Math.floor(seededRandom(`${dest.name}-through1`) * 500) + 100 :
+                         dest.name.includes('Analytics') ? Math.floor(seededRandom(`${dest.name}-through2`) * 300) + 50 :
+                         Math.floor(seededRandom(`${dest.name}-through3`) * 200) + 25,
+          cpuUtilization: Math.floor(seededRandom(`${dest.name}-cpu`) * 25) + 15, // Lower for storage systems
+          memoryUtilization: Math.floor(seededRandom(`${dest.name}-memory`) * 35) + 20
+        },
+        troubleshooting: {
+          commonIssues: [
+            `${dest.name} capacity management`,
+            'Query performance optimization',
+            'Connection pool exhaustion',
+            'Storage tier optimization'
+          ],
+          runbookUrls: [
+            `https://mstic.wiki/runbooks/${dest.name.replace(/\s+/g, '-').toLowerCase()}-maintenance`,
+            `https://mstic.wiki/troubleshooting/${dest.name.replace(/\s+/g, '-').toLowerCase()}-performance`
+          ],
+          logQuerySamples: [
+            `${dest.name.replace(/\s+/g, '')}Logs_CL | where TimeGenerated > ago(1h) | where Level == "Error"`,
+            `${dest.name.replace(/\s+/g, '')}Metrics_CL | summarize avg(ResponseTimeMs) by bin(TimeGenerated, 5m)`
+          ],
+          healthCheckEndpoints: [
+            `https://mstic-monitoring.azurewebsites.net/health/${dest.name.replace(/\s+/g, '-').toLowerCase()}`,
+            `https://mstic-storage.azurewebsites.net/status/${dest.name.replace(/\s+/g, '-').toLowerCase()}`
+          ]
         }
       });
     });
@@ -499,6 +693,39 @@ interface DataConnection {
     setSelectedNode(null);
   }, [selectedSource]);
 
+  // Handle window resize to reposition popup if needed
+  useEffect(() => {
+    const handleResize = () => {
+      if (showNodePopup && selectedNode) {
+        // Simple repositioning on resize - keep popup visible
+        const popupWidth = 420;
+        const popupHeight = 400;
+        
+        let x = popupPosition.x;
+        let y = popupPosition.y;
+        
+        // Check if popup would go off right edge
+        if (x + popupWidth > window.innerWidth - 20) {
+          x = window.innerWidth - popupWidth - 20;
+        }
+        
+        // Check if popup would go off bottom edge
+        if (y + popupHeight > window.innerHeight - 20) {
+          y = window.innerHeight - popupHeight - 20;
+        }
+        
+        // Ensure popup doesn't go off edges
+        if (x < 20) x = 20;
+        if (y < 20) y = 20;
+        
+        setPopupPosition({ x, y });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [showNodePopup, selectedNode, popupPosition]);
+
   // Filter nodes based on search
   const filteredNodes = nodes.filter(node =>
     node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -529,9 +756,55 @@ interface DataConnection {
     setHighlightedPath(path);
   };
 
-  const handleNodeClick = (node: LineageNode) => {
-    // Always set the selected node first - this fixes the double-click issue
+  const handleNodeClick = (node: LineageNode, event: React.MouseEvent) => {
+    // Reset popup expansion when clicking a new node
+    setPopupExpanded(false);
+    
+    // Calculate popup dimensions based on expansion state
+    const popupWidth = 420; // Compact width
+    const popupHeight = 400; // Compact height
+    
+    // Get mouse position relative to viewport
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+    
+    // Calculate optimal position with smart positioning
+    let x = mouseX + 15; // Default offset to the right
+    let y = mouseY + 15; // Default offset below
+    
+    // Check if popup would go off right edge of screen
+    if (x + popupWidth > window.innerWidth - 20) {
+      x = mouseX - popupWidth - 15; // Position to the left of cursor
+    }
+    
+    // Check if popup would go off bottom edge of screen
+    if (y + popupHeight > window.innerHeight - 20) {
+      y = mouseY - popupHeight - 15; // Position above cursor
+    }
+    
+    // Ensure popup doesn't go off left edge
+    if (x < 20) {
+      x = 20;
+    }
+    
+    // Ensure popup doesn't go off top edge
+    if (y < 20) {
+      y = 20;
+    }
+    
+    // If popup is still too large for screen (edge case), center it
+    if (popupWidth > window.innerWidth - 40) {
+      x = 20;
+    }
+    if (popupHeight > window.innerHeight - 40) {
+      y = 20;
+    }
+    
+    setPopupPosition({ x, y });
+    
+    // Set the selected node and show popup
     setSelectedNode(node);
+    setShowNodePopup(true);
     
     // If clicking on a source node, update the selectedSource filter
     if (node.type === 'source' && node.source) {
@@ -542,6 +815,43 @@ interface DataConnection {
       // For non-source nodes, highlight the path
       highlightPath(node.id);
     }
+  };
+
+  // Function to handle popup expansion and repositioning
+  const handlePopupExpansion = () => {
+    const newExpanded = !popupExpanded;
+    setPopupExpanded(newExpanded);
+    
+    if (!selectedNode) return;
+    
+    // Recalculate position for expanded popup
+    const popupWidth = newExpanded ? 800 : 420;
+    const popupHeight = newExpanded ? 600 : 400;
+    
+    let x = popupPosition.x;
+    let y = popupPosition.y;
+    
+    // Check if expanded popup would go off right edge
+    if (x + popupWidth > window.innerWidth - 20) {
+      x = window.innerWidth - popupWidth - 20;
+    }
+    
+    // Check if expanded popup would go off bottom edge
+    if (y + popupHeight > window.innerHeight - 20) {
+      y = window.innerHeight - popupHeight - 20;
+    }
+    
+    // Ensure popup doesn't go off left edge
+    if (x < 20) {
+      x = 20;
+    }
+    
+    // Ensure popup doesn't go off top edge
+    if (y < 20) {
+      y = 20;
+    }
+    
+    setPopupPosition({ x, y });
   };
 
   const handleNodeDoubleClick = (node: LineageNode) => {
@@ -880,7 +1190,7 @@ interface DataConnection {
                   <g 
                     key={node.id}
                     className={styles.nodeGroup}
-                    onClick={() => handleNodeClick(node)}
+                    onClick={(e) => handleNodeClick(node, e)}
                     onDoubleClick={() => handleNodeDoubleClick(node)}
                     onMouseEnter={() => setHoveredNode(node.id)}
                     onMouseLeave={() => setHoveredNode(null)}
@@ -1089,486 +1399,498 @@ interface DataConnection {
           </div>
 
           {/* Side Panel */}
-          {selectedNode && (
-            <div className={styles.sidePanel}>
-              <div className={styles.sidePanelHeader}>
-                <h3 className={styles.sidePanelTitle}>{selectedNode.name}</h3>
-                <div className={styles.statusBadge}>
-                  {getStatusIcon(selectedNode.status)}
-                  <span>{selectedNode.status}</span>
+        </div>
+
+        {/* Node Details Popup */}
+        {showNodePopup && selectedNode && (
+          <>
+            <div className={styles.popupOverlay} onClick={() => setShowNodePopup(false)} />
+            <div 
+              className={`${styles.nodePopup} ${popupExpanded ? styles.nodePopupExpanded : ''}`}
+              style={{
+                left: `${popupPosition.x}px`,
+                top: `${popupPosition.y}px`
+              }}
+            >
+              <div className={styles.popupHeader}>
+                <h3 className={styles.popupTitle}>
+                  {selectedNode.type === 'source' && <Database size={18} />}
+                  {selectedNode.type === 'ingestion' && <ArrowRight size={18} />}
+                  {selectedNode.type === 'transformation' && <GitBranch size={18} />}
+                  {selectedNode.type === 'enrichment' && <Zap size={18} />}
+                  {selectedNode.type === 'destination' && <HardDrive size={18} />}
+                  {selectedNode.name}
+                </h3>
+                <div className={styles.popupActions}>
+                  <button 
+                    className={styles.popupButton}
+                    onClick={() => setShowNodePopup(false)}
+                    title="Close"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
               </div>
-              <div className={styles.sidePanelContent}>
-                <div className={styles.detailSection}>
-                  <h4 className={styles.detailTitle}>Overview</h4>
-                  <p className={styles.detailDescription}>{selectedNode.description}</p>
+              
+              <div className={styles.popupContent}>
+                {/* Quick Info Grid */}
+                <div className={styles.quickInfo}>
+                  <div className={styles.quickInfoItem}>
+                    <span className={styles.quickInfoLabel}>Status</span>
+                    <div className={styles.quickInfoValue}>
+                      <span className={`${styles.statusBadge} ${styles[`status${selectedNode.status.charAt(0).toUpperCase() + selectedNode.status.slice(1)}`]}`}>
+                        {getStatusIcon(selectedNode.status)}
+                        {selectedNode.status}
+                      </span>
+                    </div>
+                  </div>
                   
-                  <div className={styles.metricGrid}>
-                    <div className={styles.metric}>
-                      <Activity size={16} />
-                      <div>
-                        <div className={styles.metricValue}>{selectedNode.recordsPerSecond}/s</div>
-                        <div className={styles.metricLabel}>
-                          Records per second
-                          <InfoTooltip 
-                            content={getTooltipContent('recordsPerSecond')?.content || "Current throughput rate"}
-                            title={getTooltipContent('recordsPerSecond')?.title}
-                            detailedContent={getTooltipContent('recordsPerSecond')?.detailedContent}
-                            size="small"
-                          />
-                        </div>
-                      </div>
+                  <div className={styles.quickInfoItem}>
+                    <span className={styles.quickInfoLabel}>Technology</span>
+                    <div className={styles.quickInfoValue}>
+                      <Server size={14} />
+                      {selectedNode.technology}
                     </div>
-                    
-                    <div className={styles.metric}>
-                      <Clock size={16} />
-                      <div>
-                        <div className={styles.metricValue}>{selectedNode.avgProcessingTime}ms</div>
-                        <div className={styles.metricLabel}>
-                          Avg processing time
-                          <InfoTooltip 
-                            content={getTooltipContent('avgProcessingTime')?.content || "Mean processing time per record"}
-                            title={getTooltipContent('avgProcessingTime')?.title}
-                            detailedContent={getTooltipContent('avgProcessingTime')?.detailedContent}
-                            size="small"
-                          />
-                        </div>
-                      </div>
+                  </div>
+                  
+                  <div className={styles.quickInfoItem}>
+                    <span className={styles.quickInfoLabel}>Throughput</span>
+                    <div className={styles.quickInfoValue}>
+                      <Activity size={14} />
+                      {selectedNode.recordsPerSecond}/s
                     </div>
-                    
-                    <div className={styles.metric}>
-                      <BarChart3 size={16} />
-                      <div>
-                        <div className={styles.metricValue}>{selectedNode.dataQuality}%</div>
-                        <div className={styles.metricLabel}>
-                          Data quality
-                          <InfoTooltip 
-                            content={getTooltipContent('dataQuality')?.content || "Data completeness and accuracy score"}
-                            title={getTooltipContent('dataQuality')?.title}
-                            detailedContent={getTooltipContent('dataQuality')?.detailedContent}
-                            size="small"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className={styles.metric}>
-                      <Zap size={16} />
-                      <div>
-                        <div className={styles.metricValue}>{selectedNode.connections.length}</div>
-                        <div className={styles.metricLabel}>
-                          Connections
-                          <InfoTooltip 
-                            content={getTooltipContent('connections')?.content || "Number of connected pipeline components"}
-                            title={getTooltipContent('connections')?.title}
-                            detailedContent={getTooltipContent('connections')?.detailedContent}
-                            size="small"
-                          />
-                        </div>
-                      </div>
+                  </div>
+                  
+                  <div className={styles.quickInfoItem}>
+                    <span className={styles.quickInfoLabel}>Processing Time</span>
+                    <div className={styles.quickInfoValue}>
+                      <Clock size={14} />
+                      {selectedNode.avgProcessingTime}ms
                     </div>
                   </div>
                 </div>
 
-                <div className={styles.detailSection}>
-                  <h4 className={styles.detailTitle}>Connected Pipelines</h4>
-                  <div className={styles.connectionsList}>
-                    {selectedNode.connections.slice(0, 5).map(connId => {
-                      const connectedNode = nodes.find(n => n.id === connId);
-                      return connectedNode ? (
-                        <div key={connId} className={styles.connectionItem}>
-                          <div 
-                            className={styles.connectionDot}
-                            style={{ backgroundColor: getNodeColor(connectedNode) }}
-                          />
-                          <span className={styles.connectionName}>{connectedNode.name}</span>
-                          <span className={styles.connectionType}>{connectedNode.type}</span>
-                        </div>
-                      ) : null;
-                    })}
+                {/* Performance Metrics */}
+                <div className={styles.metricGrid}>
+                  <div className={styles.metricItem}>
+                    <p className={styles.metricValue}>{selectedNode.dataQuality}%</p>
+                    <p className={styles.metricLabel}>Data Quality</p>
+                  </div>
+                  <div className={styles.metricItem}>
+                    <p className={styles.metricValue}>{selectedNode.connections.length}</p>
+                    <p className={styles.metricLabel}>Connections</p>
+                  </div>
+                  <div className={styles.metricItem}>
+                    <p className={styles.metricValue}>{selectedNode.region}</p>
+                    <p className={styles.metricLabel}>Region</p>
                   </div>
                 </div>
 
-                <div className={styles.detailSection}>
-                  <h4 className={styles.detailTitle}>Recent Activity</h4>
-                  <div className={styles.activityItem}>
-                    <div className={styles.activityIcon}>
-                      <CheckCircle size={14} />
-                    </div>
-                    <div>
-                      <div className={styles.activityText}>Last updated</div>
-                      <div className={styles.activityTime}>
-                        {new Date(selectedNode.lastUpdate).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
+                {/* Expand Button */}
+                <div className={styles.expandButtonContainer}>
+                  <button 
+                    className={styles.expandButton}
+                    onClick={handlePopupExpansion}
+                    title={popupExpanded ? "Show less details" : "Show more details"}
+                  >
+                    {popupExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                    {popupExpanded ? "Less Details" : "More Details"}
+                  </button>
                 </div>
 
-                {/* Microsoft Technology Stack Details */}
-                <div className={styles.detailSection}>
-                  <h4 className={styles.detailTitle}>🏗️ Microsoft Technology Stack</h4>
-                  <div className={styles.techDetails}>
-                    <div className={styles.techItem}>
-                      <strong>Service:</strong> {selectedNode.technology}
-                      {selectedNode.technology.includes('Event Hub') && (
-                        <InfoTooltip 
-                          content={getTooltipContent('eventHubs')?.content || "Real-time data streaming platform"}
-                          title={getTooltipContent('eventHubs')?.title}
-                          detailedContent={getTooltipContent('eventHubs')?.detailedContent}
-                          size="small"
-                        />
-                      )}
-                      {selectedNode.technology.includes('Data Factory') && (
-                        <InfoTooltip 
-                          content={getTooltipContent('azureDataFactory')?.content || "Cloud-based data integration service"}
-                          title={getTooltipContent('azureDataFactory')?.title}
-                          detailedContent={getTooltipContent('azureDataFactory')?.detailedContent}
-                          size="small"
-                        />
-                      )}
-                      {selectedNode.technology.includes('Stream Analytics') && (
-                        <InfoTooltip 
-                          content={getTooltipContent('streamAnalytics')?.content || "Real-time analytics service"}
-                          title={getTooltipContent('streamAnalytics')?.title}
-                          detailedContent={getTooltipContent('streamAnalytics')?.detailedContent}
-                          size="small"
-                        />
-                      )}
-                      {selectedNode.technology.includes('Cosmos') && (
-                        <InfoTooltip 
-                          content={getTooltipContent('cosmosDB')?.content || "Globally distributed database service"}
-                          title={getTooltipContent('cosmosDB')?.title}
-                          detailedContent={getTooltipContent('cosmosDB')?.detailedContent}
-                          size="small"
-                        />
-                      )}
-                      {selectedNode.technology.includes('Data Lake') && (
-                        <InfoTooltip 
-                          content={getTooltipContent('dataLake')?.content || "Scalable data storage for big data"}
-                          title={getTooltipContent('dataLake')?.title}
-                          detailedContent={getTooltipContent('dataLake')?.detailedContent}
-                          size="small"
-                        />
-                      )}
-                    </div>
-                    <div className={styles.techItem}>
-                      <strong>Resource Group:</strong> {selectedNode.resourceGroup}
-                    </div>
-                    <div className={styles.techItem}>
-                      <strong>Region:</strong> {selectedNode.region}
-                    </div>
-                    {selectedNode.computeType && (
-                      <div className={styles.techItem}>
-                        <strong>Compute:</strong> {selectedNode.computeType}
+                {/* Detailed Information - Conditional */}
+                {popupExpanded && (
+                <div className={styles.expandedContent}>
+                  <div className={styles.expandedSection}>
+                    <h4 className={styles.expandedSectionTitle}>
+                      <Shield size={16} />
+                      Security & Authentication
+                    </h4>
+                    <div className={styles.expandedSectionContent}>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Authentication:</span>
+                        <span className={styles.detailValue}>{selectedNode.authentication}</span>
                       </div>
-                    )}
-                    {selectedNode.storageType && (
-                      <div className={styles.techItem}>
-                        <strong>Storage:</strong> {selectedNode.storageType}
-                      </div>
-                    )}
-                    {selectedNode.throughputUnits && (
-                      <div className={styles.techItem}>
-                        <strong>Throughput Units:</strong> {selectedNode.throughputUnits}
-                      </div>
-                    )}
-                    <div className={styles.techItem}>
-                      <strong>Partitions:</strong> {selectedNode.partitionCount}
-                    </div>
-                    <div className={styles.techItem}>
-                      <strong>Retention:</strong> {selectedNode.retentionDays} days
-                    </div>
-                  </div>
-                </div>
-
-                {/* Protocols & Authentication */}
-                <div className={styles.detailSection}>
-                  <h4 className={styles.detailTitle}>🔐 Protocols & Security</h4>
-                  <div className={styles.techDetails}>
-                    <div className={styles.techItem}>
-                      <strong>Protocols:</strong> 
-                      <InfoTooltip 
-                        content="Communication protocols used for data transfer and API access"
-                        title="Communication Protocols"
-                        detailedContent="Includes HTTPS for secure web communication, AMQP for messaging, and Kafka for streaming protocols."
-                        size="small"
-                      />
-                      <div className={styles.tagList}>
-                        {selectedNode.protocols?.map((protocol, idx) => (
-                          <span key={idx} className={styles.protocolTag}>{protocol}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className={styles.techItem}>
-                      <strong>Authentication:</strong> {selectedNode.authentication}
-                      <InfoTooltip 
-                        content={getTooltipContent('managedIdentity')?.content || "Azure's secure authentication solution"}
-                        title={getTooltipContent('managedIdentity')?.title}
-                        detailedContent={getTooltipContent('managedIdentity')?.detailedContent}
-                        size="small"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Monitoring & Observability */}
-                <div className={styles.detailSection}>
-                  <h4 className={styles.detailTitle}>📊 Monitoring & Observability</h4>
-                  <div className={styles.techDetails}>
-                    <div className={styles.techItem}>
-                      <strong>Application Insights:</strong> {selectedNode.monitoring?.applicationInsights}
-                      <InfoTooltip 
-                        content={getTooltipContent('applicationInsights')?.content || "Application performance monitoring service"}
-                        title={getTooltipContent('applicationInsights')?.title}
-                        detailedContent={getTooltipContent('applicationInsights')?.detailedContent}
-                        size="small"
-                      />
-                    </div>
-                    <div className={styles.techItem}>
-                      <strong>Log Analytics:</strong> {selectedNode.monitoring?.logAnalyticsWorkspace}
-                      <InfoTooltip 
-                        content={getTooltipContent('logAnalytics')?.content || "Centralized logging service"}
-                        title={getTooltipContent('logAnalytics')?.title}
-                        detailedContent={getTooltipContent('logAnalytics')?.detailedContent}
-                        size="small"
-                      />
-                    </div>
-                    <div className={styles.techItem}>
-                      <strong>Kusto Cluster:</strong> {selectedNode.monitoring?.kustoCluster}
-                      <InfoTooltip 
-                        content={getTooltipContent('kusto')?.content || "Fast data exploration service"}
-                        title={getTooltipContent('kusto')?.title}
-                        detailedContent={getTooltipContent('kusto')?.detailedContent}
-                        size="small"
-                      />
-                    </div>
-                    <div className={styles.techItem}>
-                      <strong>Alert Rules:</strong>
-                      <InfoTooltip 
-                        content="Automated monitoring rules that trigger notifications based on system conditions"
-                        title="Alert Rules"
-                        detailedContent="Include performance thresholds, error rate monitoring, resource utilization alerts, and custom business logic triggers."
-                        size="small"
-                      />
-                      <div className={styles.alertList}>
-                        {selectedNode.monitoring?.alertRules?.map((rule, idx) => (
-                          <span key={idx} className={styles.alertRule}>{rule}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Dependencies & External Connections */}
-                <div className={styles.detailSection}>
-                  <h4 className={styles.detailTitle}>🔗 Dependencies & External APIs</h4>
-                  <div className={styles.techDetails}>
-                    <div className={styles.techItem}>
-                      <strong>Key Vault:</strong> {selectedNode.dependencies?.keyVault}
-                    </div>
-                    <div className={styles.techItem}>
-                      <strong>Service Accounts:</strong>
-                      <div className={styles.tagList}>
-                        {selectedNode.dependencies?.serviceAccounts?.map((sa, idx) => (
-                          <span key={idx} className={styles.serviceTag}>{sa}</span>
-                        ))}
-                      </div>
-                    </div>
-                    {selectedNode.dependencies?.externalApis && selectedNode.dependencies.externalApis.length > 0 && (
-                      <div className={styles.techItem}>
-                        <strong>External APIs:</strong>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Protocols:</span>
                         <div className={styles.tagList}>
-                          {selectedNode.dependencies.externalApis.map((api, idx) => (
-                            <span key={idx} className={styles.apiTag}>{api}</span>
+                          {selectedNode.protocols?.slice(0, 3).map((protocol, idx) => (
+                            <span key={idx} className={styles.tag}>{protocol}</span>
                           ))}
                         </div>
                       </div>
-                    )}
-                    <div className={styles.techItem}>
-                      <strong>Network:</strong>
-                      <div className={styles.tagList}>
-                        {selectedNode.dependencies?.networkConnections?.map((net, idx) => (
-                          <span key={idx} className={styles.networkTag}>{net}</span>
-                        ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.expandedSection}>
+                    <h4 className={styles.expandedSectionTitle}>
+                      <Cpu size={16} />
+                      Infrastructure
+                    </h4>
+                    <div className={styles.expandedSectionContent}>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Resource Group:</span>
+                        <span className={styles.detailValue}>{selectedNode.resourceGroup}</span>
+                      </div>
+                      {selectedNode.computeType && (
+                        <div className={styles.detailItem}>
+                          <span className={styles.detailLabel}>Compute:</span>
+                          <span className={styles.detailValue}>{selectedNode.computeType}</span>
+                        </div>
+                      )}
+                      {selectedNode.storageType && (
+                        <div className={styles.detailItem}>
+                          <span className={styles.detailLabel}>Storage:</span>
+                          <span className={styles.detailValue}>{selectedNode.storageType}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={styles.expandedSection}>
+                    <h4 className={styles.expandedSectionTitle}>
+                      <BarChart3 size={16} />
+                      Monitoring
+                    </h4>
+                    <div className={styles.expandedSectionContent}>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>App Insights:</span>
+                        <span className={styles.detailValue}>{selectedNode.monitoring?.applicationInsights}</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Log Analytics:</span>
+                        <span className={styles.detailValue}>{selectedNode.monitoring?.logAnalyticsWorkspace}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.expandedSection}>
+                    <h4 className={styles.expandedSectionTitle}>
+                      <AlertTriangle size={16} />
+                      Dependencies
+                    </h4>
+                    <div className={styles.expandedSectionContent}>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Key Vault:</span>
+                        <span className={styles.detailValue}>{selectedNode.dependencies?.keyVault}</span>
+                      </div>
+                      {selectedNode.dependencies?.externalApis && selectedNode.dependencies.externalApis.length > 0 && (
+                        <div className={styles.detailItem}>
+                          <span className={styles.detailLabel}>External APIs:</span>
+                          <div className={styles.tagList}>
+                            {selectedNode.dependencies.externalApis.slice(0, 2).map((api, idx) => (
+                              <span key={idx} className={styles.tag}>{api}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Operational Information Section */}
+                  <div className={styles.expandedSection}>
+                    <h4 className={styles.expandedSectionTitle}>
+                      <Cpu size={16} />
+                      Operational Information
+                    </h4>
+                    <div className={styles.expandedSectionContent}>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Owner:</span>
+                        <span className={styles.detailValue}>{selectedNode.operationalInfo?.owner}</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Escalation Path:</span>
+                        <div className={styles.tagList}>
+                          {selectedNode.operationalInfo?.escalationPath?.map((contact, idx) => (
+                            <span key={idx} className={styles.tag}>{contact}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Maintenance Window:</span>
+                        <span className={styles.detailValue}>{selectedNode.operationalInfo?.maintenanceWindow}</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Criticality Level:</span>
+                        <span className={styles.detailValue}>{selectedNode.operationalInfo?.criticalityLevel}</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Data Classification:</span>
+                        <span className={styles.detailValue}>{selectedNode.operationalInfo?.dataClassification}</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Compliance Requirements:</span>
+                        <div className={styles.tagList}>
+                          {selectedNode.operationalInfo?.complianceRequirements?.map((req, idx) => (
+                            <span key={idx} className={styles.tag}>{req}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SLA Metrics Section */}
+                  <div className={styles.expandedSection}>
+                    <h4 className={styles.expandedSectionTitle}>
+                      <Clock size={16} />
+                      SLA Metrics
+                    </h4>
+                    <div className={styles.expandedSectionContent}>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Uptime:</span>
+                        <span className={styles.detailValue}>{selectedNode.slaMetrics?.uptime}%</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Target Uptime:</span>
+                        <span className={styles.detailValue}>{selectedNode.slaMetrics?.targetUptime}%</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>MTTR:</span>
+                        <span className={styles.detailValue}>{selectedNode.slaMetrics?.mttr} minutes</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>MTBF:</span>
+                        <span className={styles.detailValue}>{selectedNode.slaMetrics?.mtbf} hours</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Performance Metrics Section */}
+                  <div className={styles.expandedSection}>
+                    <h4 className={styles.expandedSectionTitle}>
+                      <BarChart3 size={16} />
+                      Performance Metrics
+                    </h4>
+                    <div className={styles.expandedSectionContent}>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Avg Latency:</span>
+                        <span className={styles.detailValue}>{selectedNode.performanceMetrics?.avgLatency}ms</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>P95 Latency:</span>
+                        <span className={styles.detailValue}>{selectedNode.performanceMetrics?.p95Latency}ms</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Error Rate:</span>
+                        <span className={styles.detailValue}>{selectedNode.performanceMetrics?.errorRate}%</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Throughput:</span>
+                        <span className={styles.detailValue}>{selectedNode.performanceMetrics?.throughputMbps} Mbps</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>CPU Utilization:</span>
+                        <span className={styles.detailValue}>{selectedNode.performanceMetrics?.cpuUtilization}%</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Memory Utilization:</span>
+                        <span className={styles.detailValue}>{selectedNode.performanceMetrics?.memoryUtilization}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Troubleshooting Section */}
+                  <div className={styles.expandedSection}>
+                    <h4 className={styles.expandedSectionTitle}>
+                      <HelpCircle size={16} />
+                      Troubleshooting Resources
+                    </h4>
+                    <div className={styles.expandedSectionContent}>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Common Issues:</span>
+                        <div className={styles.tagList}>
+                          {selectedNode.troubleshooting?.commonIssues?.slice(0, 2).map((issue, idx) => (
+                            <span key={idx} className={styles.tag}>{issue}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Runbook URLs:</span>
+                        <div className={styles.linkList}>
+                          {selectedNode.troubleshooting?.runbookUrls?.map((url, idx) => (
+                            <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className={styles.link}>
+                              Runbook {idx + 1}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Health Check Endpoints:</span>
+                        <div className={styles.linkList}>
+                          {selectedNode.troubleshooting?.healthCheckEndpoints?.map((endpoint, idx) => (
+                            <a key={idx} href={endpoint} target="_blank" rel="noopener noreferrer" className={styles.link}>
+                              Health Check {idx + 1}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Sample Log Queries:</span>
+                        <div className={styles.codeSnippets}>
+                          {selectedNode.troubleshooting?.logQuerySamples?.map((query, idx) => (
+                            <code key={idx} className={styles.codeSnippet}>
+                              {query}
+                            </code>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
+                )}
 
-                {/* Error Information & Status */}
+                {/* Error Status & Actions */}
                 {(selectedNode.hasErrors || selectedNode.status === 'failed' || selectedNode.status === 'warning') && (
-                  <div className={styles.detailSection}>
-                    <h4 className={styles.detailTitle}>
-                      🚨 Error Information & Diagnostics
-                      {selectedNode.errorCount && selectedNode.errorCount > 0 && (
-                        <span className={styles.errorBadge}>{selectedNode.errorCount} errors</span>
-                      )}
-                    </h4>
+                  <div style={{ marginTop: '1rem', padding: '1rem', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #ef4444' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      <AlertTriangle size={16} style={{ color: '#ef4444' }} />
+                      <span style={{ fontWeight: '600', color: '#ef4444' }}>
+                        {selectedNode.errorCount ? `${selectedNode.errorCount} Active Errors` : 'System Issues Detected'}
+                      </span>
+                    </div>
                     
                     {selectedNode.pipelineData?.currentError && (
-                      <div className={styles.errorDetails}>
-                        <div className={styles.errorHeader}>
-                          <AlertTriangle size={16} className={styles.errorIcon} />
-                          <div>
-                            <div className={styles.errorMessage}>
-                              {selectedNode.pipelineData.currentError.errorMessage}
-                            </div>
-                            <div className={styles.errorMeta}>
-                              <span className={styles.errorCode}>
-                                {selectedNode.pipelineData.currentError.errorCode}
-                              </span>
-                              <span className={styles.errorTime}>
-                                {new Date(selectedNode.pipelineData.currentError.timestamp).toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {selectedNode.pipelineData.currentError.suggestedActions && (
-                          <div className={styles.suggestedActions}>
-                            <strong>Quick Actions:</strong>
-                            <ul>
-                              {selectedNode.pipelineData.currentError.suggestedActions.slice(0, 3).map((action: string, idx: number) => (
-                                <li key={idx}>{action}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        
-                        <button 
-                          className={styles.viewFullErrorButton}
-                          onClick={() => setShowErrorModal(true)}
-                        >
-                          <AlertTriangle size={14} />
-                          View Complete Error Details
-                        </button>
-                      </div>
+                      <p style={{ fontSize: '0.85rem', color: '#cccccc', margin: '0 0 0.75rem 0' }}>
+                        {selectedNode.pipelineData.currentError.errorMessage.slice(0, 100)}...
+                      </p>
                     )}
+                    
+                    <button 
+                      onClick={() => {
+                        setShowErrorModal(true);
+                        setShowNodePopup(false);
+                      }}
+                      style={{
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '6px',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <AlertTriangle size={14} />
+                      View Error Details
+                    </button>
                   </div>
                 )}
 
-                {/* Logging & Monitoring Links */}
-                <div className={styles.detailSection}>
-                  <h4 className={styles.detailTitle}>📊 Logs & Monitoring</h4>
-                  <div className={styles.monitoringLinks}>
-                    {selectedNode.pipelineData?.logReferences?.slice(0, 3).map((log: any, idx: number) => (
-                      <button 
-                        key={idx}
-                        className={styles.logLink}
-                        onClick={() => window.open(log.logUrl, '_blank')}
-                      >
-                        <Database size={14} />
-                        {log.logSystem.toUpperCase()} Logs
-                      </button>
-                    )) || (
-                      <>
-                        <button 
-                          className={styles.logLink}
-                          onClick={() => window.open(`https://portal.azure.com/#@microsoft.onmicrosoft.com/resource/subscriptions/${selectedNode.subscriptionId}/resourceGroups/${selectedNode.resourceGroup}/providers/Microsoft.Insights/components/${selectedNode.monitoring?.applicationInsights}/logs`, '_blank')}
-                        >
-                          <Database size={14} />
-                          Application Insights
-                        </button>
-                        <button 
-                          className={styles.logLink}
-                          onClick={() => window.open(`https://portal.azure.com/#@microsoft.onmicrosoft.com/resource/subscriptions/${selectedNode.subscriptionId}/resourceGroups/${selectedNode.resourceGroup}/providers/Microsoft.OperationalInsights/workspaces/${selectedNode.monitoring?.logAnalyticsWorkspace}`, '_blank')}
-                        >
-                          <Database size={14} />
-                          Log Analytics
-                        </button>
-                        <button 
-                          className={styles.logLink}
-                          onClick={() => window.open(`https://${selectedNode.monitoring?.kustoCluster}.kusto.windows.net`, '_blank')}
-                        >
-                          <Database size={14} />
-                          Kusto Explorer
-                        </button>
-                      </>
-                    )}
-                  </div>
-                  
-                  {/* Team Communication Links */}
-                  <div className={styles.communicationLinks}>
-                    {selectedNode.pipelineData?.slackChannel && (
-                      <button 
-                        className={styles.commLink}
-                        onClick={() => window.open(`slack://channel?team=T123&id=${selectedNode.pipelineData.slackChannel}`, '_blank')}
-                      >
-                        <Database size={14} />
-                        Slack: #{selectedNode.pipelineData.slackChannel}
-                      </button>
-                    )}
-                    {selectedNode.pipelineData?.teamsChannel && (
-                      <button 
-                        className={styles.commLink}
-                        onClick={() => window.open(selectedNode.pipelineData.teamsChannel, '_blank')}
-                      >
-                        <Database size={14} />
-                        Teams Channel
-                      </button>
-                    )}
-                    {selectedNode.pipelineData?.grafanaUrl && (
-                      <button 
-                        className={styles.commLink}
-                        onClick={() => window.open(selectedNode.pipelineData.grafanaUrl, '_blank')}
-                      >
-                        <BarChart3 size={14} />
-                        Grafana Dashboard
-                      </button>
-                    )}
-                  </div>
+                {/* Last Updated */}
+                <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#888', textAlign: 'center' }}>
+                  Last updated: {new Date(selectedNode.lastUpdate).toLocaleString()}
                 </div>
               </div>
             </div>
-          )}
-        </div>
-      </div>
+          </>
+        )}
 
-      {/* Summary Stats */}
-      <div className={styles.summaryGrid}>
-        <div className={styles.summaryCard}>
-          <div className={styles.summaryIcon}>
-            <Database size={24} />
-          </div>
-          <div className={styles.summaryContent}>
-            <div className={styles.summaryValue}>{nodes.filter(n => n.type === 'source').length}</div>
-            <div className={styles.summaryLabel}>Data Sources</div>
-          </div>
-        </div>
+        {/* Error Details Modal */}
+        {showErrorModal && selectedNode && selectedNode.pipelineData && (
+          <ErrorDetailsModal
+            isOpen={showErrorModal}
+            onClose={() => setShowErrorModal(false)}
+            pipelineName={selectedNode.name}
+            currentError={selectedNode.pipelineData.currentError}
+            errorHistory={selectedNode.pipelineData.errorHistory || []}
+            logReferences={selectedNode.pipelineData.logs || []}
+            metricsHistory={selectedNode.pipelineData.metrics || []}
+            impactAnalysis={selectedNode.pipelineData.impact}
+            runbooks={selectedNode.pipelineData.runbooks || []}
+            oncallTeam={selectedNode.operationalInfo?.owner || 'MSTIC Data Engineering Team'}
+            slackChannel="#mstic-incidents"
+            teamsChannel="MSTIC Operations"
+            operationalData={{
+              slaMetrics: selectedNode.slaMetrics,
+              operationalInfo: selectedNode.operationalInfo,
+              performanceMetrics: selectedNode.performanceMetrics,
+              troubleshooting: selectedNode.troubleshooting,
+              contactInfo: {
+                primaryTeam: selectedNode.operationalInfo?.owner || 'MSTIC Data Engineering Team',
+                secondaryTeam: 'MSTIC Platform Team',
+                escalationContacts: [
+                  {
+                    name: 'On-call Engineer',
+                    role: 'Level 1 Support',
+                    email: 'mstic-oncall@microsoft.com',
+                    phone: '+1-425-882-8080',
+                    slackHandle: '@mstic-oncall'
+                  },
+                  {
+                    name: 'Senior Engineer',
+                    role: 'Level 2 Support',
+                    email: 'mstic-senior@microsoft.com',
+                    phone: '+1-425-882-8081',
+                    slackHandle: '@mstic-senior'
+                  },
+                  {
+                    name: 'Engineering Manager',
+                    role: 'Level 3 Escalation',
+                    email: 'mstic-manager@microsoft.com',
+                    phone: '+1-425-882-8082',
+                    slackHandle: '@mstic-manager'
+                  }
+                ]
+              },
+              technology: {
+                stack: selectedNode.technology,
+                resourceGroup: selectedNode.resourceGroup,
+                subscriptionId: selectedNode.subscriptionId,
+                region: selectedNode.region
+              }
+            }}
+          />
+        )}
 
-        <div className={styles.summaryCard}>
-          <div className={styles.summaryIcon}>
-            <GitBranch size={24} />
-          </div>
-          <div className={styles.summaryContent}>
-            <div className={styles.summaryValue}>
-              {nodes.filter(n => ['ingestion', 'transformation', 'enrichment'].includes(n.type)).length}
+        {/* Summary Stats */}
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryIcon}>
+              <Database size={24} />
             </div>
-            <div className={styles.summaryLabel}>Processing Pipelines</div>
+            <div className={styles.summaryContent}>
+              <div className={styles.summaryValue}>{nodes.filter(n => n.type === 'source').length}</div>
+              <div className={styles.summaryLabel}>Data Sources</div>
+            </div>
           </div>
-        </div>
 
-        <div className={styles.summaryCard}>
-          <div className={styles.summaryIcon}>
-            <ArrowRight size={24} />
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryIcon}>
+              <GitBranch size={24} />
+            </div>
+            <div className={styles.summaryContent}>
+              <div className={styles.summaryValue}>
+                {nodes.filter(n => ['ingestion', 'transformation', 'enrichment'].includes(n.type)).length}
+              </div>
+              <div className={styles.summaryLabel}>Processing Pipelines</div>
+            </div>
           </div>
-          <div className={styles.summaryContent}>
-            <div className={styles.summaryValue}>{connections.length}</div>
-            <div className={styles.summaryLabel}>Data Flows</div>
-          </div>
-        </div>
 
-        <div className={styles.summaryCard}>
-          <div className={styles.summaryIcon}>
-            <Database size={24} />
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryIcon}>
+              <ArrowRight size={24} />
+            </div>
+            <div className={styles.summaryContent}>
+              <div className={styles.summaryValue}>{connections.length}</div>
+              <div className={styles.summaryLabel}>Data Flows</div>
+            </div>
           </div>
-          <div className={styles.summaryContent}>
-            <div className={styles.summaryValue}>{nodes.filter(n => n.type === 'destination').length}</div>
-            <div className={styles.summaryLabel}>Destinations</div>
+
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryIcon}>
+              <HardDrive size={24} />
+            </div>
+            <div className={styles.summaryContent}>
+              <div className={styles.summaryValue}>{nodes.filter(n => n.type === 'destination').length}</div>
+              <div className={styles.summaryLabel}>Destinations</div>
+            </div>
           </div>
         </div>
       </div>
-      
+
       {/* Error Details Modal */}
       {showErrorModal && selectedNode && selectedNode.pipelineData && (
         <ErrorDetailsModal
@@ -1587,6 +1909,28 @@ interface DataConnection {
           dashboardUrl={selectedNode.pipelineData.dashboardUrl}
           grafanaUrl={selectedNode.pipelineData.grafanaUrl}
           healthCheckUrl={selectedNode.pipelineData.healthCheckUrl}
+          operationalData={{
+            slaMetrics: selectedNode.slaMetrics,
+            operationalInfo: selectedNode.operationalInfo,
+            performanceMetrics: selectedNode.performanceMetrics,
+            troubleshooting: selectedNode.troubleshooting,
+            technology: {
+              stack: selectedNode.technology,
+              resourceGroup: selectedNode.resourceGroup,
+              region: selectedNode.region,
+              subscriptionId: selectedNode.subscriptionId
+            },
+            contactInfo: {
+              primaryTeam: selectedNode.operationalInfo?.owner || 'MSTIC Data Engineering',
+              escalationContacts: selectedNode.operationalInfo?.escalationPath?.map((role, index) => ({
+                name: `${role} Contact`,
+                role: role,
+                email: `${role.toLowerCase().replace(/\s+/g, '.')}@microsoft.com`,
+                phone: index === 0 ? '+1-555-0123' : undefined,
+                slackHandle: `@${role.toLowerCase().replace(/\s+/g, '')}`
+              })) || []
+            }
+          }}
         />
       )}
       

@@ -12,10 +12,66 @@ import {
   AlertCircle,
   CheckCircle,
   Copy,
-  Zap
+  Zap,
+  Shield,
+  Settings,
+  Phone,
+  Mail,
+  Gauge,
+  Server,
+  BarChart3
 } from 'lucide-react';
 import type { ErrorDetails, LogReference, MetricHistory, ImpactAnalysis, RunbookReference } from '../types';
 import styles from './ErrorDetailsModal.module.css';
+
+// Operational Information Interface (from DataLineage popup data)
+interface OperationalInfo {
+  slaMetrics?: {
+    uptime: number;
+    targetUptime: number;
+    mttr: number; // Mean Time To Recovery in minutes
+    mtbf: number; // Mean Time Between Failures in hours
+  };
+  operationalInfo?: {
+    owner: string;
+    escalationPath: string[];
+    maintenanceWindow: string;
+    criticalityLevel: 'low' | 'medium' | 'high' | 'critical';
+    dataClassification: 'public' | 'internal' | 'confidential' | 'restricted';
+    complianceRequirements: string[];
+  };
+  performanceMetrics?: {
+    avgLatency: number;
+    p95Latency: number;
+    errorRate: number;
+    throughputMbps: number;
+    cpuUtilization: number;
+    memoryUtilization: number;
+  };
+  troubleshooting?: {
+    commonIssues: string[];
+    runbookUrls: string[];
+    logQuerySamples: string[];
+    healthCheckEndpoints: string[];
+  };
+  technology?: {
+    stack: string;
+    resourceGroup: string;
+    region: string;
+    subscriptionId: string;
+  };
+  contactInfo?: {
+    primaryTeam: string;
+    secondaryTeam?: string;
+    escalationContacts: Array<{
+      name: string;
+      role: string;
+      email: string;
+      phone?: string;
+      slackHandle?: string;
+    }>;
+  };
+}
 
 interface ErrorDetailsModalProps {
   isOpen: boolean;
@@ -33,6 +89,8 @@ interface ErrorDetailsModalProps {
   dashboardUrl?: string;
   grafanaUrl?: string;
   healthCheckUrl?: string;
+  // New operational information from popup data
+  operationalData?: OperationalInfo;
 }
 
 const ErrorDetailsModal: React.FC<ErrorDetailsModalProps> = ({
@@ -50,9 +108,10 @@ const ErrorDetailsModal: React.FC<ErrorDetailsModalProps> = ({
   teamsChannel,
   dashboardUrl,
   grafanaUrl,
-  healthCheckUrl
+  healthCheckUrl,
+  operationalData
 }) => {
-  const [activeTab, setActiveTab] = useState<'error' | 'logs' | 'metrics' | 'impact' | 'runbooks'>('error');
+  const [activeTab, setActiveTab] = useState<'error' | 'logs' | 'metrics' | 'impact' | 'runbooks' | 'operations'>('error');
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -148,13 +207,13 @@ const ErrorDetailsModal: React.FC<ErrorDetailsModalProps> = ({
 
         {/* Navigation Tabs */}
         <div className={styles.tabNav}>
-          {['error', 'logs', 'metrics', 'impact', 'runbooks'].map((tab) => (
+          {['error', 'operations', 'logs', 'metrics', 'impact', 'runbooks'].map((tab) => (
             <button
               key={tab}
               className={`${styles.tab} ${activeTab === tab ? styles.activeTab : ''}`}
               onClick={() => setActiveTab(tab as any)}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab === 'operations' ? 'Operations' : tab.charAt(0).toUpperCase() + tab.slice(1)}
               {tab === 'error' && currentError && (
                 <span className={styles.errorBadge} style={{ backgroundColor: getSeverityColor(currentError.severity) }}>
                   {currentError.severity}
@@ -272,6 +331,306 @@ const ErrorDetailsModal: React.FC<ErrorDetailsModalProps> = ({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Operations Tab - Consolidated from popup data */}
+          {activeTab === 'operations' && (
+            <div className={styles.tabContent}>
+              <div className={styles.operationsSection}>
+                {/* Contact Information */}
+                <div className={styles.contactSection}>
+                  <h3>
+                    <Users size={20} />
+                    Contact Information
+                  </h3>
+                  <div className={styles.contactGrid}>
+                    <div className={styles.contactCard}>
+                      <h4>Primary Team</h4>
+                      <div className={styles.teamInfo}>
+                        <span className={styles.teamName}>
+                          {operationalData?.operationalInfo?.owner || oncallTeam}
+                        </span>
+                        <div className={styles.contactMethods}>
+                          {slackChannel && (
+                            <button
+                              className={styles.contactButton}
+                              onClick={() => window.open(`slack://channel?team=T123&id=${slackChannel}`, '_blank')}
+                            >
+                              <MessageSquare size={14} />
+                              #{slackChannel}
+                            </button>
+                          )}
+                          {teamsChannel && (
+                            <button
+                              className={styles.contactButton}
+                              onClick={() => window.open(teamsChannel, '_blank')}
+                            >
+                              <Users size={14} />
+                              Teams Channel
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.contactCard}>
+                      <h4>Escalation Path</h4>
+                      <div className={styles.escalationPath}>
+                        {(operationalData?.operationalInfo?.escalationPath || 
+                          ['On-call Engineer', 'Senior Engineer', 'Team Lead', 'Principal Engineer']).map((level, index) => (
+                          <div key={index} className={styles.escalationLevel}>
+                            <span className={styles.escalationOrder}>{index + 1}</span>
+                            <span className={styles.escalationRole}>{level}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {operationalData?.contactInfo && (
+                      <div className={styles.contactCard}>
+                        <h4>Key Contacts</h4>
+                        <div className={styles.keyContacts}>
+                          {operationalData.contactInfo.escalationContacts.slice(0, 3).map((contact, index) => (
+                            <div key={index} className={styles.contactPerson}>
+                              <div className={styles.contactName}>{contact.name}</div>
+                              <div className={styles.contactRole}>{contact.role}</div>
+                              <div className={styles.contactDetails}>
+                                <span className={styles.contactEmail}>
+                                  <Mail size={12} />
+                                  {contact.email}
+                                </span>
+                                {contact.phone && (
+                                  <span className={styles.contactPhone}>
+                                    <Phone size={12} />
+                                    {contact.phone}
+                                  </span>
+                                )}
+                                {contact.slackHandle && (
+                                  <span className={styles.contactSlack}>
+                                    <MessageSquare size={12} />
+                                    @{contact.slackHandle}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* SLA & Performance Metrics */}
+                {operationalData?.slaMetrics && (
+                  <div className={styles.slaSection}>
+                    <h3>
+                      <Gauge size={20} />
+                      SLA Metrics
+                    </h3>
+                    <div className={styles.slaGrid}>
+                      <div className={styles.slaCard}>
+                        <div className={styles.slaLabel}>Current Uptime</div>
+                        <div className={styles.slaValue}>
+                          {operationalData.slaMetrics.uptime.toFixed(2)}%
+                        </div>
+                        <div className={styles.slaTarget}>
+                          Target: {operationalData.slaMetrics.targetUptime}%
+                        </div>
+                      </div>
+                      <div className={styles.slaCard}>
+                        <div className={styles.slaLabel}>MTTR</div>
+                        <div className={styles.slaValue}>
+                          {operationalData.slaMetrics.mttr} min
+                        </div>
+                        <div className={styles.slaTarget}>Mean Time To Recovery</div>
+                      </div>
+                      <div className={styles.slaCard}>
+                        <div className={styles.slaLabel}>MTBF</div>
+                        <div className={styles.slaValue}>
+                          {operationalData.slaMetrics.mtbf} hrs
+                        </div>
+                        <div className={styles.slaTarget}>Mean Time Between Failures</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Technology Stack */}
+                {operationalData?.technology && (
+                  <div className={styles.techSection}>
+                    <h3>
+                      <Server size={20} />
+                      Technology Stack
+                    </h3>
+                    <div className={styles.techGrid}>
+                      <div className={styles.techCard}>
+                        <div className={styles.techLabel}>Service</div>
+                        <div className={styles.techValue}>{operationalData.technology.stack}</div>
+                      </div>
+                      <div className={styles.techCard}>
+                        <div className={styles.techLabel}>Resource Group</div>
+                        <div className={styles.techValue}>{operationalData.technology.resourceGroup}</div>
+                      </div>
+                      <div className={styles.techCard}>
+                        <div className={styles.techLabel}>Region</div>
+                        <div className={styles.techValue}>{operationalData.technology.region}</div>
+                      </div>
+                      <div className={styles.techCard}>
+                        <div className={styles.techLabel}>Subscription</div>
+                        <div className={styles.techValue}>{operationalData.technology.subscriptionId}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Operational Configuration */}
+                {operationalData?.operationalInfo && (
+                  <div className={styles.configSection}>
+                    <h3>
+                      <Settings size={20} />
+                      Operational Configuration
+                    </h3>
+                    <div className={styles.configGrid}>
+                      <div className={styles.configCard}>
+                        <div className={styles.configLabel}>Criticality Level</div>
+                        <div className={`${styles.configValue} ${styles[`criticality-${operationalData.operationalInfo.criticalityLevel}`]}`}>
+                          {operationalData.operationalInfo.criticalityLevel.toUpperCase()}
+                        </div>
+                      </div>
+                      <div className={styles.configCard}>
+                        <div className={styles.configLabel}>Data Classification</div>
+                        <div className={`${styles.configValue} ${styles[`classification-${operationalData.operationalInfo.dataClassification}`]}`}>
+                          <Shield size={14} />
+                          {operationalData.operationalInfo.dataClassification.toUpperCase()}
+                        </div>
+                      </div>
+                      <div className={styles.configCard}>
+                        <div className={styles.configLabel}>Maintenance Window</div>
+                        <div className={styles.configValue}>
+                          <Clock size={14} />
+                          {operationalData.operationalInfo.maintenanceWindow}
+                        </div>
+                      </div>
+                      <div className={styles.configCard}>
+                        <div className={styles.configLabel}>Compliance</div>
+                        <div className={styles.complianceList}>
+                          {operationalData.operationalInfo.complianceRequirements.map((req, index) => (
+                            <span key={index} className={styles.complianceBadge}>{req}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Performance Metrics */}
+                {operationalData?.performanceMetrics && (
+                  <div className={styles.perfSection}>
+                    <h3>
+                      <BarChart3 size={20} />
+                      Real-time Performance
+                    </h3>
+                    <div className={styles.perfGrid}>
+                      <div className={styles.perfCard}>
+                        <div className={styles.perfLabel}>Average Latency</div>
+                        <div className={styles.perfValue}>
+                          {operationalData.performanceMetrics.avgLatency}ms
+                        </div>
+                      </div>
+                      <div className={styles.perfCard}>
+                        <div className={styles.perfLabel}>P95 Latency</div>
+                        <div className={styles.perfValue}>
+                          {operationalData.performanceMetrics.p95Latency}ms
+                        </div>
+                      </div>
+                      <div className={styles.perfCard}>
+                        <div className={styles.perfLabel}>Error Rate</div>
+                        <div className={styles.perfValue}>
+                          {operationalData.performanceMetrics.errorRate.toFixed(2)}%
+                        </div>
+                      </div>
+                      <div className={styles.perfCard}>
+                        <div className={styles.perfLabel}>Throughput</div>
+                        <div className={styles.perfValue}>
+                          {operationalData.performanceMetrics.throughputMbps} MB/s
+                        </div>
+                      </div>
+                      <div className={styles.perfCard}>
+                        <div className={styles.perfLabel}>CPU Usage</div>
+                        <div className={styles.perfValue}>
+                          {operationalData.performanceMetrics.cpuUtilization.toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className={styles.perfCard}>
+                        <div className={styles.perfLabel}>Memory Usage</div>
+                        <div className={styles.perfValue}>
+                          {operationalData.performanceMetrics.memoryUtilization.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Troubleshooting Resources */}
+                {operationalData?.troubleshooting && (
+                  <div className={styles.troubleshootSection}>
+                    <h3>
+                      <FileText size={20} />
+                      Troubleshooting Resources
+                    </h3>
+                    <div className={styles.troubleshootGrid}>
+                      <div className={styles.troubleshootCard}>
+                        <h4>Common Issues</h4>
+                        <ul className={styles.issuesList}>
+                          {operationalData.troubleshooting.commonIssues.map((issue, index) => (
+                            <li key={index} className={styles.issueItem}>
+                              <AlertCircle size={14} />
+                              {issue}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className={styles.troubleshootCard}>
+                        <h4>Health Check Endpoints</h4>
+                        <div className={styles.endpointsList}>
+                          {operationalData.troubleshooting.healthCheckEndpoints.map((endpoint, index) => (
+                            <button
+                              key={index}
+                              className={styles.endpointButton}
+                              onClick={() => window.open(endpoint, '_blank')}
+                            >
+                              <Activity size={14} />
+                              Health Check {index + 1}
+                              <ExternalLink size={12} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={styles.troubleshootCard}>
+                        <h4>Diagnostic Queries</h4>
+                        <div className={styles.queriesList}>
+                          {operationalData.troubleshooting.logQuerySamples.slice(0, 2).map((query, index) => (
+                            <div key={index} className={styles.queryItem}>
+                              <div className={styles.queryHeader}>
+                                <span>Query {index + 1}</span>
+                                <button
+                                  className={styles.copyButton}
+                                  onClick={() => copyToClipboard(query, `Query ${index + 1}`)}
+                                >
+                                  <Copy size={12} />
+                                  {copiedText === `Query ${index + 1}` ? 'Copied!' : 'Copy'}
+                                </button>
+                              </div>
+                              <code className={styles.queryCode}>{query}</code>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

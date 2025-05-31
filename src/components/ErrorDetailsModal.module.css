@@ -17,13 +17,13 @@
   background: #1a1a1a;
   border-radius: 12px;
   border: 1px solid #333;
-  width: 90vw;
-  max-width: 1200px;
-  max-height: 90vh;
+  width: 95vw;
+  max-width: 1400px;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
 }
 
 .modalHeader {
@@ -47,6 +47,449 @@
   font-size: 14px;
   margin: 4px 0 0 0;
   font-weight: 500;
+}
+
+/* Operations Tab Styles */
+.operationsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 8px;
+}
+
+.operationsSection h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  border-bottom: 1px solid #333;
+  padding-bottom: 8px;
+}
+
+/* Contact Information Styles */
+.contactSection {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #333;
+}
+
+.contactGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.contactCard {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 16px;
+  border: 1px solid #444;
+}
+
+.contactCard h4 {
+  color: #0078d4;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.teamInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.teamName {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.contactMethods {
+  display: flex;
+  gap: 8px;
+}
+
+.contactButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0078d4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.contactButton:hover {
+  background: #106ebe;
+}
+
+.escalationPath {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.escalationLevel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.escalationOrder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #0078d4;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.escalationRole {
+  color: #e5e5e5;
+  font-size: 14px;
+}
+
+.keyContacts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contactPerson {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+  border: 1px solid #555;
+}
+
+.contactName {
+  color: #fff;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.contactRole {
+  color: #0078d4;
+  font-size: 12px;
+  margin: 2px 0 8px 0;
+}
+
+.contactDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contactEmail,
+.contactPhone,
+.contactSlack {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ccc;
+  font-size: 12px;
+}
+
+/* SLA Metrics Styles */
+.slaSection {
+  background: rgba(0, 120, 212, 0.05);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid rgba(0, 120, 212, 0.2);
+}
+
+.slaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.slaCard {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid #444;
+}
+
+.slaLabel {
+  color: #0078d4;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.slaValue {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.slaTarget {
+  color: #999;
+  font-size: 11px;
+}
+
+/* Technology Stack Styles */
+.techSection {
+  background: rgba(108, 117, 125, 0.05);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid rgba(108, 117, 125, 0.2);
+}
+
+.techGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.techCard {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 16px;
+  border: 1px solid #444;
+}
+
+.techLabel {
+  color: #6c757d;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.techValue {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+/* Configuration Styles */
+.configSection {
+  background: rgba(255, 193, 7, 0.05);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.configGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.configCard {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 16px;
+  border: 1px solid #444;
+}
+
+.configLabel {
+  color: #ffc107;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.configValue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.criticality-critical { color: #dc3545; }
+.criticality-high { color: #fd7e14; }
+.criticality-medium { color: #ffc107; }
+.criticality-low { color: #28a745; }
+
+.classification-restricted { color: #dc3545; }
+.classification-confidential { color: #fd7e14; }
+.classification-internal { color: #ffc107; }
+.classification-public { color: #28a745; }
+
+.complianceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.complianceBadge {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Performance Metrics Styles */
+.perfSection {
+  background: rgba(40, 167, 69, 0.05);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.perfGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.perfCard {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid #444;
+}
+
+.perfLabel {
+  color: #28a745;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.perfValue {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* Troubleshooting Styles */
+.troubleshootSection {
+  background: rgba(220, 53, 69, 0.05);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.troubleshootGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.troubleshootCard {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 16px;
+  border: 1px solid #444;
+}
+
+.troubleshootCard h4 {
+  color: #dc3545;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.issuesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.issueItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #e5e5e5;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.endpointsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.endpointButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.endpointButton:hover {
+  background: rgba(220, 53, 69, 0.2);
+}
+
+.queriesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.queryItem {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #555;
+}
+
+.queryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 12px;
+  border-bottom: 1px solid #555;
+}
+
+.queryCode {
+  display: block;
+  padding: 12px;
+  color: #e5e5e5;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-x: auto;
 }
 
 .closeButton {
