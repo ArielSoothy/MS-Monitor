@@ -773,7 +773,7 @@ export function generateMockAlerts(pipelines: Pipeline[]): Alert[] {
       },
       impactAssessment: {
         businessImpact: severity === 'critical' ? 'critical' : severity === 'high' ? 'high' : 'medium',
-        affectedSystems: [`${pipeline.source} Data Pipeline`, 'Threat Intelligence Platform', 'Security Operations Center'],
+        affectedSystems: [`${pipeline.source} Data Pipeline`, 'Threat Intelligence Platform', 'Security Operations Center'] as string[],
         dataClassification: pipeline.source === 'Office365' || pipeline.source === 'AzureAD' ? 'restricted' : 'confidential',
         customerImpact: severity === 'critical' || severity === 'high'
       } as const,
