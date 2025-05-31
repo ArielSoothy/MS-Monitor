@@ -452,6 +452,153 @@
   color: #52c41a;
 }
 
+/* Security Monitoring Section Styles */
+.securitySection {
+  margin: 2rem 0;
+  background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%);
+  border: 1px solid #333333;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.sectionIcon {
+  width: 24px;
+  height: 24px;
+  color: #52c41a;
+}
+
+.sectionSubtitle {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #888888;
+  margin-left: auto;
+}
+
+.securityGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.securityCard {
+  background: rgba(42, 42, 42, 0.6);
+  border: 1px solid #444444;
+  border-radius: 8px;
+  padding: 1.25rem;
+  backdrop-filter: blur(10px);
+}
+
+.chartIcon {
+  width: 16px;
+  height: 16px;
+  color: #f5222d;
+  margin-right: 8px;
+}
+
+.securitySummary {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border-left: 3px solid #f5222d;
+}
+
+.securityMetric {
+  text-align: center;
+}
+
+.securityValue {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #f5222d;
+  margin-bottom: 4px;
+}
+
+.securityLabel {
+  font-size: 0.8rem;
+  color: #cccccc;
+  line-height: 1.2;
+}
+
+.authPatterns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.patternItem {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  border: 1px solid #333333;
+}
+
+.patternValue {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #faad14;
+  margin-bottom: 4px;
+}
+
+.patternLabel {
+  font-size: 0.9rem;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.patternDesc {
+  font-size: 0.75rem;
+  color: #888888;
+}
+
+.securityStatus {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid #333333;
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #cccccc;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.statusDot.healthy {
+  background-color: #52c41a;
+  box-shadow: 0 0 6px rgba(82, 196, 26, 0.5);
+}
+
+.lastUpdate {
+  font-size: 0.75rem;
+  color: #888888;
+}
+
 /* Responsive design */
 @media (max-width: 1200px) {
   .dashboardGrid {
@@ -503,5 +650,21 @@
   
   .source {
     font-size: 0.7rem;
+  }
+}
+
+/* Security Monitoring Section Styles */
+@media (max-width: 1024px) {
+  .securityGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .securitySummary {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .authPatterns {
+    grid-template-columns: 1fr;
   }
 }

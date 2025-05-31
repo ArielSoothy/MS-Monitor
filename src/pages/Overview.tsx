@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Activity, AlertTriangle, TrendingUp, Server, RefreshCw, HelpCircle } from 'lucide-react';
+import { Activity, AlertTriangle, TrendingUp, Server, RefreshCw, HelpCircle, Shield, UserX } from 'lucide-react';
 import { mockPipelines, mockAlerts } from '../data/mockData';
 import type { Pipeline } from '../types';
 import HowItWorksModal from '../components/HowItWorksModal';
@@ -151,7 +151,64 @@ const Overview = memo(() => {
     return minutesSinceLastRun > slaMinutes && p.status !== 'processing';
   });
 
-  const slaComplianceRate = Math.round(((pipelines.length - slaBreaches.length) / pipelines.length) * 100);
+  // Security Monitoring: Failed Login Detection (Interview Scenario #2)
+  // Mock data for the famous "3+ login failures in 10 minutes per user from different IPs" scenario
+  const [failedLoginData] = useState(() => {
+    const now = new Date();
+    const data = [];
+    
+    // Generate mock failed login attempts for the last 4 hours
+    for (let i = 240; i >= 0; i -= 10) { // Every 10 minutes
+      const time = new Date(now.getTime() - i * 60 * 1000);
+      const suspiciousUsers = Math.floor(Math.random() * 5); // 0-4 users with suspicious activity
+      const totalFailedAttempts = suspiciousUsers * 3 + Math.floor(Math.random() * 10); // Base + random
+      
+      data.push({
+        time: time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        fullTime: time,
+        suspiciousUsers,
+        totalFailedAttempts,
+        threshold: 3, // Alert threshold
+        // Mock specific user examples
+        alertedUsers: suspiciousUsers > 0 ? [
+          { user: 'external_user_42', attempts: 5, ips: ['192.168.1.100', '10.0.0.50', '172.16.0.200'] },
+          { user: 'temp_contractor_99', attempts: 4, ips: ['203.45.67.89', '45.123.45.67'] },
+          { user: 'guest_account_77', attempts: 3, ips: ['198.51.100.14', '203.0.113.45', '192.0.2.100'] }
+        ].slice(0, suspiciousUsers) : []
+      });
+    }
+    return data;
+  });
+
+  // Current suspicious activity summary
+  const currentSuspiciousActivity = useMemo(() => {
+    const recentData = failedLoginData.slice(-6); // Last hour (6 * 10min intervals)
+    const totalSuspiciousUsers = recentData.reduce((sum, d) => sum + d.suspiciousUsers, 0);
+    const totalFailedAttempts = recentData.reduce((sum, d) => sum + d.totalFailedAttempts, 0);
+    const highestRiskUser = recentData
+      .flatMap(d => d.alertedUsers)
+      .sort((a, b) => b.attempts - a.attempts)[0];
+    
+    return {
+      totalSuspiciousUsers,
+      totalFailedAttempts,
+      highestRiskUser,
+      lastDetection: recentData.find(d => d.suspiciousUsers > 0)?.fullTime || null
+    };
+  }, [failedLoginData]);
+
+  // Additional creative security check: Unusual authentication patterns
+  const [authPatternAlerts] = useState(() => {
+    return {
+      offHoursLogins: Math.floor(Math.random() * 15) + 5, // 5-19 off-hours logins
+      geoAnomalies: Math.floor(Math.random() * 8) + 2, // 2-9 geographical anomalies
+      privilegedAccountActivity: Math.floor(Math.random() * 5) + 1, // 1-5 privileged account alerts
+      newDeviceLogins: Math.floor(Math.random() * 25) + 10 // 10-34 new device logins
+    };
+  });
+
+  // SLA compliance rate calculation
+  const slaComplianceRate = Math.round(((totalPipelines - slaBreaches.length) / totalPipelines) * 100);
 
   const getHealthScoreColor = (score: number) => {
     if (score >= 90) return '#52c41a';
@@ -323,6 +380,142 @@ const Overview = memo(() => {
               position="top"
               size="small"
             />
+          </div>
+        </div>
+      </div>
+
+      {/* Security Monitoring Section (Interview Scenario #2) */}
+      <div className={styles.securitySection}>
+        <h2 className={styles.sectionTitle}>
+          <Shield className={styles.sectionIcon} />
+          Security Monitoring
+          <span className={styles.sectionSubtitle}>Failed Login Detection & Authentication Patterns</span>
+        </h2>
+        
+        <div className={styles.securityGrid}>
+          {/* Failed Login Attempts Chart */}
+          <div className={styles.securityCard}>
+            <h3 className={styles.chartTitle}>
+              <UserX className={styles.chartIcon} />
+              Failed Login Detection (3+ attempts, 10min window)
+              <InfoTooltip 
+                content="Monitoring for users with 3+ failed login attempts from different IP addresses within 10 minutes - classic brute force attack pattern"
+                title="Brute Force Detection"
+                detailedContent="This implements the interview scenario: detecting suspicious login patterns that could indicate credential stuffing or brute force attacks"
+                position="top"
+                size="medium"
+              />
+            </h3>
+            <div className={styles.securitySummary}>
+              <div className={styles.securityMetric}>
+                <span className={styles.securityValue}>{currentSuspiciousActivity.totalSuspiciousUsers}</span>
+                <span className={styles.securityLabel}>Suspicious Users (Last Hour)</span>
+              </div>
+              <div className={styles.securityMetric}>
+                <span className={styles.securityValue}>{currentSuspiciousActivity.totalFailedAttempts}</span>
+                <span className={styles.securityLabel}>Total Failed Attempts</span>
+              </div>
+              {currentSuspiciousActivity.highestRiskUser && (
+                <div className={styles.securityMetric}>
+                  <span className={styles.securityValue}>{currentSuspiciousActivity.highestRiskUser.user}</span>
+                  <span className={styles.securityLabel}>Highest Risk User ({currentSuspiciousActivity.highestRiskUser.attempts} attempts)</span>
+                </div>
+              )}
+            </div>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={failedLoginData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                <XAxis 
+                  dataKey="time" 
+                  stroke="#888" 
+                  fontSize={11}
+                  interval="preserveStartEnd"
+                />
+                <YAxis stroke="#888" fontSize={11} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1a1a1a', 
+                    border: '1px solid #333',
+                    borderRadius: '4px',
+                    color: '#fff'
+                  }}
+                  formatter={(value: any, name: string) => [
+                    value,
+                    name === 'suspiciousUsers' ? 'Suspicious Users' : 
+                    name === 'totalFailedAttempts' ? 'Failed Attempts' : 'Threshold'
+                  ]}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="suspiciousUsers" 
+                  stroke="#f5222d" 
+                  strokeWidth={2}
+                  dot={{ fill: '#f5222d', strokeWidth: 2, r: 3 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="totalFailedAttempts" 
+                  stroke="#faad14" 
+                  strokeWidth={1}
+                  strokeDasharray="5 5"
+                  dot={false}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="threshold" 
+                  stroke="#52c41a" 
+                  strokeWidth={1}
+                  strokeDasharray="2 2"
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Authentication Pattern Analysis */}
+          <div className={styles.securityCard}>
+            <h3 className={styles.chartTitle}>
+              <Shield className={styles.chartIcon} />
+              Authentication Pattern Analysis
+              <InfoTooltip 
+                content="Additional security checks for unusual authentication behaviors that could indicate compromised accounts"
+                title="Behavioral Analysis"
+                detailedContent="Monitors for off-hours logins, geographical anomalies, privileged account activity, and new device registrations"
+                position="top"
+                size="medium"
+              />
+            </h3>
+            <div className={styles.authPatterns}>
+              <div className={styles.patternItem}>
+                <div className={styles.patternValue}>{authPatternAlerts.offHoursLogins}</div>
+                <div className={styles.patternLabel}>Off-Hours Logins</div>
+                <div className={styles.patternDesc}>2AM-6AM activity</div>
+              </div>
+              <div className={styles.patternItem}>
+                <div className={styles.patternValue}>{authPatternAlerts.geoAnomalies}</div>
+                <div className={styles.patternLabel}>Geo Anomalies</div>
+                <div className={styles.patternDesc}>Impossible travel</div>
+              </div>
+              <div className={styles.patternItem}>
+                <div className={styles.patternValue}>{authPatternAlerts.privilegedAccountActivity}</div>
+                <div className={styles.patternLabel}>Privileged Alerts</div>
+                <div className={styles.patternDesc}>Admin account flags</div>
+              </div>
+              <div className={styles.patternItem}>
+                <div className={styles.patternValue}>{authPatternAlerts.newDeviceLogins}</div>
+                <div className={styles.patternLabel}>New Devices</div>
+                <div className={styles.patternDesc}>Unrecognized devices</div>
+              </div>
+            </div>
+            <div className={styles.securityStatus}>
+              <div className={styles.statusIndicator}>
+                <div className={`${styles.statusDot} ${styles.healthy}`}></div>
+                <span>Normal patterns detected</span>
+              </div>
+              <div className={styles.lastUpdate}>
+                Last updated: {new Date().toLocaleTimeString()}
+              </div>
+            </div>
           </div>
         </div>
       </div>

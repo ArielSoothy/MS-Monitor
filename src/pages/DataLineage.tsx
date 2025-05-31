@@ -100,6 +100,23 @@ interface LineageNode {
     logQuerySamples: string[];
     healthCheckEndpoints: string[];
   };
+  // Interview scenario details (for demo purposes)
+  scenarioDetails?: {
+    problem: string;
+    solution: string;
+    sourceFormat: string;
+    targetSystem: string;
+    volumePerHour: string;
+    fieldFilter: string;
+    triggerCondition: string;
+  };
+  stagingDetails?: {
+    tableName: string;
+    partitionStrategy: string;
+    retentionPolicy: string;
+    compressionRatio: string;
+    indexStrategy: string;
+  };
 }
 
 interface DataConnection {
@@ -391,8 +408,107 @@ interface DataConnection {
       { name: 'ML Training Data', types: ['ml', 'training'], priority: 3 },
       { name: 'Compliance Archive', types: ['compliance', 'audit'], priority: 2 },
       { name: 'Real-time Dashboard', types: ['realtime', 'dashboard'], priority: 1 },
-      { name: 'API Gateway', types: ['api', 'external'], priority: 2 }
+      { name: 'API Gateway', types: ['api', 'external'], priority: 2 },
+      { name: 'Kusto Analytics Engine', types: ['kusto', 'analytics'], priority: 1 }
     ];
+
+    // Special Parquet-to-Kusto Staging Pipeline (Interview Scenario #1)
+    // This demonstrates the technical solution discussed in the interview:
+    // How to manage specific JSON field extraction from Parquet files with thousands of files per hour
+    const parquetToKustoStaging: LineageNode = {
+      id: 'parquet-staging-pipeline',
+      name: 'Parquet Field Extraction Staging',
+      type: 'transformation',
+      x: 500,
+      y: 880, // Position below main pipeline flow (after 10 sources + spacing)
+      status: 'healthy',
+      recordsPerSecond: 2340,
+      avgProcessingTime: 450,
+      connections: [],
+      description: 'Staging table for selective JSON field extraction from high-volume Parquet ingestion',
+      lastUpdate: new Date().toISOString(),
+      dataQuality: 98,
+      technology: 'Azure Data Factory + Delta Lake + Kusto',
+      resourceGroup: 'rg-mstic-staging-prod-eastus2',
+      subscriptionId: 'mstic-prod-subscription',
+      region: 'East US 2',
+      computeType: 'Azure Data Factory Integration Runtime',
+      partitionCount: 64,
+      retentionDays: 7,
+      protocols: ['HTTPS', 'Delta Lake', 'KQL'],
+      authentication: 'Managed Identity + Service Principal',
+      monitoring: {
+        applicationInsights: 'ai-mstic-staging-prod',
+        logAnalyticsWorkspace: 'law-mstic-prod-eastus2',
+        kustoCluster: 'msticdata.eastus2.kusto.windows.net',
+        alertRules: ['parquet_staging_failure', 'parquet_field_extraction_delay', 'staging_table_capacity']
+      },
+      dependencies: {
+        keyVault: 'kv-mstic-secrets-prod',
+        serviceAccounts: ['sa-parquet-staging'],
+        externalApis: [],
+        networkConnections: ['Private Link to Kusto', 'ADLS Private Endpoint']
+      },
+      slaMetrics: {
+        uptime: 99.8,
+        targetUptime: 99.9,
+        mttr: 12,
+        mtbf: 168
+      },
+      operationalInfo: {
+        owner: 'MSTIC Data Platform Team',
+        escalationPath: ['On-call Engineer', 'Senior Data Engineer', 'Principal Engineer'],
+        maintenanceWindow: 'Saturdays 02:00-04:00 UTC',
+        criticalityLevel: 'high',
+        dataClassification: 'internal',
+        complianceRequirements: ['GDPR', 'ISO 27001']
+      },
+      performanceMetrics: {
+        avgLatency: 450,
+        p95Latency: 850,
+        errorRate: 0.8,
+        throughputMbps: 320,
+        cpuUtilization: 45,
+        memoryUtilization: 60
+      },
+      troubleshooting: {
+        commonIssues: [
+          'JSON field extraction timeout',
+          'Parquet schema evolution issues',
+          'Kusto ingestion capacity limits',
+          'Delta Lake table optimization needed'
+        ],
+        runbookUrls: [
+          'https://mstic.wiki/runbooks/parquet-staging-troubleshooting',
+          'https://mstic.wiki/kusto/field-extraction-optimization'
+        ],
+        logQuerySamples: [
+          'ParquetStagingPipeline_CL | where TimeGenerated > ago(1h) | where Level == "Error"',
+          'ParquetFieldExtraction_CL | summarize avg(ProcessingTimeMs) by bin(TimeGenerated, 5m)'
+        ],
+        healthCheckEndpoints: [
+          'https://mstic-monitoring.azurewebsites.net/health/parquet-staging',
+          'https://mstic-staging.azurewebsites.net/status/field-extraction'
+        ]
+      },
+      // Interview scenario details (custom properties for demo)
+      scenarioDetails: {
+        problem: 'Extract specific JSON fields from thousands of Parquet files per hour',
+        solution: 'Staging table with conditional ingestion trigger',
+        sourceFormat: 'Parquet files (Azure Data Lake)',
+        targetSystem: 'Azure Data Explorer (Kusto)',
+        volumePerHour: '~3,000 files',
+        fieldFilter: 'user_activity.threat_indicators',
+        triggerCondition: 'IF field_exists AND field_not_null'
+      },
+      stagingDetails: {
+        tableName: 'threat_indicators_staging',
+        partitionStrategy: 'BY (date_hour, source_system)',
+        retentionPolicy: '7 days (staging only)',
+        compressionRatio: '85%',
+        indexStrategy: 'Clustered on timestamp, source_ip'
+      }
+    };
 
     destinations.forEach((dest, index) => {
       const statusSeed = seededRandom(`${dest.name}-status`);
@@ -523,6 +639,92 @@ interface DataConnection {
       });
     });
 
+    // Add the Parquet-to-Kusto staging pipeline node
+    nodes.push(parquetToKustoStaging);
+
+    // Add source node for Parquet files (ADLS)
+    nodes.push({
+      id: 'parquet-source-adls',
+      name: 'Azure Data Lake (Parquet)',
+      type: 'source',
+      source: 'AzureAD' as PipelineSource, // Using AzureAD as representative source
+      x: 50,
+      y: 880, // Position below main sources (after 10 sources + spacing)
+      status: 'healthy' as PipelineStatus,
+      recordsPerSecond: 4500,
+      avgProcessingTime: 120,
+      connections: [],
+      description: 'High-volume Parquet file ingestion from ADLS Gen2',
+      lastUpdate: new Date().toISOString(),
+      dataQuality: 96,
+      technology: 'Azure Data Lake Storage Gen2',
+      resourceGroup: 'rg-mstic-datalake-prod-eastus2',
+      subscriptionId: 'mstic-prod-subscription',
+      region: 'East US 2',
+      throughputUnits: 50,
+      partitionCount: 128,
+      retentionDays: 30,
+      protocols: ['HTTPS', 'ABFS', 'REST API'],
+      authentication: 'Managed Identity + ACLs',
+      monitoring: {
+        applicationInsights: 'ai-mstic-datalake-prod',
+        logAnalyticsWorkspace: 'law-mstic-prod-eastus2',
+        kustoCluster: 'msticdata.eastus2.kusto.windows.net',
+        alertRules: ['parquet_ingestion_failure', 'parquet_throughput_low', 'parquet_storage_capacity']
+      },
+      dependencies: {
+        keyVault: 'kv-mstic-secrets-prod',
+        serviceAccounts: ['sa-adls-parquet-reader'],
+        externalApis: [],
+        networkConnections: ['Private Endpoints', 'VNet Integration']
+      },
+      slaMetrics: {
+        uptime: 99.95,
+        targetUptime: 99.99,
+        mttr: 5,
+        mtbf: 720
+      },
+      operationalInfo: {
+        owner: 'MSTIC Data Platform Team',
+        escalationPath: ['On-call Engineer', 'Storage Lead', 'Principal Engineer', 'Engineering Manager'],
+        maintenanceWindow: 'Sundays 01:00-02:00 UTC',
+        criticalityLevel: 'critical',
+        dataClassification: 'internal',
+        complianceRequirements: ['GDPR', 'ISO 27001', 'SOC 2']
+      },
+      performanceMetrics: {
+        avgLatency: 45,
+        p95Latency: 120,
+        errorRate: 0.05,
+        throughputMbps: 850,
+        cpuUtilization: 15,
+        memoryUtilization: 25
+      },
+      troubleshooting: {
+        commonIssues: [
+          'Parquet file format validation errors',
+          'Storage tier access delays',
+          'Network connectivity to ADLS',
+          'Authentication token expiration'
+        ],
+        runbookUrls: [
+          'https://mstic.wiki/runbooks/adls-parquet-troubleshooting',
+          'https://mstic.wiki/storage/adls-performance-optimization'
+        ],
+        logQuerySamples: [
+          'ADLSParquetIngestion_CL | where TimeGenerated > ago(1h) | where Level == "Error"',
+          'ADLSMetrics_CL | summarize avg(ThroughputMbps) by bin(TimeGenerated, 5m)'
+        ],
+        healthCheckEndpoints: [
+          'https://mstic-monitoring.azurewebsites.net/health/adls-parquet',
+          'https://mstic-datalake.azurewebsites.net/status/parquet-ingestion'
+        ]
+      },
+      actualPipeline: null,
+      hasErrors: false,
+      errorCount: 0
+    });
+
     // Generate connections with realistic data flow and failure handling
     nodes.forEach(node => {
       if (node.type === 'source') {
@@ -633,6 +835,37 @@ interface DataConnection {
         }
       }
     });
+
+    // Add connections for the Parquet-to-Kusto staging pipeline (Interview Scenario #1)
+    const parquetSource = nodes.find(n => n.id === 'parquet-source-adls');
+    const stagingPipeline = nodes.find(n => n.id === 'parquet-staging-pipeline');
+    const kustoDestination = nodes.find(n => n.name === 'Kusto Analytics Engine');
+
+    if (parquetSource && stagingPipeline && kustoDestination) {
+      // Parquet source -> Staging pipeline
+      connections.push({
+        id: 'parquet-to-staging',
+        from: parquetSource.id,
+        to: stagingPipeline.id,
+        volume: 'high',
+        health: 'healthy',
+        animated: true
+      });
+      parquetSource.connections.push(stagingPipeline.id);
+      stagingPipeline.connections.push(parquetSource.id);
+
+      // Staging pipeline -> Kusto destination
+      connections.push({
+        id: 'staging-to-kusto',
+        from: stagingPipeline.id,
+        to: kustoDestination.id,
+        volume: 'medium',
+        health: 'healthy',
+        animated: true
+      });
+      stagingPipeline.connections.push(kustoDestination.id);
+      kustoDestination.connections.push(stagingPipeline.id);
+    }
 
     return { nodes, connections };
   };
