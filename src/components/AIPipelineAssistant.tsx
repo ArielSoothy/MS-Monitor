@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2, Settings, Eye, EyeOff, ExternalLink } from 'lucide-react';
 import styles from './AIPipelineAssistant.module.css';
 import { mockPipelines } from '../data/mockData';
+import { callAzureFunction, isAzureFunctionConfigured } from '../config/azureFunction';
 import type { Pipeline, Alert } from '../types';
 
 interface Message {
@@ -84,7 +85,11 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
     const trimmedKey = openaiApiKey.trim();
     if (trimmedKey && (trimmedKey.startsWith('sk-') || trimmedKey.length > 20)) {
       localStorage.setItem('ai-assistant-openai-key', trimmedKey);
-      addMessage('assistant', '🔑 OpenAI API key saved! I can now provide enhanced responses using GPT-4.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through a secure backend proxy.*');
+      const usingAzureFunction = isAzureFunctionConfigured();
+      const message = usingAzureFunction 
+        ? '🔑 OpenAI API key saved! Ready to use Azure Function for secure AI responses. Enterprise-grade security and performance.'
+        : '🔑 OpenAI API key saved! I can now provide enhanced responses using GPT-4.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through a secure backend proxy.*';
+      addMessage('assistant', message);
     } else if (trimmedKey) {
       localStorage.setItem('ai-assistant-openai-key', trimmedKey);
       addMessage('assistant', '⚠️ OpenAI API key saved. Currently using enhanced mock intelligence for demonstration. In production, this would integrate with GPT-4.');
@@ -95,7 +100,11 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
     const trimmedKey = claudeApiKey.trim();
     if (trimmedKey && (trimmedKey.startsWith('sk-ant-') || trimmedKey.length > 30)) {
       localStorage.setItem('ai-assistant-claude-key', trimmedKey);
-      addMessage('assistant', '🔑 Claude API key saved! I can now provide enhanced responses using Claude AI.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through a secure backend proxy.*');
+      const usingAzureFunction = isAzureFunctionConfigured();
+      const message = usingAzureFunction 
+        ? '🔑 Claude API key saved! Ready to use Azure Function for secure AI responses. Enterprise-grade Anthropic integration.'
+        : '🔑 Claude API key saved! I can now provide enhanced responses using Claude AI.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through a secure backend proxy.*';
+      addMessage('assistant', message);
     } else if (trimmedKey) {
       localStorage.setItem('ai-assistant-claude-key', trimmedKey);
       addMessage('assistant', '⚠️ Claude API key saved. Currently using enhanced mock intelligence for demonstration. In production, this would integrate with Claude AI.');
@@ -362,6 +371,19 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
     }
 
     const context = getSystemContext();
+    
+    // Try Azure Function first if configured and we have API keys
+    if (isAzureFunctionConfigured()) {
+      try {
+        const preferredService = hasClaude && hasOpenAI ? 'auto' : hasClaude ? 'claude' : 'openai';
+        return await callAzureFunction(message, context, preferredService);
+      } catch (azureError) {
+        console.warn('Azure Function failed, falling back to direct API calls:', azureError);
+        // Fall through to direct API calls if Azure Function fails
+      }
+    }
+
+    // Fallback to direct API calls (will likely fail due to CORS in browser)
     const systemPrompt = `You are a Microsoft Threat Intelligence pipeline expert assistant. You have access to 160 pipelines monitoring data from LinkedIn, Twitter, Office365, AzureAD, GitHub, and other sources. Help analysts troubleshoot issues and understand patterns.
 
 Current system state:
@@ -459,24 +481,53 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
 
     try {
       let response: string;
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const hasApiKey = openaiApiKey.trim() || claudeApiKey.trim();
       
-      if (openaiApiKey.trim() || claudeApiKey.trim()) {
+      if (hasApiKey) {
         // Try AI API first
         try {
           response = await callAIAPI(userMessage);
+          
+          // If API call succeeds, add success message based on whether Azure Function was used
+          const usingAzureFunction = isAzureFunctionConfigured();
+          const successMessage = usingAzureFunction 
+            ? (isMobile 
+                ? "\n\n*✅ **Azure Function Success**: AI response delivered securely through Microsoft Azure serverless architecture! Perfect for enterprise deployment.*"
+                : "\n\n*✅ **Azure Function**: Secure AI proxy working correctly.*")
+            : (isMobile 
+                ? "\n\n*✅ Successfully connected to AI service from mobile device! Your API key is working correctly.*"
+                : "\n\n*✅ AI service connected successfully.*");
+          response += successMessage;
+          
         } catch (apiError) {
           console.warn('AI API failed, using enhanced mock intelligence:', apiError);
-          response = generateMockResponse(userMessage);
+          
+          // Enhanced fallback messaging for mobile users
+          const corsMessage = isMobile 
+            ? "\n\n*🔒 **Mobile Demo Mode**: Mobile browsers block direct API calls for security. Your API key is saved and would work through a backend server. The response above uses advanced threat intelligence scenarios for demonstration.*"
+            : "\n\n*🔒 **Browser Security**: Direct API calls blocked by CORS policy. In production, this connects through a secure backend proxy. Using enhanced mock intelligence for demonstration.*";
+          
+          response = generateMockResponse(userMessage) + corsMessage;
         }
       } else {
-        // Use enhanced mock intelligence
+        // Use enhanced mock intelligence with mobile-specific messaging
         response = generateMockResponse(userMessage);
+        
+        if (isMobile) {
+          response += "\n\n*📱 **Mobile Demo**: Add your OpenAI or Claude API key in settings (⚙️) to test real AI connections. Current responses use advanced mock intelligence for demonstration.*";
+        }
       }
 
       addMessage('assistant', response);
     } catch (error) {
       console.error('Error getting response:', error);
-      addMessage('assistant', 'Sorry, I encountered an error. Please try again or check your API key configuration.');
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const errorMessage = isMobile 
+        ? '📱 The AI assistant is running in enhanced demo mode on mobile. Try asking: "analyze failed pipelines", "show critical alerts", or "performance optimization recommendations".'
+        : 'Sorry, I encountered an error. Please try again or check your API key configuration in settings.';
+      
+      addMessage('assistant', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -509,7 +560,14 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
           <MessageCircle size={20} />
           <div>
             <h3>AI Pipeline Assistant</h3>
-            <p>Pipeline Intelligence & Troubleshooting</p>
+            <p>
+              Pipeline Intelligence & Troubleshooting
+              {isAzureFunctionConfigured() && (
+                <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: 'rgba(82, 196, 26, 0.2)', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>
+                  🚀 Azure Function
+                </span>
+              )}
+            </p>
           </div>
         </div>
         <div className={styles.headerActions}>
@@ -679,17 +737,29 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
             {!openaiApiKey && !claudeApiKey && (
               <div>
                 <p className={styles.mockNote}>
-                  🚀 Try me now! I have built-in intelligence that works without any setup.
+                  🚀 Try me now! I have built-in intelligence that works perfectly on mobile and all devices without any setup.
                 </p>
                 <p className={styles.demoNote}>
-                  <strong>Want enhanced AI?</strong> Click the ⚙️ settings to add your OpenAI or Claude API key for even smarter responses!
+                  <strong>Enhanced AI Available:</strong> Click ⚙️ settings to add OpenAI or Claude API keys for even smarter responses (works best on desktop due to browser security policies).
                 </p>
+                {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && (
+                  <p className={styles.mockNote}>
+                    📱 <strong>Mobile Optimized:</strong> Running in enhanced demo mode - perfect for showcasing Microsoft threat intelligence capabilities!
+                  </p>
+                )}
               </div>
             )}
             {(openaiApiKey || claudeApiKey) && (
-              <p className={styles.aiReadyNote}>
-                🤖 AI Assistant is ready with {openaiApiKey && claudeApiKey ? 'OpenAI & Claude' : openaiApiKey ? 'OpenAI GPT-4' : 'Claude'} capabilities! Ask me anything about your pipelines.
-              </p>
+              <div>
+                <p className={styles.aiReadyNote}>
+                  🤖 AI Assistant is ready with {openaiApiKey && claudeApiKey ? 'OpenAI & Claude' : openaiApiKey ? 'OpenAI GPT-4' : 'Claude'} capabilities! Ask me anything about your pipelines.
+                </p>
+                {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && (
+                  <p className={styles.mockNote}>
+                    📱 Note: Mobile browsers may fall back to enhanced demo mode due to security restrictions.
+                  </p>
+                )}
+              </div>
             )}
           </div>
         )}
