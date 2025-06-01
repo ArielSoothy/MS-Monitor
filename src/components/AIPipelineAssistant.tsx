@@ -533,6 +533,7 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
         <div className={styles.apiKeySection}>
           <h4>🔑 AI Service Configuration</h4>
           <p>Choose your preferred AI service and add your API key:</p>
+          <div className={styles.scrollHint}>👇 Scroll down for Claude options</div>
           
           {/* OpenAI Section */}
           <div className={styles.apiKeyInstructions}>

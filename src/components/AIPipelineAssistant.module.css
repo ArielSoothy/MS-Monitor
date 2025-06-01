@@ -18,6 +18,7 @@
   z-index: 1000;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  max-width: calc(100vw - 4rem);
 }
 
 .floatingButton:hover {
@@ -34,10 +35,8 @@
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  width: 420px;
-  height: 600px;
-  max-width: calc(100vw - 4rem);
-  max-height: calc(100vh - 4rem);
+  width: min(420px, calc(100vw - 4rem));
+  height: min(600px, calc(100vh - 4rem));
   background: #1a1a1a;
   border: 1px solid #333;
   border-radius: 12px;
@@ -104,6 +103,29 @@
   background: #252526;
   border-bottom: 1px solid #333;
   padding: 1rem 1.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  /* Custom scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: #0078d4 #2a2a2a;
+}
+
+.apiKeySection::-webkit-scrollbar {
+  width: 6px;
+}
+
+.apiKeySection::-webkit-scrollbar-track {
+  background: #2a2a2a;
+  border-radius: 3px;
+}
+
+.apiKeySection::-webkit-scrollbar-thumb {
+  background: #0078d4;
+  border-radius: 3px;
+}
+
+.apiKeySection::-webkit-scrollbar-thumb:hover {
+  background: #40a9ff;
 }
 
 .apiKeySection h4 {
@@ -129,6 +151,17 @@
 
 .apiKeySection a:hover {
   color: #40a9ff;
+}
+
+.scrollHint {
+  background: #1e3a8a;
+  color: #93c5fd;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  border: 1px solid #3b82f6;
 }
 
 .apiKeyInput {
@@ -508,8 +541,8 @@
 /* Responsive Design */
 @media (max-width: 1024px) and (min-width: 769px) {
   .chatContainer {
-    width: 380px;
-    height: 550px;
+    width: min(380px, calc(100vw - 3rem));
+    height: min(550px, calc(100vh - 3rem));
     bottom: 1.5rem;
     right: 1.5rem;
   }
@@ -549,7 +582,7 @@
 
   .apiKeySection {
     padding: 0.75rem 1rem;
-    max-height: 40vh;
+    max-height: 55vh;
     overflow-y: auto;
   }
 
