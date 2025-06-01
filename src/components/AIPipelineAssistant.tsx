@@ -533,7 +533,7 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
         <div className={styles.apiKeySection}>
           <h4>🔑 AI Service Configuration</h4>
           <p>Choose your preferred AI service and add your API key:</p>
-          <div className={styles.scrollHint}>👇 Scroll down for Claude options</div>
+          <div className={styles.scrollHint}>📜 Scroll down to see Claude AI options below OpenAI</div>
           
           {/* OpenAI Section */}
           <div className={styles.apiKeyInstructions}>
@@ -665,6 +665,8 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
           <div className={styles.demoNote}>
             <strong>No API key?</strong> Try the built-in Microsoft threat intelligence responses - they work without any setup!
           </div>
+          {/* Extra padding to ensure Claude section is always reachable */}
+          <div style={{ height: '2rem' }}></div>
         </div>
       )}
 

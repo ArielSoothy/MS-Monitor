@@ -103,25 +103,40 @@
   background: #252526;
   border-bottom: 1px solid #333;
   padding: 1rem 1.5rem;
-  max-height: 60vh;
+  max-height: min(60vh, 400px);
   overflow-y: auto;
+  position: relative;
   /* Custom scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: #0078d4 #2a2a2a;
 }
 
+/* Add a subtle gradient at the bottom to indicate scrollability */
+.apiKeySection::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(transparent, #252526);
+  pointer-events: none;
+  border-radius: 0 0 12px 12px;
+}
+
 .apiKeySection::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .apiKeySection::-webkit-scrollbar-track {
   background: #2a2a2a;
-  border-radius: 3px;
+  border-radius: 4px;
+  margin: 4px 0;
 }
 
 .apiKeySection::-webkit-scrollbar-thumb {
   background: #0078d4;
-  border-radius: 3px;
+  border-radius: 4px;
+  border: 1px solid #252526;
 }
 
 .apiKeySection::-webkit-scrollbar-thumb:hover {
@@ -154,14 +169,27 @@
 }
 
 .scrollHint {
-  background: #1e3a8a;
-  color: #93c5fd;
-  padding: 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: #ffffff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
   text-align: center;
-  margin-bottom: 1rem;
-  border: 1px solid #3b82f6;
+  margin-bottom: 1.5rem;
+  border: 1px solid #60a5fa;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
 }
 
 .apiKeyInput {
@@ -582,8 +610,9 @@
 
   .apiKeySection {
     padding: 0.75rem 1rem;
-    max-height: 55vh;
+    max-height: min(50vh, 350px);
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   }
 
   .apiKeyInput input {
