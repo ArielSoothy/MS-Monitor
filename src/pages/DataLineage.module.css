@@ -242,6 +242,51 @@
   background-color: #ef4444;
 }
 
+/* Legend separator */
+.legendSeparator {
+  width: 1px;
+  height: 20px;
+  background-color: #444;
+  margin: 0 0.5rem;
+}
+
+/* Processing mode legend badges */
+.legendProcessingBadge {
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: 1px solid;
+  min-width: 32px;
+  text-align: center;
+}
+
+.legendProcessingBadge.streaming {
+  background: rgba(82, 196, 26, 0.9);
+  color: #ffffff;
+  border-color: rgba(82, 196, 26, 0.5);
+}
+
+.legendProcessingBadge.microBatch {
+  background: rgba(250, 173, 20, 0.9);
+  color: #ffffff;
+  border-color: rgba(250, 173, 20, 0.5);
+}
+
+.legendProcessingBadge.batch {
+  background: rgba(0, 120, 212, 0.9);
+  color: #ffffff;
+  border-color: rgba(0, 120, 212, 0.5);
+}
+
+.legendProcessingBadge.hybrid {
+  background: rgba(139, 92, 246, 0.9);
+  color: #ffffff;
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
 .lineageContainer {
   flex: 1;
   overflow: hidden;
@@ -480,6 +525,60 @@
   background: rgba(0, 120, 212, 0.2);
   color: #0078d4;
   border: 1px solid rgba(0, 120, 212, 0.3);
+}
+
+/* Processing Mode Badges */
+.processingModeBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.processingModeBadge.streaming {
+  background: rgba(82, 196, 26, 0.9);
+  color: #ffffff;
+  border-color: rgba(82, 196, 26, 0.5);
+  box-shadow: 0 0 8px rgba(82, 196, 26, 0.3);
+}
+
+.processingModeBadge.microBatch {
+  background: rgba(250, 173, 20, 0.9);
+  color: #ffffff;
+  border-color: rgba(250, 173, 20, 0.5);
+  box-shadow: 0 0 8px rgba(250, 173, 20, 0.3);
+}
+
+.processingModeBadge.batch {
+  background: rgba(0, 120, 212, 0.9);
+  color: #ffffff;
+  border-color: rgba(0, 120, 212, 0.5);
+  box-shadow: 0 0 8px rgba(0, 120, 212, 0.3);
+}
+
+.processingModeBadge.hybrid {
+  background: rgba(139, 92, 246, 0.9);
+  color: #ffffff;
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.3);
+}
+
+.nodeGroup:hover .processingModeBadge {
+  transform: scale(1.1);
+  box-shadow: 0 0 12px currentColor;
 }
 
 .expandedContent {

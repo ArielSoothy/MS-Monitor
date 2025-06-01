@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Brain, Zap } from 'lucide-react';
+import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Zap } from 'lucide-react';
 import { mockAlerts } from '../data/mockData';
 import AboutModal from './AboutModal';
 import KeyboardHelpModal from './KeyboardHelpModal';
@@ -94,8 +94,8 @@ const Navigation = () => {
                 `${styles.navLink} ${isActive ? styles.active : ''}`
               }
             >
-              <Brain className={styles.navIcon} />
-              Predictive Insights
+              <Shield className={styles.navIcon} />
+              Threat Prediction
             </NavLink>
           </li>
           <li>

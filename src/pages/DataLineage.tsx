@@ -72,6 +72,12 @@ interface LineageNode {
     networkConnections?: string[];
   };
   // Enhanced operational information for MSTIC engineers
+  processingMode?: 'batch' | 'streaming' | 'micro-batch' | 'hybrid';
+  dataMovementTool?: string;
+  batchFrequency?: string;
+  streamingLatency?: string;
+  dataFormat?: string[];
+  compressionType?: string;
   slaMetrics?: {
     uptime: number; // percentage
     targetUptime: number; // percentage
@@ -174,7 +180,7 @@ interface DataConnection {
         type: 'source',
         source,
         x: 50,
-        y: 80 + index * 80,
+        y: 80 + index * 70,
         status,
         recordsPerSecond: Math.floor(seededRandom(`${source}-records`) * 1000) + 100,
         avgProcessingTime: Math.floor(seededRandom(`${source}-time`) * 500) + 50,
@@ -267,7 +273,22 @@ interface DataConnection {
             `https://mstic-monitoring.azurewebsites.net/health/${source.toLowerCase()}`,
             `https://mstic-api.azurewebsites.net/status/${source.toLowerCase()}`
           ]
-        }
+        },
+        // Processing and Data Movement Details for Sources
+        processingMode: ['LinkedIn', 'Twitter', 'ThreatIntel'].includes(source) ? 'streaming' as 'streaming' : 'batch' as 'batch',
+        dataMovementTool: source === 'Office365' || source === 'Exchange' || source === 'Teams' || source === 'SharePoint' ? 'Microsoft Graph API + Azure Logic Apps' :
+                         source === 'AzureAD' ? 'Azure AD Logs API + Event Grid' :
+                         source === 'LinkedIn' || source === 'Twitter' ? 'REST API + Azure Event Hubs' :
+                         source === 'GitHub' ? 'GitHub Webhooks + Azure Logic Apps' :
+                         'REST API + Azure Functions',
+        batchFrequency: ['Office365', 'AzureAD', 'Exchange', 'Teams', 'SharePoint'].includes(source) ? 
+                       'Every 15 minutes' : 'N/A (Streaming)',
+        streamingLatency: ['LinkedIn', 'Twitter', 'ThreatIntel'].includes(source) ? 
+                         '< 10 seconds' : 'N/A (Batch)',
+        dataFormat: source === 'Office365' || source === 'Exchange' || source === 'Teams' ? ['JSON', 'XML'] :
+                   source === 'AzureAD' ? ['JSON', 'CSV'] :
+                   ['JSON', 'Avro'],
+        compressionType: ['LinkedIn', 'Twitter'].includes(source) ? 'LZ4' : 'GZIP'
       });
     });
 
@@ -305,7 +326,7 @@ interface DataConnection {
         type: type as 'ingestion' | 'transformation' | 'enrichment',
         source: pipeline.source,
         x,
-        y: 80 + index * 80,
+        y: 80 + index * 70,
         status: pipeline.status,
         recordsPerSecond: Math.floor(pipeline.recordsProcessed / 60),
         avgProcessingTime: pipeline.avgProcessingTime,
@@ -317,16 +338,33 @@ interface DataConnection {
         pipelineData: pipeline, // Full pipeline data for error modal
         hasErrors: pipeline.status === 'failed' || pipeline.status === 'warning',
         errorCount: pipeline.errorHistory?.length || 0,
-        // Microsoft Technology Stack Details for Processing Pipelines
-        technology: type === 'ingestion' ? 'Azure Data Factory' :
-                   type === 'transformation' ? 'Azure Synapse Analytics (Spark Pools)' :
-                   'Azure Databricks + Azure Functions',
+        // Microsoft Technology Stack Details for Processing Pipelines - Diversified for Realism
+        technology: type === 'ingestion' ? 
+                   (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? 'Azure Event Hubs + Stream Analytics' :
+                    pipeline.source === 'Office365' || pipeline.source === 'AzureAD' ? 'Azure Data Factory (Copy Activity)' :
+                    pipeline.source === 'GitHub' ? 'Azure Logic Apps + Azure Functions' :
+                    'Azure Data Factory + Event Grid') :
+                   type === 'transformation' ? 
+                   (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? 'Azure Stream Analytics + Databricks Streaming' :
+                    pipeline.source === 'Office365' || pipeline.source === 'Exchange' ? 'Azure Synapse Analytics (SQL Pool)' :
+                    pipeline.source === 'ThreatIntel' ? 'Azure Functions + Cosmos DB Change Feed' :
+                    'Azure Data Factory (Mapping Data Flows)') :
+                   (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? 'Azure Functions (Real-time) + SignalR' :
+                    pipeline.source === 'Office365' || pipeline.source === 'AzureAD' ? 'Azure Cognitive Services + ML Studio' :
+                    'Azure Databricks (ML Runtime) + MLflow'),
         resourceGroup: `rg-mstic-${type}-prod-eastus2`,
         subscriptionId: 'mstic-prod-subscription',
         region: 'East US 2',
-        computeType: type === 'ingestion' ? 'Integration Runtime (Auto-resolve)' :
-                    type === 'transformation' ? 'Spark Pool (Medium: 8-32 nodes)' :
-                    'Databricks Cluster (Standard_DS3_v2)',
+        computeType: type === 'ingestion' ? 
+                    (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? 'Event Hubs (20 TUs) + Auto-scale Runtime' :
+                     pipeline.source === 'Office365' || pipeline.source === 'AzureAD' ? 'Integration Runtime (Self-hosted)' :
+                     'Azure-SSIS Integration Runtime') :
+                    type === 'transformation' ? 
+                    (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? 'Stream Analytics (120 SUs) + Databricks (8-node cluster)' :
+                     pipeline.source === 'Office365' || pipeline.source === 'Exchange' ? 'Synapse SQL Pool (DW500c)' :
+                     'Data Factory Mapping Data Flow (16-core)') :
+                    (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? 'Consumption Plan Functions + SignalR (Standard)' :
+                     'Databricks ML Runtime (Standard_DS4_v2)'),
         partitionCount: type === 'transformation' ? 64 : 32,
         retentionDays: 30,
         protocols: type === 'ingestion' ? ['HTTPS', 'ODBC', 'JDBC'] :
@@ -346,6 +384,45 @@ interface DataConnection {
           networkConnections: ['Azure Virtual Network', 'Private Link', 'Managed Virtual Network']
         },
         // Enhanced operational information for processing pipelines
+        processingMode: (type === 'ingestion' ? 
+                       (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? 'streaming' :
+                        pipeline.source === 'Office365' || pipeline.source === 'AzureAD' ? 'batch' :
+                        'hybrid') :
+                       type === 'transformation' ? 
+                       (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? 'micro-batch' :
+                        pipeline.source === 'Office365' || pipeline.source === 'Exchange' ? 'batch' :
+                        'hybrid') :
+                       'streaming') as 'batch' | 'streaming' | 'micro-batch' | 'hybrid',
+        dataMovementTool: type === 'ingestion' ? 
+                         (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? 'Azure Event Hubs + Stream Analytics' :
+                          pipeline.source === 'Office365' || pipeline.source === 'AzureAD' ? 'Azure Data Factory Copy Activity' :
+                          'Azure Logic Apps + HTTP Connector') :
+                         type === 'transformation' ? 
+                         (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? 'Databricks Auto Loader + Delta Live Tables' :
+                          pipeline.source === 'Office365' || pipeline.source === 'Exchange' ? 'Synapse Pipelines + PolyBase' :
+                          'Azure Data Factory Mapping Data Flows') :
+                         'Azure Functions + Service Bus',
+        batchFrequency: type === 'ingestion' && ['Office365', 'AzureAD', 'Exchange', 'Teams'].includes(pipeline.source) ? 
+                       'Every 15 minutes' :
+                       type === 'transformation' && ['Office365', 'Exchange', 'SharePoint'].includes(pipeline.source) ?
+                       'Hourly (00:15, 01:15, etc.)' :
+                       'N/A (Streaming)',
+        streamingLatency: ['LinkedIn', 'Twitter', 'ThreatIntel'].includes(pipeline.source) ? 
+                         (type === 'ingestion' ? '< 30 seconds' :
+                          type === 'transformation' ? '< 2 minutes' :
+                          '< 5 seconds') :
+                         'N/A (Batch)',
+        dataFormat: type === 'ingestion' ? 
+                   (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? ['JSON', 'Avro'] :
+                    pipeline.source === 'Office365' || pipeline.source === 'AzureAD' ? ['JSON', 'CSV'] :
+                    ['JSON', 'XML']) :
+                   type === 'transformation' ? 
+                   (pipeline.source === 'LinkedIn' || pipeline.source === 'Twitter' ? ['Parquet', 'Delta'] :
+                    ['Parquet', 'ORC', 'Delta']) :
+                   ['JSON', 'Parquet'],
+        compressionType: type === 'ingestion' ? 'Snappy' :
+                        type === 'transformation' ? 'GZIP' :
+                        'LZ4',
         slaMetrics: {
           uptime: Math.max(95, 100 - seededRandom(`${pipeline.id}-uptime`) * 5),
           targetUptime: type === 'ingestion' ? 99.95 : 99.9,
@@ -418,9 +495,9 @@ interface DataConnection {
     const parquetToKustoStaging: LineageNode = {
       id: 'parquet-staging-pipeline',
       name: 'Parquet Field Extraction Staging',
-      type: 'transformation',
+            type: 'transformation',
       x: 500,
-      y: 880, // Position below main pipeline flow (after 10 sources + spacing)
+      y: 780, // Position below main pipeline flow (after 10 sources + spacing)
       status: 'healthy',
       recordsPerSecond: 2340,
       avgProcessingTime: 450,
@@ -449,6 +526,13 @@ interface DataConnection {
         externalApis: [],
         networkConnections: ['Private Link to Kusto', 'ADLS Private Endpoint']
       },
+      // Processing and Data Movement Details for Interview Scenario
+      processingMode: 'batch' as 'batch',
+      dataMovementTool: 'Azure Data Factory + Delta Lake Engine',
+      batchFrequency: 'Triggered by file arrival (Event Grid)',
+      streamingLatency: 'N/A (Batch Processing)',
+      dataFormat: ['Parquet', 'JSON', 'Delta'],
+      compressionType: 'Snappy (Parquet native)',
       slaMetrics: {
         uptime: 99.8,
         targetUptime: 99.9,
@@ -520,7 +604,7 @@ interface DataConnection {
         name: dest.name,
         type: 'destination',
         x: 1250,
-        y: 80 + index * 80,
+        y: 80 + index * 70,
         status,
         recordsPerSecond: Math.floor(seededRandom(`${dest.name}-records`) * 500) + 50,
         avgProcessingTime: Math.floor(seededRandom(`${dest.name}-time`) * 100) + 20,
@@ -635,7 +719,28 @@ interface DataConnection {
             `https://mstic-monitoring.azurewebsites.net/health/${dest.name.replace(/\s+/g, '-').toLowerCase()}`,
             `https://mstic-storage.azurewebsites.net/status/${dest.name.replace(/\s+/g, '-').toLowerCase()}`
           ]
-        }
+        },
+        // Processing and Data Movement Details for Destinations
+        processingMode: dest.name.includes('Real-time') || dest.name.includes('Alert') ? 'streaming' as 'streaming' : 'batch' as 'batch',
+        dataMovementTool: dest.name.includes('Data Lake') ? 'PolyBase + COPY INTO (T-SQL)' :
+                         dest.name.includes('Analytics') ? 'Azure Synapse Pipelines + SQL Pools' :
+                         dest.name.includes('Alert') ? 'Azure Logic Apps + Service Bus' :
+                         dest.name.includes('ML') ? 'Azure ML Pipelines + AutoML' :
+                         dest.name.includes('API') ? 'Azure API Management + Application Gateway' :
+                         'Azure Data Factory + REST API',
+        batchFrequency: dest.name.includes('Real-time') || dest.name.includes('Alert') ? 
+                       'N/A (Streaming)' : 
+                       dest.name.includes('Compliance') ? 'Daily at 02:00 UTC' :
+                       'Hourly (00:30, 01:30, etc.)',
+        streamingLatency: dest.name.includes('Real-time') || dest.name.includes('Alert') ? 
+                         '< 5 seconds' : 'N/A (Batch)',
+        dataFormat: dest.name.includes('Data Lake') ? ['Parquet', 'Delta', 'JSON'] :
+                   dest.name.includes('Analytics') ? ['Parquet', 'ORC', 'Columnstore'] :
+                   dest.name.includes('ML') ? ['Parquet', 'CSV', 'JSON'] :
+                   ['JSON', 'Avro'],
+        compressionType: dest.name.includes('Data Lake') ? 'Snappy' :
+                        dest.name.includes('Analytics') ? 'GZIP' :
+                        'LZ4'
       });
     });
 
@@ -648,8 +753,8 @@ interface DataConnection {
       name: 'Azure Data Lake (Parquet)',
       type: 'source',
       source: 'AzureAD' as PipelineSource, // Using AzureAD as representative source
-      x: 50,
-      y: 880, // Position below main sources (after 10 sources + spacing)
+            x: 50,
+      y: 780, // Position below main sources (after 10 sources + spacing)
       status: 'healthy' as PipelineStatus,
       recordsPerSecond: 4500,
       avgProcessingTime: 120,
@@ -722,7 +827,14 @@ interface DataConnection {
       },
       actualPipeline: null,
       hasErrors: false,
-      errorCount: 0
+      errorCount: 0,
+      // Processing and Data Movement Details
+      processingMode: 'batch' as 'batch',
+      dataMovementTool: 'ADLS Gen2 REST API + Azure Storage Explorer',
+      batchFrequency: 'Continuous (new files every 2-3 minutes)',
+      streamingLatency: 'N/A (File-based ingestion)',
+      dataFormat: ['Parquet', 'JSON', 'Avro'],
+      compressionType: 'Snappy (default for Parquet)'
     });
 
     // Generate connections with realistic data flow and failure handling
@@ -1296,6 +1408,23 @@ interface DataConnection {
                 <div className={`${styles.legendDot} ${styles.destination}`}></div>
                 <span>Destinations</span>
               </div>
+              <div className={styles.legendSeparator}></div>
+              <div className={styles.legendItem}>
+                <div className={`${styles.legendProcessingBadge} ${styles.streaming}`}>STRM</div>
+                <span>Streaming</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={`${styles.legendProcessingBadge} ${styles.microBatch}`}>μBTCH</div>
+                <span>Micro-batch</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={`${styles.legendProcessingBadge} ${styles.batch}`}>BTCH</div>
+                <span>Batch</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={`${styles.legendProcessingBadge} ${styles.hybrid}`}>HYB</div>
+                <span>Hybrid</span>
+              </div>
             </div>
 
             {/* SVG Visualization */}
@@ -1467,6 +1596,32 @@ interface DataConnection {
                       }
                     </text>
                     
+                    {/* Processing Mode Badge */}
+                    <rect
+                      x={node.x + 5}
+                      y={node.y + 5}
+                      width="28"
+                      height="12"
+                      fill={node.processingMode === 'streaming' ? '#52c41a' :
+                            node.processingMode === 'micro-batch' ? '#faad14' :
+                            node.processingMode === 'hybrid' ? '#8b5cf6' :
+                            '#0078d4'}
+                      rx="2"
+                    />
+                    <text
+                      x={node.x + 19}
+                      y={node.y + 13}
+                      textAnchor="middle"
+                      fill="white"
+                      fontSize="6"
+                      fontWeight="700"
+                    >
+                      {node.processingMode === 'streaming' ? 'STRM' :
+                       node.processingMode === 'micro-batch' ? 'μBTCH' :
+                       node.processingMode === 'hybrid' ? 'HYB' :
+                       'BTCH'}
+                    </text>
+                    
                     <text
                       x={node.x + 90}
                       y={node.y + 40}
@@ -1567,8 +1722,8 @@ interface DataConnection {
                       <rect
                         x={tooltipX}
                         y={tooltipY}
-                        width="220"
-                        height="85"
+                        width="240"
+                        height="110"
                         fill="rgba(0,0,0,0.95)"
                         rx="6"
                         stroke="#555"
@@ -1598,7 +1753,7 @@ interface DataConnection {
                         fill="#ccc"
                         fontSize="9"
                       >
-                        Records/sec: {node.recordsPerSecond}
+                        Processing: {node.processingMode?.toUpperCase()} | {node.dataMovementTool}
                       </text>
                       <text
                         x={tooltipX + 10}
@@ -1606,7 +1761,7 @@ interface DataConnection {
                         fill="#ccc"
                         fontSize="9"
                       >
-                        Avg Time: {node.avgProcessingTime}ms
+                        Records/sec: {node.recordsPerSecond} | Avg Time: {node.avgProcessingTime}ms
                       </text>
                       <text
                         x={tooltipX + 10}
@@ -1614,11 +1769,29 @@ interface DataConnection {
                         fill="#ccc"
                         fontSize="9"
                       >
-                        Quality: {node.dataQuality}% | RG: {node.resourceGroup.split('-').slice(-2).join('-')}
+                        {node.processingMode === 'streaming' ? `Latency: ${node.streamingLatency}` : 
+                         node.processingMode === 'batch' ? `Frequency: ${node.batchFrequency}` :
+                         'Mode: Hybrid Processing'}
                       </text>
                       <text
                         x={tooltipX + 10}
                         y={tooltipY + 76}
+                        fill="#ccc"
+                        fontSize="9"
+                      >
+                        Format: {node.dataFormat} | Quality: {node.dataQuality}%
+                      </text>
+                      <text
+                        x={tooltipX + 10}
+                        y={tooltipY + 88}
+                        fill="#ccc"
+                        fontSize="9"
+                      >
+                        RG: {node.resourceGroup.split('-').slice(-2).join('-')}
+                      </text>
+                      <text
+                        x={tooltipX + 10}
+                        y={tooltipY + 100}
                         fill="#52c41a"
                         fontSize="8"
                       >

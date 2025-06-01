@@ -110,18 +110,22 @@ const failureReasons = {
     'LinkedIn API rate limit exceeded (100 requests/hour)',
     'Twitter API rate limit exceeded (300 requests/15min)',
     'GitHub API rate limit exceeded (5000 requests/hour)',
+    'ThreatIntel feed API throttling active during high activity',
   ],
   'AUTH_EXPIRED': [
     'OAuth token expired for LinkedIn connection',
     'API key authentication failed for Twitter',
     'Service principal credentials expired for AzureAD',
     'App registration certificate expired',
+    'Government API credentials revoked (security compliance)',
   ],
   'NETWORK_TIMEOUT': [
     'Connection timeout to external API (30s)',
     'Network latency exceeded threshold (5s)',
     'DNS resolution failed for endpoint',
     'SSL handshake timeout',
+    'Regional internet infrastructure disruption detected',
+    'Cross-border data routing blocked by network policies',
   ],
   'DATA_QUALITY': [
     'Invalid JSON format in response payload',
@@ -129,12 +133,33 @@ const failureReasons = {
     'Data schema validation failed',
     'Duplicate records detected (threshold: 10%)',
     'Encoding issues in UTF-8 conversion',
+    'Threat actor attribution data inconsistent with MITRE standards',
+    'Geolocation data accuracy below 85% threshold',
   ],
   'RESOURCE_EXHAUSTION': [
     'Memory usage exceeded 4GB limit',
     'Disk space insufficient for processing',
     'CPU usage at 100% for >5 minutes',
     'Database connection pool exhausted',
+    'APT tracking analysis consuming excessive compute resources',
+  ],
+  'SILENT_FAILURE': [
+    'Pipeline completing successfully but processing 0 records',
+    'Authentication succeeding but data source returning empty responses',
+    'Processing appears normal but missing critical threat indicators',
+    'Pipeline status healthy but downstream dependencies failing silently',
+    'Data ingestion successful but enrichment engine not receiving data',
+    'Threat intelligence feed active but IOC extraction returning null values',
+  ],
+  'GEOPOLITICAL_THREAT': [
+    'Iran-attributed APT group targeting Israeli infrastructure detected',
+    'Nation-state actor campaign against critical infrastructure identified',
+    'Cross-border credential stuffing attack pattern detected',
+    'State-sponsored phishing campaign targeting government entities',
+    'Advanced persistent threat targeting defense contractors',
+    'Foreign intelligence service attempting technology exfiltration',
+    'Cyber espionage campaign targeting telecommunications infrastructure',
+    'Nation-state malware detected in energy sector networks',
   ]
 };
 
@@ -279,25 +304,49 @@ function getRealisticLastRun(status: PipelineStatus): Date {
 }
 
 function getFailureReason(source: PipelineSource, status: PipelineStatus): string | undefined {
-  if (status !== 'failed') return undefined;
+  if (status !== 'failed' && status !== 'warning') return undefined;
   
   let reasonCategory: string;
   
-  // Source-specific failure patterns
+  // Source-specific failure patterns with geopolitical and silent failure scenarios
   switch (source) {
     case 'LinkedIn':
     case 'Twitter':
-      reasonCategory = Math.random() < 0.6 ? 'API_RATE_LIMIT' : 'AUTH_EXPIRED';
+      const socialRandom = Math.random();
+      if (socialRandom < 0.4) reasonCategory = 'API_RATE_LIMIT';
+      else if (socialRandom < 0.6) reasonCategory = 'AUTH_EXPIRED';
+      else if (socialRandom < 0.8) reasonCategory = 'SILENT_FAILURE';
+      else reasonCategory = 'GEOPOLITICAL_THREAT';
       break;
     case 'AzureAD':
     case 'Office365':
-      reasonCategory = Math.random() < 0.5 ? 'AUTH_EXPIRED' : 'NETWORK_TIMEOUT';
+      const msRandom = Math.random();
+      if (msRandom < 0.3) reasonCategory = 'AUTH_EXPIRED';
+      else if (msRandom < 0.5) reasonCategory = 'NETWORK_TIMEOUT';
+      else if (msRandom < 0.7) reasonCategory = 'SILENT_FAILURE';
+      else reasonCategory = 'GEOPOLITICAL_THREAT';
       break;
     case 'ThreatIntel':
-      reasonCategory = Math.random() < 0.4 ? 'DATA_QUALITY' : 'NETWORK_TIMEOUT';
+      const tiRandom = Math.random();
+      if (tiRandom < 0.2) reasonCategory = 'DATA_QUALITY';
+      else if (tiRandom < 0.4) reasonCategory = 'NETWORK_TIMEOUT';
+      else if (tiRandom < 0.6) reasonCategory = 'SILENT_FAILURE';
+      else reasonCategory = 'GEOPOLITICAL_THREAT';
+      break;
+    case 'GitHub':
+      const ghRandom = Math.random();
+      if (ghRandom < 0.3) reasonCategory = 'API_RATE_LIMIT';
+      else if (ghRandom < 0.5) reasonCategory = 'DATA_QUALITY';
+      else if (ghRandom < 0.7) reasonCategory = 'SILENT_FAILURE';
+      else reasonCategory = 'GEOPOLITICAL_THREAT';
       break;
     default:
-      reasonCategory = getRandomElement(['NETWORK_TIMEOUT', 'DATA_QUALITY', 'RESOURCE_EXHAUSTION']);
+      const defaultRandom = Math.random();
+      if (defaultRandom < 0.25) reasonCategory = 'NETWORK_TIMEOUT';
+      else if (defaultRandom < 0.45) reasonCategory = 'DATA_QUALITY';
+      else if (defaultRandom < 0.65) reasonCategory = 'RESOURCE_EXHAUSTION';
+      else if (defaultRandom < 0.8) reasonCategory = 'SILENT_FAILURE';
+      else reasonCategory = 'GEOPOLITICAL_THREAT';
   }
   
   const reasons = failureReasons[reasonCategory as keyof typeof failureReasons];

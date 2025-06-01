@@ -281,3 +281,74 @@ export interface AgentState {
   investigationsToday: number;
   meanTimeToResolution: number; // minutes
 }
+
+// Threat Intelligence and Security Prediction Types
+export type ThreatType = 
+  | 'insider_threat' 
+  | 'data_exfiltration' 
+  | 'lateral_movement' 
+  | 'credential_abuse' 
+  | 'anomalous_access' 
+  | 'privilege_escalation'
+  | 'suspicious_login'
+  | 'data_hoarding';
+
+export type ThreatSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export interface SecurityFeatures {
+  loginFrequency: number; // logins per day
+  offHoursActivity: number; // percentage of activity outside business hours
+  dataAccessVolume: number; // GB accessed per day
+  uniqueResourcesAccessed: number; // number of different resources
+  geographicAnomaly: number; // distance from usual location in km
+  privilegeLevel: number; // 1-10 scale
+  accountAge: number; // days since account creation
+  failedLoginAttempts: number; // in last 24h
+  vpnUsage: number; // percentage of sessions via VPN
+  deviceCount: number; // number of devices used
+}
+
+export interface UserBehaviorProfile {
+  userId: string;
+  userDisplayName: string;
+  department: string;
+  role: string;
+  baselineFeatures: SecurityFeatures;
+  currentFeatures: SecurityFeatures;
+  riskScore: number; // 0-100
+  anomalyScore: number; // 0-100
+  lastActivity: Date;
+  accountStatus: 'active' | 'suspended' | 'disabled';
+}
+
+export interface ThreatPrediction {
+  userId: string;
+  userDisplayName: string;
+  department: string;
+  role: string;
+  threatType: ThreatType;
+  severity: ThreatSeverity;
+  confidence: number; // 0-1
+  riskScore: number; // 0-100
+  reasoning: string[];
+  features: SecurityFeatures;
+  lastUpdated: Date;
+  recommendedActions: string[];
+  investigationPriority: number; // 1-10
+}
+
+export interface SecurityAlert {
+  id: string;
+  userId: string;
+  userDisplayName: string;
+  threatType: ThreatType;
+  severity: ThreatSeverity;
+  timestamp: Date;
+  description: string;
+  indicators: string[];
+  mitreTactics: string[];
+  affectedResources: string[];
+  status: 'new' | 'investigating' | 'mitigated' | 'false_positive';
+  assignedAnalyst?: string;
+  resolutionTime?: number; // minutes
+}

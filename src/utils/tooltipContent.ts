@@ -608,7 +608,43 @@ export const TOOLTIP_CONTENT: Record<string, TooltipContent> = {
     title: "Decision Tree Model",
     content: "Machine learning algorithm that makes predictions through a series of yes/no questions",
     detailedContent: "Decision trees create interpretable prediction logic by splitting data based on feature thresholds. Each path through the tree leads to a prediction outcome.",
-    msticContext: "Decision trees provide explainable AI for security operations, allowing analysts to understand and validate prediction reasoning."
+        msticContext: "Decision trees provide explainable AI for security operations, allowing analysts to understand and validate prediction reasoning."
+  },
+
+  // Security Threat Prediction Metrics
+  criticalThreats: {
+    title: "Critical Threats",
+    content: "Number of users with critical-severity threat predictions requiring immediate attention.",
+    detailedContent: "Critical threats include high-confidence predictions for data exfiltration, privilege escalation, or insider threats with risk scores above 80.",
+    msticContext: "These represent the highest priority security incidents requiring immediate investigation and response from the security team."
+  },
+
+  highRiskUsers: {
+    title: "High-Risk Users",
+    content: "Count of users classified as high-risk based on behavioral analysis and threat indicators.",
+    detailedContent: "Users with risk scores between 60-80 or exhibiting patterns consistent with insider threats, lateral movement, or credential abuse.",
+    msticContext: "High-risk users should be prioritized for security reviews and enhanced monitoring to prevent potential security incidents."
+  },
+
+  avgRiskScore: {
+    title: "Average Risk Score",
+    content: "Mean risk score across all monitored users, calculated from behavioral anomaly analysis.",
+    detailedContent: "Risk scores range from 0-100, with scores above 60 indicating potential security concerns. Calculated using machine learning analysis of login patterns, data access, and resource usage.",
+    msticContext: "Organizational baseline for security posture. Rising average scores may indicate widespread security concerns or environmental changes requiring investigation."
+  },
+
+  usersMonitored: {
+    title: "Users Monitored",
+    content: "Total number of active users being analyzed by the behavioral security monitoring system.",
+    detailedContent: "Includes all users with recent activity across monitored systems. Analysis covers login patterns, data access, geographic behavior, and resource usage patterns.",
+    msticContext: "Comprehensive coverage ensures no blind spots in security monitoring. Higher coverage provides better organizational security visibility."
+  },
+
+  riskScore: {
+    title: "User Risk Score",
+    content: "Individual risk assessment score based on behavioral analysis and anomaly detection.",
+    detailedContent: "Calculated using multiple factors: login frequency deviations, off-hours activity, data access volume changes, geographic anomalies, failed login attempts, and resource access patterns.",
+    msticContext: "Primary indicator for threat prioritization. Scores above 70 typically require investigation, while scores above 80 demand immediate attention."
   },
 };
 

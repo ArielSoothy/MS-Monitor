@@ -44,23 +44,20 @@ const PredictiveInsights: React.FC = () => {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [selectedThreatType, setSelectedThreatType] = useState<ThreatType | 'all'>('all');
 
-  // Generate threat intelligence entities for analysis
+  // Generate realistic user data for threat analysis
   const generateUserProfiles = (): ThreatPrediction[] => {
     const departments = ['Engineering', 'Sales', 'Marketing', 'Finance', 'HR', 'IT', 'Legal', 'Operations'];
     const roles = ['Engineer', 'Manager', 'Director', 'Analyst', 'Coordinator', 'Specialist', 'Admin', 'Executive'];
-    
-    // Industry-standard threat intelligence identifiers
-    const threatEntities = [
-      // Tokenized user identifiers (common in enterprise threat intelligence)
-      'usr_7a8b9c1d2e3f', 'usr_4f5e6d7c8b9a', 'usr_1e2f3a4b5c6d', 'usr_8c9d0e1f2a3b', 'usr_5b6c7d8e9f0a',
-      'usr_2d3e4f5a6b7c', 'usr_9f0a1b2c3d4e', 'usr_6a7b8c9d0e1f', 'usr_3c4d5e6f7a8b', 'usr_0e1f2a3b4c5d',
-      'usr_7d8e9f0a1b2c', 'usr_4a5b6c7d8e9f', 'usr_1f2a3b4c5d6e', 'usr_8b9c0d1e2f3a', 'usr_5e6f7a8b9c0d',
-      'usr_2a3b4c5d6e7f', 'usr_9c0d1e2f3a4b', 'usr_6f7a8b9c0d1e', 'usr_3b4c5d6e7f8a', 'usr_0d1e2f3a4b5c',
-      'usr_7f8a9b0c1d2e', 'usr_4c5d6e7f8a9b', 'usr_1a2b3c4d5e6f', 'usr_8e9f0a1b2c3d', 'usr_5d6e7f8a9b0c'
+    const names = [
+      'Sarah Chen', 'Michael Rodriguez', 'Emma Thompson', 'David Kim', 'Lisa Wang',
+      'James Wilson', 'Maria Garcia', 'Alex Johnson', 'Rachel Brown', 'Chris Lee',
+      'Jennifer Davis', 'Mark Taylor', 'Anna Petrov', 'Robert Miller', 'Grace Liu',
+      'John Anderson', 'Sophie Martin', 'Daniel Cohen', 'Elena Rossi', 'Thomas Singh',
+      'Kate Murphy', 'Ryan O\'Connor', 'Maya Patel', 'Lucas Weber', 'Zoe Adams'
     ];
 
-    return threatEntities.map((identifier) => {
-      const userId = identifier;
+    return names.map((name, index) => {
+      const userId = `user${index + 1000}`;
       const department = departments[Math.floor(seededRandom(`${userId}-dept`) * departments.length)];
       const role = roles[Math.floor(seededRandom(`${userId}-role`) * roles.length)];
       
@@ -134,7 +131,7 @@ const PredictiveInsights: React.FC = () => {
 
       return {
         userId,
-        userDisplayName: identifier,
+        userDisplayName: name,
         department,
         role,
         threatType,
@@ -467,7 +464,7 @@ const PredictiveInsights: React.FC = () => {
                   <HelpCircle size={18} />
                 </button>
               </h1>
-              <p>AI-powered threat intelligence analysis for external entity monitoring and security risk assessment</p>
+              <p>AI-powered behavioral analysis for insider threat detection and security anomalies</p>
             </div>
           </div>
           <div className={styles.headerActions}>
@@ -605,12 +602,12 @@ const PredictiveInsights: React.FC = () => {
             </div>
           </div>
 
-          {/* Threat Intelligence Entity Analysis */}
+          {/* User Threat Predictions */}
           {filteredPredictions.length === 0 ? (
             <div className={styles.noRisk}>
               <Shield size={48} />
               <h3>No Threats Detected</h3>
-              <p>All monitored entities are showing normal behavioral patterns.</p>
+              <p>All users are showing normal behavioral patterns.</p>
             </div>
           ) : (
             <div className={styles.riskGrid}>
@@ -702,7 +699,7 @@ const PredictiveInsights: React.FC = () => {
               </div>
 
               <div className={styles.behavioralAnalysis}>
-                <h3>Security Indicators</h3>
+                <h3>Behavioral Indicators</h3>
                 <div className={styles.featureGrid}>
                   {Object.entries(selectedPrediction.features).map(([feature, value]) => (
                     <div key={feature} className={styles.featureCard}>
@@ -760,42 +757,42 @@ const PredictiveInsights: React.FC = () => {
               </div>
 
               <div className={styles.explanationSection}>
-                <h3>📊 Key Security Features</h3>
+                <h3>📊 Key Behavioral Features</h3>
                 <div className={styles.featureExplanations}>
                   <div className={styles.featureExplanation}>
-                    <h4>🕐 Access Patterns</h4>
-                    <p>Analyzes entity access frequency, timing, and off-hours activity from threat intelligence feeds.</p>
+                    <h4>🕐 Login Patterns</h4>
+                    <p>Analyzes login frequency, timing, and off-hours activity to detect unusual access patterns.</p>
                   </div>
                   
                   <div className={styles.featureExplanation}>
                     <h4>📁 Data Access Volume</h4>
-                    <p>Monitors data access patterns from external sources that could indicate threat actor behavior.</p>
+                    <p>Monitors data access patterns and volume changes that could indicate data exfiltration attempts.</p>
                   </div>
                   
                   <div className={styles.featureExplanation}>
                     <h4>🌍 Geographic Anomalies</h4>
-                    <p>Detects unusual geographic patterns from threat intelligence data and potential threat indicators.</p>
+                    <p>Detects unusual login locations and potential account compromise indicators.</p>
                   </div>
                   
                   <div className={styles.featureExplanation}>
                     <h4>🔑 Privilege Usage</h4>
-                    <p>Monitors privilege patterns and access anomalies from threat intelligence data sources.</p>
+                    <p>Monitors privilege escalation attempts and unauthorized access to sensitive resources.</p>
                   </div>
                 </div>
               </div>
 
               <div className={styles.explanationSection}>
                 <h3>🎯 Threat Classification</h3>
-                <p>The model classifies external threats into specific categories like threat actor behavior, data exfiltration patterns, lateral movement, and credential abuse, enabling targeted threat hunting strategies.</p>
+                <p>The model classifies threats into specific categories like insider threats, data exfiltration, lateral movement, and credential abuse, enabling targeted response strategies.</p>
               </div>
 
               <div className={styles.explanationSection}>
                 <h3>⚠️ For MSTIC Interview Demonstration</h3>
                 <ul className={styles.limitations}>
-                  <li><strong>Proof of Concept:</strong> This demonstrates threat intelligence analysis capabilities</li>
-                  <li><strong>Realistic Patterns:</strong> Uses simulated but realistic threat actor behavioral data</li>
-                  <li><strong>Production Ready:</strong> Architecture supports real-time external threat detection</li>
-                  <li><strong>MITRE ATT&CK:</strong> Aligned with security frameworks and threat intelligence best practices</li>
+                  <li><strong>Proof of Concept:</strong> This demonstrates behavioral analysis capabilities</li>
+                  <li><strong>Realistic Patterns:</strong> Uses simulated but realistic security data</li>
+                  <li><strong>Production Ready:</strong> Architecture supports real-time threat detection</li>
+                  <li><strong>MITRE ATT&CK:</strong> Aligned with security frameworks and best practices</li>
                 </ul>
               </div>
             </div>
