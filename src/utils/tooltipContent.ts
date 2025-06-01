@@ -640,7 +640,7 @@ export const TOOLTIP_CONTENT: Record<string, TooltipContent> = {
     msticContext: "Comprehensive coverage ensures no blind spots in security monitoring. Higher coverage provides better organizational security visibility."
   },
 
-  riskScore: {
+  userRiskScore: {
     title: "User Risk Score",
     content: "Individual risk assessment score based on behavioral analysis and anomaly detection.",
     detailedContent: "Calculated using multiple factors: login frequency deviations, off-hours activity, data access volume changes, geographic anomalies, failed login attempts, and resource access patterns.",
