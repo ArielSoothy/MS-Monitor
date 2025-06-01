@@ -36,6 +36,8 @@
   right: 2rem;
   width: 420px;
   height: 600px;
+  max-width: calc(100vw - 4rem);
+  max-height: calc(100vh - 4rem);
   background: #1a1a1a;
   border: 1px solid #333;
   border-radius: 12px;
@@ -504,12 +506,27 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .chatContainer {
+    width: 380px;
+    height: 550px;
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+
+  .floatingButton {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .floatingButton {
-    bottom: 1rem;
-    right: 1rem;
+    bottom: 1.5rem;
+    right: 1.5rem;
     padding: 0.75rem 1rem;
     font-size: 0.8rem;
+    z-index: 1001;
   }
 
   .buttonLabel {
@@ -517,16 +534,23 @@
   }
 
   .chatContainer {
+    position: fixed;
+    top: 1rem;
     bottom: 1rem;
-    right: 1rem;
     left: 1rem;
+    right: 1rem;
     width: auto;
-    height: 500px;
+    height: auto;
     max-height: calc(100vh - 2rem);
+    max-width: calc(100vw - 2rem);
+    z-index: 1002;
+    overflow: hidden;
   }
 
   .apiKeySection {
     padding: 0.75rem 1rem;
+    max-height: 40vh;
+    overflow-y: auto;
   }
 
   .apiKeyInput input {
@@ -547,10 +571,18 @@
 
   .chatMessages {
     padding: 0.75rem;
+    max-height: calc(100vh - 12rem);
+    overflow-y: auto;
   }
 
   .message {
     max-width: 95%;
+  }
+
+  .chatInput {
+    padding: 0.75rem;
+    border-top: 1px solid #333;
+    background: #1a1a1a;
   }
 
   .chatInput input {
