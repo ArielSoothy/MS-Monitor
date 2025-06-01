@@ -26,22 +26,28 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState('');
+  const [openaiApiKey, setOpenaiApiKey] = useState('');
+  const [claudeApiKey, setClaudeApiKey] = useState('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
+  const [showOpenaiKey, setShowOpenaiKey] = useState(false);
+  const [showClaudeKey, setShowClaudeKey] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string; details?: string } | null>(null);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string; details?: string; service?: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Load API key from localStorage on mount
+  // Load API keys from localStorage on mount
   useEffect(() => {
-    const storedApiKey = localStorage.getItem('ai-assistant-api-key');
-    if (storedApiKey) {
-      setApiKey(storedApiKey);
+    const storedOpenaiKey = localStorage.getItem('ai-assistant-openai-key');
+    const storedClaudeKey = localStorage.getItem('ai-assistant-claude-key');
+    if (storedOpenaiKey) {
+      setOpenaiApiKey(storedOpenaiKey);
     }
-    // For demo purposes, show the API key input if no key is found
-    if (!storedApiKey) {
+    if (storedClaudeKey) {
+      setClaudeApiKey(storedClaudeKey);
+    }
+    // For demo purposes, show the API key input if no keys are found
+    if (!storedOpenaiKey && !storedClaudeKey) {
       setShowApiKeyInput(true);
     }
   }, []);
@@ -54,33 +60,44 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  const saveApiKey = () => {
-    const trimmedKey = apiKey.trim();
+  const saveOpenaiKey = () => {
+    const trimmedKey = openaiApiKey.trim();
     if (trimmedKey && (trimmedKey.startsWith('sk-') || trimmedKey.length > 20)) {
-      localStorage.setItem('ai-assistant-api-key', trimmedKey);
-      setShowApiKeyInput(false);
-      addMessage('assistant', '🔑 API key saved! I can now provide enhanced responses using Azure OpenAI Service.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through Azure API Management with secure authentication.*');
+      localStorage.setItem('ai-assistant-openai-key', trimmedKey);
+      addMessage('assistant', '🔑 OpenAI API key saved! I can now provide enhanced responses using GPT-4.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through a secure backend proxy.*');
     } else if (trimmedKey) {
-      // Still save it but warn the user
-      localStorage.setItem('ai-assistant-api-key', trimmedKey);
-      setShowApiKeyInput(false);
-      addMessage('assistant', '⚠️ API key saved. Currently using enhanced mock intelligence for demonstration. In production, this would integrate with Azure OpenAI Service.');
+      localStorage.setItem('ai-assistant-openai-key', trimmedKey);
+      addMessage('assistant', '⚠️ OpenAI API key saved. Currently using enhanced mock intelligence for demonstration. In production, this would integrate with GPT-4.');
     }
   };
 
-  const clearApiKey = () => {
-    localStorage.removeItem('ai-assistant-api-key');
-    setApiKey('');
-    setShowApiKeyInput(false);
-    setTestResult(null); // Clear any previous test results
+  const saveClaudeKey = () => {
+    const trimmedKey = claudeApiKey.trim();
+    if (trimmedKey && (trimmedKey.startsWith('sk-ant-') || trimmedKey.length > 30)) {
+      localStorage.setItem('ai-assistant-claude-key', trimmedKey);
+      addMessage('assistant', '🔑 Claude API key saved! I can now provide enhanced responses using Claude AI.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through a secure backend proxy.*');
+    } else if (trimmedKey) {
+      localStorage.setItem('ai-assistant-claude-key', trimmedKey);
+      addMessage('assistant', '⚠️ Claude API key saved. Currently using enhanced mock intelligence for demonstration. In production, this would integrate with Claude AI.');
+    }
   };
 
-  const testConnection = async () => {
-    if (!apiKey.trim()) {
+  const clearApiKeys = () => {
+    localStorage.removeItem('ai-assistant-openai-key');
+    localStorage.removeItem('ai-assistant-claude-key');
+    setOpenaiApiKey('');
+    setClaudeApiKey('');
+    setShowApiKeyInput(false);
+    setTestResult(null);
+  };
+
+  const testOpenaiConnection = async () => {
+    if (!openaiApiKey.trim()) {
       setTestResult({
         success: false,
-        message: 'No API key provided',
-        details: 'Please enter your OpenAI API key before testing the connection.'
+        message: 'No OpenAI API key provided',
+        details: 'Please enter your OpenAI API key before testing the connection.',
+        service: 'OpenAI'
       });
       return;
     }
@@ -92,7 +109,7 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
       const response = await fetch('https://api.openai.com/v1/models', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${apiKey.trim()}`,
+          'Authorization': `Bearer ${openaiApiKey.trim()}`,
           'Content-Type': 'application/json'
         }
       });
@@ -102,8 +119,9 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
         const gptModels = data.data.filter((model: any) => model.id.includes('gpt'));
         setTestResult({
           success: true,
-          message: `✅ Connection successful! Found ${gptModels.length} GPT models available.`,
-          details: `Available models: ${gptModels.slice(0, 3).map((m: any) => m.id).join(', ')}${gptModels.length > 3 ? '...' : ''}`
+          message: `✅ OpenAI connection successful! Found ${gptModels.length} GPT models available.`,
+          details: `Available models: ${gptModels.slice(0, 3).map((m: any) => m.id).join(', ')}${gptModels.length > 3 ? '...' : ''}`,
+          service: 'OpenAI'
         });
       } else {
         const errorData = await response.text();
@@ -123,8 +141,9 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
 
         setTestResult({
           success: false,
-          message: `❌ ${errorMessage}`,
-          details: details
+          message: `❌ OpenAI ${errorMessage}`,
+          details: details,
+          service: 'OpenAI'
         });
       }
     } catch (error) {
@@ -140,8 +159,96 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
 
       setTestResult({
         success: false,
-        message: `❌ ${errorMessage}`,
-        details: details
+        message: `❌ OpenAI ${errorMessage}`,
+        details: details,
+        service: 'OpenAI'
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  const testClaudeConnection = async () => {
+    if (!claudeApiKey.trim()) {
+      setTestResult({
+        success: false,
+        message: 'No Claude API key provided',
+        details: 'Please enter your Claude API key before testing the connection.',
+        service: 'Claude'
+      });
+      return;
+    }
+
+    setIsTesting(true);
+    setTestResult(null);
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': claudeApiKey.trim(),
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-haiku-20240307',
+          max_tokens: 10,
+          messages: [
+            {
+              role: 'user',
+              content: 'Test connection'
+            }
+          ]
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTestResult({
+          success: true,
+          message: `✅ Claude connection successful! Model: claude-3-haiku`,
+          details: `API response: ${data.content?.[0]?.text || 'Connection verified'}`,
+          service: 'Claude'
+        });
+      } else {
+        const errorData = await response.text();
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        let details = errorData;
+
+        if (response.status === 401) {
+          errorMessage = 'Authentication failed';
+          details = 'Invalid API key. Please check your Claude API key and try again.';
+        } else if (response.status === 429) {
+          errorMessage = 'Rate limit exceeded';
+          details = 'Too many requests. Please wait a moment and try again.';
+        } else if (response.status === 403) {
+          errorMessage = 'Access forbidden';
+          details = 'Your API key may not have the required permissions.';
+        }
+
+        setTestResult({
+          success: false,
+          message: `❌ Claude ${errorMessage}`,
+          details: details,
+          service: 'Claude'
+        });
+      }
+    } catch (error) {
+      let errorMessage = 'Connection failed';
+      let details = 'Unknown error occurred';
+
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        errorMessage = 'Network error (CORS)';
+        details = 'Browser blocked the request due to CORS policy. This is expected - the AI assistant will use enhanced mock responses instead.';
+      } else if (error instanceof Error) {
+        details = error.message;
+      }
+
+      setTestResult({
+        success: false,
+        message: `❌ Claude ${errorMessage}`,
+        details: details,
+        service: 'Claude'
       });
     } finally {
       setIsTesting(false);
@@ -227,8 +334,11 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
   };
 
   const callAIAPI = async (message: string): Promise<string> => {
-    if (!apiKey) {
-      throw new Error('API key not configured');
+    const hasOpenAI = openaiApiKey.trim();
+    const hasClaude = claudeApiKey.trim();
+    
+    if (!hasOpenAI && !hasClaude) {
+      throw new Error('No API key configured');
     }
 
     const context = getSystemContext();
@@ -246,40 +356,77 @@ Current system state:
 
 Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Use markdown formatting for clarity.`;
 
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4',
-          max_tokens: 1024,
-          messages: [
-            {
-              role: 'system',
-              content: systemPrompt
-            },
-            {
-              role: 'user',
-              content: message
-            }
-          ]
-        })
-      });
+    // Try Claude first if available, then OpenAI
+    if (hasClaude) {
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': claudeApiKey.trim(),
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: 1024,
+            messages: [
+              {
+                role: 'user',
+                content: `${systemPrompt}\n\nUser question: ${message}`
+              }
+            ]
+          })
+        });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`AI API error: ${response.status} - ${errorText}`);
+        if (!response.ok) {
+          throw new Error(`Claude API error: ${response.status} - ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        return data.content[0].text;
+      } catch (claudeError) {
+        console.warn('Claude API failed, trying OpenAI:', claudeError);
+        // If Claude fails and we have OpenAI, try OpenAI
+        if (!hasOpenAI) throw claudeError;
       }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
-    } catch (error) {
-      // CORS error or network issue - fallback gracefully
-      throw error;
     }
+
+    if (hasOpenAI) {
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openaiApiKey.trim()}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4',
+            max_tokens: 1024,
+            messages: [
+              {
+                role: 'system',
+                content: systemPrompt
+              },
+              {
+                role: 'user',
+                content: message
+              }
+            ]
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.status} - ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+      } catch (openaiError) {
+        throw openaiError;
+      }
+    }
+
+    throw new Error('No working API service available');
   };
 
   const handleSendMessage = async () => {
@@ -293,7 +440,7 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
     try {
       let response: string;
       
-      if (apiKey) {
+      if (openaiApiKey.trim() || claudeApiKey.trim()) {
         // Try AI API first
         try {
           response = await callAIAPI(userMessage);
@@ -364,79 +511,135 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
 
       {showApiKeyInput && (
         <div className={styles.apiKeySection}>
-          <h4>🔑 Azure OpenAI Configuration</h4>
-          <p>
-            Get your API key from{' '}
-            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">
-              OpenAI Platform <ExternalLink size={12} />
-            </a>
-          </p>
+          <h4>🔑 AI Service Configuration</h4>
+          <p>Choose your preferred AI service and add your API key:</p>
+          
+          {/* OpenAI Section */}
           <div className={styles.apiKeyInstructions}>
-            <p><strong>Quick Setup:</strong></p>
-            <ol>
-              <li>Sign up at platform.openai.com</li>
-              <li>Create a new API key</li>
-              <li>Paste it below and click "Save Key"</li>
-            </ol>
+            <p><strong>🤖 OpenAI GPT-4</strong></p>
+            <p>Get your API key from{' '}
+              <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">
+                OpenAI Platform <ExternalLink size={12} />
+              </a>
+            </p>
           </div>
           <div className={styles.apiKeyInput}>
             <input
-              type={showApiKey ? 'text' : 'password'}
+              type={showOpenaiKey ? 'text' : 'password'}
               placeholder="sk-..."
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              value={openaiApiKey}
+              onChange={(e) => setOpenaiApiKey(e.target.value)}
               autoComplete="off"
               autoCapitalize="off"
               autoCorrect="off"
               spellCheck="false"
             />
             <button
-              onClick={() => setShowApiKey(!showApiKey)}
+              onClick={() => setShowOpenaiKey(!showOpenaiKey)}
               className={styles.toggleVisibility}
               type="button"
             >
-              {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+              {showOpenaiKey ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          {apiKey.trim() && !apiKey.trim().startsWith('sk-') && (
+          {openaiApiKey.trim() && !openaiApiKey.trim().startsWith('sk-') && (
             <div className={styles.validationWarning}>
-              ⚠️ API key should start with "sk-"
+              ⚠️ OpenAI API key should start with "sk-"
             </div>
           )}
           <div className={styles.apiKeyActions}>
             <button 
-              onClick={saveApiKey} 
+              onClick={saveOpenaiKey} 
               className={styles.saveButton} 
-              disabled={!apiKey.trim()}
-              title={!apiKey.trim() ? "Please enter an API key" : "Save API key"}
+              disabled={!openaiApiKey.trim()}
+              title={!openaiApiKey.trim() ? "Please enter an OpenAI API key" : "Save OpenAI API key"}
             >
-              Save Key
+              Save OpenAI Key
             </button>
             <button
-              onClick={testConnection}
+              onClick={testOpenaiConnection}
               className={styles.testButton}
-              disabled={!apiKey.trim() || isTesting}
-              title={!apiKey.trim() ? "Please enter an API key" : "Test API connection"}
+              disabled={!openaiApiKey.trim() || isTesting}
+              title={!openaiApiKey.trim() ? "Please enter an OpenAI API key" : "Test OpenAI connection"}
             >
-              {isTesting ? <Loader2 size={14} className={styles.loadingIcon} /> : '🔧'} Test Connection
+              {isTesting ? <Loader2 size={14} className={styles.loadingIcon} /> : '🔧'} Test OpenAI
             </button>
-            {localStorage.getItem('ai-assistant-api-key') && (
-              <button onClick={clearApiKey} className={styles.clearButton}>
-                Clear Key
-              </button>
-            )}
           </div>
+
+          {/* Claude Section */}
+          <div className={styles.apiKeyInstructions} style={{ marginTop: '1.5rem' }}>
+            <p><strong>🧠 Claude (Anthropic)</strong></p>
+            <p>Get your API key from{' '}
+              <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">
+                Anthropic Console <ExternalLink size={12} />
+              </a>
+            </p>
+          </div>
+          <div className={styles.apiKeyInput}>
+            <input
+              type={showClaudeKey ? 'text' : 'password'}
+              placeholder="sk-ant-..."
+              value={claudeApiKey}
+              onChange={(e) => setClaudeApiKey(e.target.value)}
+              autoComplete="off"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck="false"
+            />
+            <button
+              onClick={() => setShowClaudeKey(!showClaudeKey)}
+              className={styles.toggleVisibility}
+              type="button"
+            >
+              {showClaudeKey ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+          {claudeApiKey.trim() && !claudeApiKey.trim().startsWith('sk-ant-') && (
+            <div className={styles.validationWarning}>
+              ⚠️ Claude API key should start with "sk-ant-"
+            </div>
+          )}
+          <div className={styles.apiKeyActions}>
+            <button 
+              onClick={saveClaudeKey} 
+              className={styles.saveButton} 
+              disabled={!claudeApiKey.trim()}
+              title={!claudeApiKey.trim() ? "Please enter a Claude API key" : "Save Claude API key"}
+            >
+              Save Claude Key
+            </button>
+            <button
+              onClick={testClaudeConnection}
+              className={styles.testButton}
+              disabled={!claudeApiKey.trim() || isTesting}
+              title={!claudeApiKey.trim() ? "Please enter a Claude API key" : "Test Claude connection"}
+            >
+              {isTesting ? <Loader2 size={14} className={styles.loadingIcon} /> : '🔧'} Test Claude
+            </button>
+          </div>
+
+          {/* Clear All Button */}
+          {(localStorage.getItem('ai-assistant-openai-key') || localStorage.getItem('ai-assistant-claude-key')) && (
+            <div className={styles.apiKeyActions} style={{ marginTop: '1rem' }}>
+              <button onClick={clearApiKeys} className={styles.clearButton}>
+                Clear All Keys
+              </button>
+            </div>
+          )}
           
           {testResult && (
             <div className={`${styles.testResult} ${testResult.success ? styles.testSuccess : styles.testError}`}>
-              <div className={styles.testMessage}>{testResult.message}</div>
+              <div className={styles.testMessage}>
+                {testResult.service && `[${testResult.service}] `}{testResult.message}
+              </div>
               {testResult.details && (
                 <div className={styles.testDetails}>{testResult.details}</div>
               )}
             </div>
           )}
+          
           <div className={styles.costWarning}>
-            💡 Cost: ~$0.01 per query with GPT-4 (very affordable for demos)
+            💡 Cost: ~$0.01 per query with GPT-4 or Claude (very affordable for demos)
           </div>
           <div className={styles.demoNote}>
             <strong>No API key?</strong> Try the built-in Microsoft threat intelligence responses - they work without any setup!
@@ -450,19 +653,19 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
             <MessageCircle size={48} />
             <h4>Welcome to AI Pipeline Assistant!</h4>
             <p>I can help you with pipeline monitoring, troubleshooting, and threat intelligence analysis.</p>
-            {!apiKey && (
+            {!openaiApiKey && !claudeApiKey && (
               <div>
                 <p className={styles.mockNote}>
                   🚀 Try me now! I have built-in intelligence that works without any setup.
                 </p>
                 <p className={styles.demoNote}>
-                  <strong>Want enhanced AI?</strong> Click the ⚙️ settings to add your OpenAI API key for even smarter responses!
+                  <strong>Want enhanced AI?</strong> Click the ⚙️ settings to add your OpenAI or Claude API key for even smarter responses!
                 </p>
               </div>
             )}
-            {apiKey && (
+            {(openaiApiKey || claudeApiKey) && (
               <p className={styles.aiReadyNote}>
-                🤖 AI Assistant is ready with full Azure OpenAI capabilities! Ask me anything about your pipelines.
+                🤖 AI Assistant is ready with {openaiApiKey && claudeApiKey ? 'OpenAI & Claude' : openaiApiKey ? 'OpenAI GPT-4' : 'Claude'} capabilities! Ask me anything about your pipelines.
               </p>
             )}
           </div>
