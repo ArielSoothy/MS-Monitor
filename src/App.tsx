@@ -12,7 +12,11 @@ import './App.css';
 const Overview = lazy(() => import('./pages/Overview'));
 const Pipelines = lazy(() => import('./pages/Pipelines'));
 const DataLineage = lazy(() => import('./pages/DataLineage'));
+const AzureConnection = lazy(() => import('./pages/AzureConnection'));
 const PredictiveInsights = lazy(() => import('./pages/PredictiveInsights'));
+const Performance = lazy(() => import('./pages/Performance'));
+const Infrastructure = lazy(() => import('./pages/Infrastructure'));
+const DataEngineering = lazy(() => import('./pages/DataEngineering'));
 const AutonomousAgent = lazy(() => import('./components/AutonomousAgent'));
 const Alerts = lazy(() => import('./pages/Alerts'));
 
@@ -51,7 +55,11 @@ function AppContent() {
               <Route path="/overview" element={<Overview />} />
               <Route path="/pipelines" element={<Pipelines />} />
               <Route path="/data-lineage" element={<DataLineage />} />
+              <Route path="/azure-connection" element={<AzureConnection />} />
               <Route path="/predictive-insights" element={<PredictiveInsights />} />
+              <Route path="/performance" element={<Performance />} />
+              <Route path="/infrastructure" element={<Infrastructure />} />
+              <Route path="/data-engineering" element={<DataEngineering />} />
               <Route path="/ai-agent" element={<AutonomousAgent />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="*" element={<Navigate to="/overview" replace />} />

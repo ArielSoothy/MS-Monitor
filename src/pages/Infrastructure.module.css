@@ -1,0 +1,500 @@
+
+.infrastructurePage {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #0a0a0a;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #1f1f1f;
+}
+
+.titleSection {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.titleIcon {
+  color: #0078d4;
+  margin-top: 0.25rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.header p {
+  margin: 0.5rem 0 0 0;
+  color: #d1d5db;
+  font-size: 0.95rem;
+}
+
+.refreshInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 1rem;
+  color: #d1d5db;
+}
+
+.loadingIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Cluster Overview */
+.clusterOverview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.overviewCard {
+  background: #111111;
+  border: 1px solid #1f1f1f;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.overviewCard:hover {
+  border-color: #0078d4;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 120, 212, 0.1);
+}
+
+.overviewCard h3 {
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.overviewStats {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.overviewStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Node Health Section */
+.nodeHealthSection {
+  margin-bottom: 3rem;
+}
+
+.nodeHealthSection h2 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.nodeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.nodeCard {
+  background: #111111;
+  border: 1px solid #1f1f1f;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nodeCard:hover {
+  border-color: #0078d4;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 120, 212, 0.1);
+}
+
+.nodeCard.selected {
+  border-color: #0078d4;
+  background: #0078d410;
+}
+
+.nodeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.nodeStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.nodeRegion {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.nodeId {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  color: #d1d5db;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem;
+  background: #0a0a0a;
+  border-radius: 0.5rem;
+  border: 1px solid #1a1a1a;
+}
+
+.nodeMetrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.nodeMetric {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #d1d5db;
+  font-size: 0.85rem;
+}
+
+.nodeMetric svg {
+  color: #0078d4;
+}
+
+.nodePerformance {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #1f1f1f;
+}
+
+.perfMetric {
+  text-align: center;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Node Detail View */
+.nodeDetailView {
+  background: #111111;
+  border: 1px solid #1f1f1f;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 3rem;
+}
+
+.nodeDetailView h3 {
+  margin: 0 0 2rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #ffffff;
+  border-bottom: 1px solid #1f1f1f;
+  padding-bottom: 1rem;
+}
+
+.nodeDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+}
+
+.detailCard {
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.detailCard h4 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.detailMetrics {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detailMetric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.detailMetric:last-child {
+  border-bottom: none;
+}
+
+.detailMetric span:first-child {
+  color: #d1d5db;
+  font-size: 0.9rem;
+}
+
+.detailMetric span:last-child {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Resource Bars */
+.resourceBars {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.resourceBar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.resourceLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #d1d5db;
+  font-size: 0.9rem;
+}
+
+.resourceLabel svg {
+  color: #0078d4;
+}
+
+.resourceProgress {
+  height: 8px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.resourceFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+/* Cost Optimization Section */
+.costOptimizationSection {
+  margin-bottom: 3rem;
+}
+
+.costOptimizationSection h2 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.costGrid {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 2rem;
+}
+
+.costCard {
+  background: #111111;
+  border: 1px solid #1f1f1f;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.costCard h4 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.costMetrics {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.costMetric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #0a0a0a;
+  border-radius: 0.5rem;
+  border: 1px solid #1a1a1a;
+}
+
+.costMetric span:first-child {
+  color: #d1d5db;
+  font-size: 0.9rem;
+}
+
+.costMetric span:last-child {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.optimizationSuggestions {
+  background: #111111;
+  border: 1px solid #1f1f1f;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.optimizationSuggestions h4 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.suggestion {
+  padding: 1.5rem;
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.suggestion:last-child {
+  margin-bottom: 0;
+}
+
+.suggestionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.suggestionType {
+  background: #0078d420;
+  color: #0078d4;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.suggestionSavings {
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.suggestionDescription {
+  margin: 0 0 1rem 0;
+  color: #d1d5db;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.suggestionComplexity {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.complexityBadge {
+  color: #ffffff;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .infrastructurePage {
+    padding: 1rem;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .clusterOverview {
+    grid-template-columns: 1fr;
+  }
+  
+  .nodeGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nodeDetailGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .costGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nodeMetrics {
+    grid-template-columns: 1fr;
+  }
+  
+  .overviewStats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}

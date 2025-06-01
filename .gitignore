@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Environment variables - protect Azure credentials
+.env
+.env.local
+.env.production.secret
+
+# Keep .env.production for GitHub Actions deployment
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

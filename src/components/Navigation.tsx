@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Zap } from 'lucide-react';
+import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Zap, Server, TrendingUp, Cpu, GitBranch } from 'lucide-react';
 import { mockAlerts } from '../data/mockData';
 import AboutModal from './AboutModal';
 import KeyboardHelpModal from './KeyboardHelpModal';
@@ -40,9 +40,13 @@ const Navigation = () => {
     { key: '1', description: 'Go to Overview', altKey: true },
     { key: '2', description: 'Go to Pipelines', altKey: true },
     { key: '3', description: 'Go to Data Lineage', altKey: true },
-    { key: '4', description: 'Go to Predictive Insights', altKey: true },
-    { key: '5', description: 'Go to AI Agent', altKey: true },
-    { key: '6', description: 'Go to Alerts', altKey: true },
+    { key: '4', description: 'Go to Azure Connection', altKey: true },
+    { key: '5', description: 'Go to Threat Prediction', altKey: true },
+    { key: '6', description: 'Go to AI Agent', altKey: true },
+    { key: '7', description: 'Go to Performance', altKey: true },
+    { key: '8', description: 'Go to Infrastructure', altKey: true },
+    { key: '9', description: 'Go to Data Engineering', altKey: true },
+    { key: '0', description: 'Go to Alerts', altKey: true },
   ];
 
   return (
@@ -89,6 +93,17 @@ const Navigation = () => {
           </li>
           <li>
             <NavLink 
+              to="/azure-connection" 
+              className={({ isActive }) => 
+                `${styles.navLink} ${isActive ? styles.active : ''}`
+              }
+            >
+              <Server className={styles.navIcon} />
+              Azure Connection
+            </NavLink>
+          </li>
+          <li>
+            <NavLink 
               to="/predictive-insights" 
               className={({ isActive }) => 
                 `${styles.navLink} ${isActive ? styles.active : ''}`
@@ -107,6 +122,39 @@ const Navigation = () => {
             >
               <Zap className={styles.navIcon} />
               AI Agent
+            </NavLink>
+          </li>
+          <li>
+            <NavLink 
+              to="/performance" 
+              className={({ isActive }) => 
+                `${styles.navLink} ${isActive ? styles.active : ''}`
+              }
+            >
+              <TrendingUp className={styles.navIcon} />
+              Performance
+            </NavLink>
+          </li>
+          <li>
+            <NavLink 
+              to="/infrastructure" 
+              className={({ isActive }) => 
+                `${styles.navLink} ${isActive ? styles.active : ''}`
+              }
+            >
+              <Cpu className={styles.navIcon} />
+              Infrastructure
+            </NavLink>
+          </li>
+          <li>
+            <NavLink 
+              to="/data-engineering" 
+              className={({ isActive }) => 
+                `${styles.navLink} ${isActive ? styles.active : ''}`
+              }
+            >
+              <GitBranch className={styles.navIcon} />
+              Data Engineering
             </NavLink>
           </li>
           <li>

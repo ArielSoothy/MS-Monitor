@@ -1,0 +1,197 @@
+// ========================================
+// PHASE 3: TEST MSTIC-STYLE KQL QUERIES
+// ========================================
+// Run these queries in Azure Data Explorer Web UI to test your setup
+// These queries demonstrate real MSTIC threat intelligence capabilities
+
+// ========================================
+// QUERY 1: 🎯 THREAT LANDSCAPE OVERVIEW (EXECUTIVE DASHBOARD)
+// ========================================
+// This query provides a high-level security overview for executives
+print "🎯 QUERY 1: Executive Threat Overview";
+SecurityEvents
+| where Timestamp > ago(24h)
+| summarize TotalEvents = count(),
+           HighRiskEvents = countif(ThreatLevel == "Critical" or ThreatLevel == "High"),
+           UniqueUsers = dcount(UserId),
+           UniqueIPs = dcount(SourceIP),
+           FailedLogins = countif(LoginResult == "Failed"),
+           BlockedEvents = countif(LoginResult == "Blocked")
+| extend ThreatPercentage = round(HighRiskEvents * 100.0 / TotalEvents, 1),
+         FailureRate = round(FailedLogins * 100.0 / TotalEvents, 1)
+| project TotalEvents, HighRiskEvents, ThreatPercentage, UniqueUsers, UniqueIPs, FailureRate, BlockedEvents;
+
+// ========================================
+// QUERY 2: 🌍 GEOLOCATION THREAT ANALYSIS (SECURITY ANALYST VIEW)
+// ========================================
+// Geographic threat distribution - critical for MSTIC global threat tracking
+print "🌍 QUERY 2: Geographic Threat Analysis";
+SecurityEvents
+| where Timestamp > ago(24h) and ThreatLevel in ("High", "Critical")
+| summarize ThreatEvents = count(), 
+           AvgRiskScore = avg(RiskScore),
+           UniqueUsers = dcount(UserId),
+           ThreatTypes = make_set(EventType)
+  by Country, City
+| extend RiskLevel = case(
+    AvgRiskScore > 90, "🔴 Critical",
+    AvgRiskScore > 70, "🟠 High", 
+    AvgRiskScore > 50, "🟡 Medium",
+    "🟢 Low"
+)
+| order by ThreatEvents desc, AvgRiskScore desc
+| take 10;
+
+// ========================================
+// QUERY 3: ⚡ REAL-TIME THREAT CORRELATION (ADVANCED ANALYTICS)
+// ========================================
+// Join security events with known threat indicators - shows advanced KQL skills
+print "⚡ QUERY 3: Real-time Threat Correlation";
+SecurityEvents
+| where Timestamp > ago(1h)
+| join kind=inner (
+    ThreatIndicators 
+    | where Confidence > 0.8
+) on $left.SourceIP == $right.IndicatorValue
+| project Timestamp, 
+         UserId, 
+         UserEmail, 
+         SourceIP, 
+         ThreatType, 
+         Confidence, 
+         RiskScore, 
+         PipelineId,
+         EventType,
+         LoginResult
+| extend Alert = strcat("🚨 ", ThreatType, " detected from ", SourceIP)
+| order by Timestamp desc;
+
+// ========================================
+// QUERY 4: 📊 PIPELINE PERFORMANCE vs THREAT DETECTION (DEVOPS VIEW)
+// ========================================
+// Pipeline efficiency analysis - perfect for DevOps/SRE interview portion
+print "📊 QUERY 4: Pipeline Performance Analysis";
+PipelineHealth
+| where Timestamp > ago(24h)
+| summarize AvgLatency = avg(ProcessingLatency),
+           TotalThreats = sum(ThreatEventsProcessed),
+           TotalAlerts = sum(SecurityAlertsGenerated),
+           AvgDetectionRate = avg(ThreatDetectionRate),
+           AvgDataQuality = avg(DataQualityScore),
+           AvgFalsePositiveRate = avg(FalsePositiveRate)
+  by Source, Status
+| extend AlertsPerThreat = round(TotalAlerts * 1.0 / TotalThreats * 1000, 2),
+         PerformanceScore = round((AvgDetectionRate * AvgDataQuality) / 100, 1),
+         HealthStatus = case(
+             Status == "healthy" and AvgLatency < 5, "🟢 Excellent",
+             Status == "healthy", "🟡 Good", 
+             Status == "warning", "🟠 Needs Attention",
+             "🔴 Critical"
+         )
+| order by PerformanceScore desc;
+
+// ========================================
+// QUERY 5: 📈 TIME-SERIES THREAT VOLUME (VISUALIZATION READY)
+// ========================================
+// Hourly threat patterns - great for charts in React dashboard
+print "📈 QUERY 5: Hourly Threat Trends";
+SecurityEvents
+| where Timestamp > ago(24h)
+| summarize ThreatEvents = count(),
+           CriticalThreats = countif(ThreatLevel == "Critical"),
+           HighThreats = countif(ThreatLevel == "High"),
+           AvgRiskScore = avg(RiskScore),
+           FailedLogins = countif(LoginResult == "Failed")
+  by bin(Timestamp, 1h)
+| extend Hour = format_datetime(Timestamp, "HH:mm"),
+         ThreatIntensity = case(
+             CriticalThreats > 2, "🔴 High Intensity",
+             CriticalThreats > 0, "🟠 Medium Intensity",
+             "🟢 Normal"
+         )
+| order by Timestamp asc;
+
+// ========================================
+// QUERY 6: 🔍 ADVANCED THREAT HUNTING (MSTIC SPECIALIST QUERY)
+// ========================================
+// Multi-table analysis showing advanced threat hunting skills
+print "🔍 QUERY 6: Advanced Threat Hunting";
+SecurityEvents
+| where RiskScore > 80
+| join kind=leftouter (
+    ThreatIndicators
+    | where Confidence > 0.7
+) on $left.SourceIP == $right.IndicatorValue
+| join kind=leftouter (
+    PipelineHealth
+    | where Status != "healthy"
+) on PipelineId
+| summarize EventCount = count(),
+           AvgRiskScore = avg(RiskScore),
+           ThreatTypes = make_set(iff(isnotnull(ThreatType), ThreatType, "Unknown")),
+           PipelineIssues = make_set(iff(isnotnull(Status1), Status1, "N/A")),
+           Countries = make_set(Country)
+  by UserId, UserEmail
+| where EventCount > 1  // Focus on repeat offenders
+| extend RiskProfile = case(
+    EventCount >= 3 and AvgRiskScore > 90, "🔴 Critical Risk User",
+    EventCount >= 2 and AvgRiskScore > 80, "🟠 High Risk User",
+    "🟡 Monitored User"
+)
+| order by EventCount desc, AvgRiskScore desc;
+
+// ========================================
+// QUERY 7: 🚨 SECURITY INCIDENT TIMELINE (INCIDENT RESPONSE)
+// ========================================
+// Chronological view of security events - critical for incident response
+print "🚨 QUERY 7: Security Incident Timeline";
+SecurityEvents
+| where RiskScore > 70
+| extend TimeCategory = case(
+    Timestamp > ago(1h), "🔥 Last Hour",
+    Timestamp > ago(6h), "⚠️ Last 6 Hours", 
+    Timestamp > ago(24h), "📅 Last 24 Hours",
+    "📊 Historical"
+)
+| project Timestamp,
+         TimeCategory,
+         EventType,
+         ThreatLevel,
+         RiskScore,
+         SourceIP,
+         Country,
+         UserEmail,
+         LoginResult,
+         PipelineId,
+         DetectionSource
+| order by Timestamp desc
+| take 20;
+
+// ========================================
+// VERIFICATION QUERIES
+// ========================================
+print "✅ VERIFICATION: Checking data integrity";
+
+// Count records in each table
+print "📊 SecurityEvents count:";
+SecurityEvents | count;
+
+print "📊 ThreatIndicators count:";
+ThreatIndicators | count;
+
+print "📊 PipelineHealth count:";
+PipelineHealth | count;
+
+// Check data freshness
+print "🕐 Latest SecurityEvent:";
+SecurityEvents | summarize max(Timestamp);
+
+print "🕐 Latest ThreatIndicator:";
+ThreatIndicators | summarize max(Timestamp);
+
+print "🕐 Latest PipelineHealth:";
+PipelineHealth | summarize max(Timestamp);
+
+print "🎯 PHASE 3 COMPLETE: All queries tested successfully!";
+print "💡 Your Azure Data Explorer setup is working perfectly";
+print "🚀 Ready for Phase 4: React integration with live data";

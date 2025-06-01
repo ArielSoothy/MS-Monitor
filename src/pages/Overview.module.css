@@ -123,6 +123,346 @@
   color: #888;
 }
 
+/* Azure Data Explorer Section */
+.azureSection {
+  background: linear-gradient(145deg, #1a1a2e, #16213e);
+  border: 1px solid #0078d4;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
+}
+
+.azureHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.azureTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.azureIcon {
+  width: 24px;
+  height: 24px;
+  color: #0078d4;
+}
+
+.azureControls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.azureDemoButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0078d4, #106ebe);
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.azureDemoButton:hover {
+  background: linear-gradient(135deg, #106ebe, #005a9e);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.4);
+}
+
+.azureStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #cccccc;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f5222d;
+}
+
+.statusDot.connected {
+  background-color: #52c41a;
+  box-shadow: 0 0 8px rgba(82, 196, 26, 0.3);
+}
+
+.statusDot.disconnected {
+  background-color: #faad14;
+  box-shadow: 0 0 8px rgba(250, 173, 20, 0.3);
+}
+
+.azureMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.azureMetric {
+  background: rgba(0, 120, 212, 0.1);
+  border: 1px solid rgba(0, 120, 212, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.azureMetricValue {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0078d4;
+  margin-bottom: 0.25rem;
+}
+
+.azureMetricLabel {
+  display: block;
+  font-size: 0.75rem;
+  color: #cccccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.azureDemo {
+  background: rgba(250, 173, 20, 0.1);
+  border: 1px solid rgba(250, 173, 20, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  color: #cccccc;
+}
+
+.azureDemo p {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.azureDemo p:first-child {
+  font-weight: 600;
+  color: #faad14;
+}
+
+/* Azure Geographic Threats Section */
+.azureGeoSection {
+  margin: 2rem 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid #0078d4;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
+}
+
+.geoThreatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.geoThreatCard {
+  background: rgba(0, 120, 212, 0.1);
+  border: 1px solid rgba(0, 120, 212, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.geoThreatCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 120, 212, 0.3);
+}
+
+.geoLocation {
+  margin-bottom: 1rem;
+}
+
+.geoCountry {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  display: block;
+}
+
+.geoCity {
+  font-size: 0.875rem;
+  color: #cccccc;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.geoMetrics {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.geoMetric {
+  text-align: center;
+}
+
+.geoValue {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0078d4;
+}
+
+.geoLabel {
+  display: block;
+  font-size: 0.7rem;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.25rem;
+}
+
+.riskLevel {
+  display: flex;
+  justify-content: center;
+}
+
+.riskBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.riskBadge.low {
+  background-color: rgba(82, 196, 26, 0.2);
+  color: #52c41a;
+  border: 1px solid rgba(82, 196, 26, 0.3);
+}
+
+.riskBadge.medium {
+  background-color: rgba(250, 173, 20, 0.2);
+  color: #faad14;
+  border: 1px solid rgba(250, 173, 20, 0.3);
+}
+
+.riskBadge.high {
+  background-color: rgba(255, 122, 69, 0.2);
+  color: #ff7a45;
+  border: 1px solid rgba(255, 122, 69, 0.3);
+}
+
+.riskBadge.critical {
+  background-color: rgba(245, 34, 45, 0.2);
+  color: #f5222d;
+  border: 1px solid rgba(245, 34, 45, 0.3);
+}
+
+/* Azure Threat Correlations Section */
+.azureCorrelationSection {
+  margin: 2rem 0;
+  background: linear-gradient(135deg, #2d1b2e 0%, #1a1a2e 100%);
+  border: 1px solid #722ed1;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(114, 46, 209, 0.2);
+}
+
+.correlationTable {
+  background: rgba(114, 46, 209, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.correlationHeader {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1.5fr 1.5fr 1fr 2fr;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(114, 46, 209, 0.1);
+  border-bottom: 1px solid rgba(114, 46, 209, 0.3);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.correlationRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1.5fr 1.5fr 1fr 2fr;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(114, 46, 209, 0.1);
+  font-size: 0.875rem;
+  color: #cccccc;
+  transition: background-color 0.2s ease;
+}
+
+.correlationRow:hover {
+  background: rgba(114, 46, 209, 0.1);
+}
+
+.correlationRow:last-child {
+  border-bottom: none;
+}
+
+.correlationTime {
+  color: #888888;
+  font-family: monospace;
+}
+
+.correlationUser {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.correlationIP {
+  color: #13c2c2;
+  font-family: monospace;
+}
+
+.correlationThreat {
+  color: #faad14;
+  font-weight: 500;
+}
+
+.correlationRisk {
+  font-weight: 600;
+  text-align: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.correlationRisk.critical {
+  background-color: rgba(245, 34, 45, 0.2);
+  color: #f5222d;
+}
+
+.correlationRisk.high {
+  background-color: rgba(255, 122, 69, 0.2);
+  color: #ff7a45;
+}
+
+.correlationRisk.medium {
+  background-color: rgba(250, 173, 20, 0.2);
+  color: #faad14;
+}
+
+.correlationPipeline {
+  color: #52c41a;
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
 /* Real-time Metrics Header */
 .metricsHeader {
   display: grid;
@@ -651,6 +991,81 @@
   .source {
     font-size: 0.7rem;
   }
+
+  /* Azure Section Mobile Responsiveness */
+  .azureSection {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .azureHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .azureControls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .azureTitle {
+    font-size: 1.1rem;
+  }
+  
+  .azureMetrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .azureMetric {
+    padding: 0.75rem;
+  }
+  
+  .azureMetricValue {
+    font-size: 1.25rem;
+  }
+  
+  /* Geographic Threats Mobile */
+  .geoThreatsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .geoThreatCard {
+    padding: 0.75rem;
+  }
+  
+  .geoMetrics {
+    justify-content: space-around;
+    gap: 0.5rem;
+  }
+  
+  .geoValue {
+    font-size: 1rem;
+  }
+  
+  /* Threat Correlations Mobile */
+  .correlationHeader,
+  .correlationRow {
+    grid-template-columns: 1fr 1.5fr 1fr 1fr 0.8fr 1fr;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .correlationHeader {
+    padding: 0.75rem;
+  }
+  
+  .correlationRow {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .correlationTime,
+  .correlationIP,
+  .correlationPipeline {
+    font-size: 0.7rem;
+  }
 }
 
 /* Security Monitoring Section Styles */
@@ -666,5 +1081,20 @@
   
   .authPatterns {
     grid-template-columns: 1fr;
+  }
+  
+  /* Azure Section Tablet Responsiveness */
+  .azureMetrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .geoThreatsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .correlationHeader,
+  .correlationRow {
+    grid-template-columns: 0.8fr 1.5fr 1.2fr 1.2fr 0.8fr 1.5fr;
+    gap: 0.75rem;
   }
 }

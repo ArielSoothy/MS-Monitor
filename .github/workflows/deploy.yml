@@ -32,9 +32,22 @@ jobs:
     
     - name: Build
       run: |
+        # Copy production environment
+        cp .env.production .env
         npm run build
         echo "Build completed successfully"
         ls -la dist/
+      env:
+        # Azure configuration for production
+        VITE_AZURE_TENANT_ID: ${{ secrets.VITE_AZURE_TENANT_ID }}
+        VITE_AZURE_CLIENT_ID: ${{ secrets.VITE_AZURE_CLIENT_ID }}
+        VITE_AZURE_CLUSTER: ${{ secrets.VITE_AZURE_CLUSTER }}
+        VITE_AZURE_DATABASE: ${{ secrets.VITE_AZURE_DATABASE }}
+        VITE_ENABLE_AZURE_AUTH: true
+        VITE_DEMO_MODE: false
+        VITE_USE_SERVICE_PRINCIPAL: false
+        VITE_PRODUCTION_URL: https://arielsoothy.github.io/MS-Monitor/
+        VITE_REDIRECT_URI: https://arielsoothy.github.io/MS-Monitor/
     
     - name: Setup Pages
       uses: actions/configure-pages@v4
