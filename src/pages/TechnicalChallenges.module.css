@@ -1,0 +1,448 @@
+/* Technical Challenges Styles */
+.technicalChallenges {
+  padding: 24px;
+  background: var(--background-secondary);
+  min-height: 100vh;
+  color: var(--text-primary);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: var(--card-background);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.titleIcon {
+  color: #f5222d;
+  flex-shrink: 0;
+}
+
+.titleSection h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.titleSection p {
+  margin: 8px 0 0 0;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.challengeStats {
+  display: flex;
+  gap: 24px;
+}
+
+.stat {
+  text-align: center;
+}
+
+.statValue {
+  display: block;
+  font-size: 28px;
+  font-weight: bold;
+  color: #f5222d;
+}
+
+.statLabel {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+}
+
+.sectionIcon {
+  color: var(--primary-color);
+}
+
+/* Executive Summary */
+.executiveSummary {
+  margin-bottom: 48px;
+  padding: 24px;
+  background: var(--card-background);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.summaryContent p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.summaryContent strong {
+  color: var(--text-primary);
+}
+
+.keyInsights {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.insight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+
+.insight svg {
+  color: var(--success-color);
+  flex-shrink: 0;
+}
+
+/* Challenges List */
+.challengesList {
+  margin-bottom: 48px;
+}
+
+.challengeCard {
+  background: var(--card-background);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+
+.challengeCard:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+}
+
+.challengeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.challengeHeader:hover {
+  background: rgba(24, 144, 255, 0.05);
+}
+
+.challengeInfo {
+  flex: 1;
+}
+
+.challengeTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.challengeTitle svg {
+  color: var(--primary-color);
+}
+
+.challengeTitle h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.severityBadge {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.challengeMeta {
+  display: flex;
+  gap: 24px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.complexity {
+  font-weight: 500;
+}
+
+.expandIcon {
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.challengeDescription {
+  padding: 0 24px;
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.challengeDetails {
+  padding: 24px;
+  border-top: 1px solid var(--border-color);
+  background: var(--background-secondary);
+}
+
+.detailSection {
+  margin-bottom: 32px;
+}
+
+.detailSection:last-child {
+  margin-bottom: 0;
+}
+
+.detailSection h4 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.detailSection h5 {
+  margin: 16px 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.challengeList, .implementationList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.challengeList li, .implementationList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.challengeList svg {
+  color: #f5222d;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.implementationList svg {
+  color: var(--success-color);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.solutionApproach {
+  background: var(--card-background);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.problemStatement, .solutionStatement {
+  margin-bottom: 12px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.problemStatement:last-child, .solutionStatement:last-child {
+  margin-bottom: 0;
+}
+
+.problemStatement strong, .solutionStatement strong {
+  color: var(--text-primary);
+}
+
+.designConsiderations {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.designConsideration {
+  padding: 16px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  border-left: 4px solid var(--accent-color);
+}
+
+.designConsideration strong {
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.interviewQuestions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.question {
+  padding: 16px;
+  background: var(--card-background);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-color);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.question strong {
+  color: var(--primary-color);
+}
+
+/* Lessons Learned */
+.lessonsSection {
+  margin-bottom: 48px;
+}
+
+.lessonsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.lessonCard {
+  background: var(--card-background);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.lessonCard:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.lessonCard h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.lessonCard p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Technical Skills */
+.skillsSection {
+  margin-bottom: 48px;
+}
+
+.skillsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.skillCategory {
+  background: var(--card-background);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.skillCategory:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.skillCategory h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.skillCategory ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.skillCategory li {
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .technicalChallenges {
+    padding: 16px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .challengeStats {
+    align-self: stretch;
+    justify-content: space-around;
+  }
+  
+  .challengeHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .challengeTitle {
+    flex-wrap: wrap;
+  }
+  
+  .challengeMeta {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .designConsiderations {
+    gap: 12px;
+  }
+  
+  .lessonsGrid,
+  .skillsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .titleSection h1 {
+    font-size: 24px;
+  }
+}

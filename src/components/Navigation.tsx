@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Zap, Server, TrendingUp, Cpu, GitBranch } from 'lucide-react';
+import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Zap, Server, TrendingUp, Cpu, GitBranch, Workflow, Code } from 'lucide-react';
 import { mockAlerts } from '../data/mockData';
 import AboutModal from './AboutModal';
 import KeyboardHelpModal from './KeyboardHelpModal';
@@ -46,6 +46,8 @@ const Navigation = () => {
     { key: '7', description: 'Go to Performance', altKey: true },
     { key: '8', description: 'Go to Infrastructure', altKey: true },
     { key: '9', description: 'Go to Data Engineering', altKey: true },
+    { key: 'I', description: 'Go to Implementation Guide', altKey: true },
+    { key: 'T', description: 'Go to Technical Challenges', altKey: true },
     { key: '0', description: 'Go to Alerts', altKey: true },
   ];
 
@@ -155,6 +157,28 @@ const Navigation = () => {
             >
               <GitBranch className={styles.navIcon} />
               Data Engineering
+            </NavLink>
+          </li>
+          <li>
+            <NavLink 
+              to="/implementation-guide" 
+              className={({ isActive }) => 
+                `${styles.navLink} ${isActive ? styles.active : ''}`
+              }
+            >
+              <Workflow className={styles.navIcon} />
+              Implementation Guide
+            </NavLink>
+          </li>
+          <li>
+            <NavLink 
+              to="/technical-challenges" 
+              className={({ isActive }) => 
+                `${styles.navLink} ${isActive ? styles.active : ''}`
+              }
+            >
+              <Code className={styles.navIcon} />
+              Technical Challenges
             </NavLink>
           </li>
           <li>

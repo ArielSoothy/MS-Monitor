@@ -17,6 +17,8 @@ const PredictiveInsights = lazy(() => import('./pages/PredictiveInsights'));
 const Performance = lazy(() => import('./pages/Performance'));
 const Infrastructure = lazy(() => import('./pages/Infrastructure'));
 const DataEngineering = lazy(() => import('./pages/DataEngineering'));
+const ImplementationGuide = lazy(() => import('./pages/ImplementationGuide'));
+const TechnicalChallenges = lazy(() => import('./pages/TechnicalChallenges'));
 const AutonomousAgent = lazy(() => import('./components/AutonomousAgent'));
 const Alerts = lazy(() => import('./pages/Alerts'));
 
@@ -60,6 +62,8 @@ function AppContent() {
               <Route path="/performance" element={<Performance />} />
               <Route path="/infrastructure" element={<Infrastructure />} />
               <Route path="/data-engineering" element={<DataEngineering />} />
+              <Route path="/implementation-guide" element={<ImplementationGuide />} />
+              <Route path="/technical-challenges" element={<TechnicalChallenges />} />
               <Route path="/ai-agent" element={<AutonomousAgent />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="*" element={<Navigate to="/overview" replace />} />

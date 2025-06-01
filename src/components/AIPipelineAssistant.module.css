@@ -189,8 +189,15 @@
   transition: background 0.2s ease;
 }
 
-.saveButton:hover {
+.saveButton:hover:not(:disabled) {
   background: #106ebe;
+}
+
+.saveButton:disabled {
+  background: #404040;
+  color: #666666;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .clearButton {
@@ -207,6 +214,63 @@
 
 .clearButton:hover {
   background: #b91c1c;
+}
+
+.testButton {
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.testButton:hover:not(:disabled) {
+  background: #047857;
+}
+
+.testButton:disabled {
+  background: #404040;
+  color: #666666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.testResult {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+  font-size: 0.8rem;
+}
+
+.testSuccess {
+  background: rgba(82, 196, 26, 0.1);
+  border: 1px solid rgba(82, 196, 26, 0.3);
+  color: #52c41a;
+}
+
+.testError {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #dc2626;
+}
+
+.testMessage {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.testDetails {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  line-height: 1.4;
 }
 
 .costWarning {
@@ -258,6 +322,52 @@
   padding: 0.75rem;
   font-size: 0.8rem;
   color: #40a9ff;
+}
+
+.aiReadyNote {
+  background: rgba(82, 196, 26, 0.1);
+  border: 1px solid rgba(82, 196, 26, 0.3);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  color: #52c41a;
+}
+
+.apiKeyInstructions {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+  font-size: 0.8rem;
+}
+
+.apiKeyInstructions ol {
+  margin: 0.5rem 0 0 1rem;
+  padding: 0;
+}
+
+.apiKeyInstructions li {
+  margin: 0.25rem 0;
+}
+
+.demoNote {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  color: #ffc107;
+  margin-top: 0.75rem;
+}
+
+.validationWarning {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-bottom: 0.75rem;
 }
 
 .message {
@@ -412,10 +522,27 @@
     left: 1rem;
     width: auto;
     height: 500px;
+    max-height: calc(100vh - 2rem);
   }
 
   .apiKeySection {
     padding: 0.75rem 1rem;
+  }
+
+  .apiKeyInput input {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.875rem 2.5rem 0.875rem 0.875rem;
+  }
+
+  .apiKeyActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .saveButton, .clearButton, .testButton {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.9rem;
   }
 
   .chatMessages {
@@ -424,6 +551,10 @@
 
   .message {
     max-width: 95%;
+  }
+
+  .chatInput input {
+    font-size: 16px; /* Prevents zoom on iOS */
   }
 }
 

@@ -113,6 +113,18 @@ export const createNavigationShortcuts = (navigate: (path: string) => void) => [
     altKey: true
   },
   {
+    key: 'i',
+    description: 'Go to Implementation Guide',
+    action: () => navigate('/implementation-guide'),
+    altKey: true
+  },
+  {
+    key: 't',
+    description: 'Go to Technical Challenges',
+    action: () => navigate('/technical-challenges'),
+    altKey: true
+  },
+  {
     key: '0',
     description: 'Go to Alerts',
     action: () => navigate('/alerts'),
@@ -143,7 +155,7 @@ export const createModalShortcuts = (
     action: toggleHelp
   },
   {
-    key: 'i',
+    key: 'a',
     description: 'Show about information',
     action: toggleAbout,
     ctrlKey: true

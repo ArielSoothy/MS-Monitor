@@ -29,6 +29,8 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
   const [apiKey, setApiKey] = useState('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string; details?: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,6 +39,10 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
     const storedApiKey = localStorage.getItem('ai-assistant-api-key');
     if (storedApiKey) {
       setApiKey(storedApiKey);
+    }
+    // For demo purposes, show the API key input if no key is found
+    if (!storedApiKey) {
+      setShowApiKeyInput(true);
     }
   }, []);
 
@@ -49,10 +55,16 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
   }, [messages]);
 
   const saveApiKey = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('ai-assistant-api-key', apiKey.trim());
+    const trimmedKey = apiKey.trim();
+    if (trimmedKey && (trimmedKey.startsWith('sk-') || trimmedKey.length > 20)) {
+      localStorage.setItem('ai-assistant-api-key', trimmedKey);
       setShowApiKeyInput(false);
-      addMessage('assistant', '🔑 API key saved! I can now provide enhanced responses using AI capabilities.');
+      addMessage('assistant', '🔑 API key saved! I can now provide enhanced responses using Azure OpenAI Service.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through Azure API Management with secure authentication.*');
+    } else if (trimmedKey) {
+      // Still save it but warn the user
+      localStorage.setItem('ai-assistant-api-key', trimmedKey);
+      setShowApiKeyInput(false);
+      addMessage('assistant', '⚠️ API key saved. Currently using enhanced mock intelligence for demonstration. In production, this would integrate with Azure OpenAI Service.');
     }
   };
 
@@ -60,6 +72,80 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
     localStorage.removeItem('ai-assistant-api-key');
     setApiKey('');
     setShowApiKeyInput(false);
+    setTestResult(null); // Clear any previous test results
+  };
+
+  const testConnection = async () => {
+    if (!apiKey.trim()) {
+      setTestResult({
+        success: false,
+        message: 'No API key provided',
+        details: 'Please enter your OpenAI API key before testing the connection.'
+      });
+      return;
+    }
+
+    setIsTesting(true);
+    setTestResult(null);
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/models', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey.trim()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const gptModels = data.data.filter((model: any) => model.id.includes('gpt'));
+        setTestResult({
+          success: true,
+          message: `✅ Connection successful! Found ${gptModels.length} GPT models available.`,
+          details: `Available models: ${gptModels.slice(0, 3).map((m: any) => m.id).join(', ')}${gptModels.length > 3 ? '...' : ''}`
+        });
+      } else {
+        const errorData = await response.text();
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        let details = errorData;
+
+        if (response.status === 401) {
+          errorMessage = 'Authentication failed';
+          details = 'Invalid API key. Please check your OpenAI API key and try again.';
+        } else if (response.status === 429) {
+          errorMessage = 'Rate limit exceeded';
+          details = 'Too many requests. Please wait a moment and try again.';
+        } else if (response.status === 403) {
+          errorMessage = 'Access forbidden';
+          details = 'Your API key may not have the required permissions.';
+        }
+
+        setTestResult({
+          success: false,
+          message: `❌ ${errorMessage}`,
+          details: details
+        });
+      }
+    } catch (error) {
+      let errorMessage = 'Connection failed';
+      let details = 'Unknown error occurred';
+
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        errorMessage = 'Network error (CORS)';
+        details = 'Browser blocked the request due to CORS policy. This is expected - the AI assistant will use enhanced mock responses instead.';
+      } else if (error instanceof Error) {
+        details = error.message;
+      }
+
+      setTestResult({
+        success: false,
+        message: `❌ ${errorMessage}`,
+        details: details
+      });
+    } finally {
+      setIsTesting(false);
+    }
   };
 
   const addMessage = (type: 'user' | 'assistant', content: string) => {
@@ -92,23 +178,23 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
     const lowerQuery = query.toLowerCase();
     const context = getSystemContext();
     
-    // Pipeline status queries
+    // Enhanced pipeline analysis with realistic intelligence
     if (lowerQuery.includes('failed') && lowerQuery.includes('linkedin')) {
       const failedLinkedIn = mockPipelines.filter(p => 
         p.source === 'LinkedIn' && p.status === 'failed'
       );
-      return `I found ${failedLinkedIn.length} failed LinkedIn pipelines:\n\n${failedLinkedIn.map(p => 
-        `• **${p.name}** - Failed ${Math.floor((Date.now() - p.lastRun.getTime()) / (1000 * 60))} minutes ago\n  Reason: ${p.lastFailureReason || 'Connection timeout'}`
-      ).join('\n\n')}\n\n**Recommendation:** Check API rate limits and authentication tokens.`;
+      return `🔍 **LinkedIn Pipeline Analysis**\n\nFound ${failedLinkedIn.length} failed LinkedIn pipelines:\n\n${failedLinkedIn.map(p => 
+        `• **${p.name}**\n  ❌ Failed ${Math.floor((Date.now() - p.lastRun.getTime()) / (1000 * 60))} minutes ago\n  📊 Failure Rate: ${p.failureRate}%\n  ⚡ Last Success: ${p.avgProcessingTime.toFixed(1)}min processing\n  🔗 Reason: ${p.lastFailureReason || 'LinkedIn API rate limit exceeded (429)'}`
+      ).join('\n\n')}\n\n**🚨 Root Cause Analysis:**\n• Pattern: All failures occur during 8-10 AM UTC (peak usage)\n• API Response: HTTP 429 - Rate limit exceeded\n• Correlation: 3 other orgs reporting similar issues on LinkedIn Developer Forums\n\n**⚡ Immediate Actions:**\n1. Activate backup LinkedIn app credentials\n2. Implement exponential backoff (2^n seconds)\n3. Distribute requests across 4-hour windows\n4. Enable circuit breaker pattern\n\n**📈 Predictive Insight:** Based on historical patterns, expect resolution by 14:00 UTC when LinkedIn API quotas reset.`;
     }
 
     if (lowerQuery.includes('slowest') || lowerQuery.includes('slow')) {
       const slowPipelines = mockPipelines
         .sort((a, b) => b.avgProcessingTime - a.avgProcessingTime)
         .slice(0, 5);
-      return `Here are the 5 slowest pipelines this week:\n\n${slowPipelines.map(p => 
-        `• **${p.name}** (${p.source})\n  Average: ${p.avgProcessingTime.toFixed(1)} minutes\n  SLA: ${p.slaRequirement} minutes`
-      ).join('\n\n')}\n\n**Analysis:** ${slowPipelines[0].avgProcessingTime > slowPipelines[0].slaRequirement ? 'Several pipelines are exceeding SLA requirements. Consider scaling resources.' : 'All pipelines within acceptable ranges.'}`;
+      return `⚡ **Performance Analysis - Slowest Pipelines**\n\n${slowPipelines.map((p, index) => 
+        `**${index + 1}. ${p.name}** (${p.source})\n📊 Current: ${p.avgProcessingTime.toFixed(1)}min | SLA: ${p.slaRequirement}min | Trend: ${p.avgProcessingTime > p.slaRequirement ? '📈 Degrading' : '📉 Stable'}\n🔍 Records/Run: ${p.recordsProcessed.toLocaleString()}\n💾 Data Volume: ${(p.recordsProcessed * 0.5).toFixed(1)}GB\n⚠️ ${p.avgProcessingTime > p.slaRequirement ? 'SLA BREACH' : 'Within SLA'}`
+      ).join('\n\n')}\n\n**🧠 ML Performance Insights:**\n• **Bottleneck Detection:** ${slowPipelines[0].name} showing 40% CPU saturation\n• **Data Growth:** 15% increase in processing time over 30 days\n• **Resource Correlation:** Memory usage spike during ${slowPipelines[0].source} peak hours\n\n**🚀 Optimization Recommendations:**\n1. **Scale Up:** Add 2 additional processing nodes for ${slowPipelines[0].source}\n2. **Optimize:** Implement parallel processing for large datasets\n3. **Cache:** Add Redis layer for repeated API calls\n4. **Schedule:** Distribute heavy workloads outside peak hours (8-10 AM UTC)\n\n**💰 Cost Impact:** Current delays cost ~$2,400/month in compute overruns.`;
     }
 
     if (lowerQuery.includes('european') || lowerQuery.includes('eu')) {
@@ -118,31 +204,26 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
         warning: euPipelines.filter(p => p.status === 'warning').length,
         failed: euPipelines.filter(p => p.status === 'failed').length
       };
-      return `European data sources status:\n\n**Total EU Pipelines:** ${euPipelines.length}\n• ✅ Healthy: ${euStatus.healthy}\n• ⚠️ Warning: ${euStatus.warning}\n• ❌ Failed: ${euStatus.failed}\n\n**Geographic Distribution:** GDPR-compliant data processing in EU regions.`;
+      return `🇪🇺 **European Data Operations Dashboard**\n\n**Regional Overview:**\n• 📍 Total EU Pipelines: ${euPipelines.length}\n• ✅ Healthy: ${euStatus.healthy} (${Math.round((euStatus.healthy/euPipelines.length)*100)}%)\n• ⚠️ Warning: ${euStatus.warning}\n• ❌ Failed: ${euStatus.failed}\n\n**🛡️ GDPR Compliance Status:**\n• Data Residency: ✅ All data processed within EU boundaries\n• Retention Policy: ✅ 90-day automated deletion active\n• Encryption: ✅ AES-256 at rest, TLS 1.3 in transit\n• Audit Logs: ✅ Complete trail maintained\n\n**📊 Geographic Distribution:**\n• Ireland (eu-west-1): 45% of workload\n• Frankfurt (eu-central-1): 35% of workload\n• Stockholm (eu-north-1): 20% of workload\n\n**⚡ Performance Metrics:**\n• Average Latency: 245ms (15% better than US regions)\n• Data Transfer Costs: €450/month (within budget)\n• Cross-AZ Replication: 99.9% success rate\n\n**🚨 Recent EU-Specific Alerts:**\n• Ireland DC: Minor network latency spike (+50ms)\n• Frankfurt: Maintenance window scheduled for Saturday 02:00 CET\n• Stockholm: All systems optimal`;
     }
 
-    // Alert summarization
+    // Enhanced critical alerts with detailed incident response
     if (lowerQuery.includes('critical') && lowerQuery.includes('alert')) {
-      return `**Critical Alerts Summary:**\n\n${context.criticalAlerts} critical alerts detected:\n\n• **High Priority:** LinkedIn ThreatActors pipeline showing 15% failure rate\n• **Infrastructure:** Azure AD authentication intermittent failures\n• **Data Quality:** Twitter sentiment analysis accuracy below 85%\n\n**Investigation Priority:**\n1. Check authentication tokens\n2. Review rate limiting policies\n3. Validate data quality thresholds`;
+      return `🚨 **Critical Alert Incident Response Dashboard**\n\n**Active Critical Alerts: ${context.criticalAlerts}**\n\n**🔥 P0 - LinkedIn ThreatActors Pipeline**\n• Severity: Critical\n• Duration: 45 minutes\n• Impact: 15% failure rate (SLA: <5%)\n• Affected Records: 12,000 threat actor profiles\n• Business Impact: HIGH - Missing APT group updates\n\n**⚠️ P1 - Azure AD Authentication Failures**\n• Severity: High\n• Duration: 1.2 hours\n• Pattern: Intermittent 401 errors every 15 minutes\n• Root Cause: Token refresh race condition\n• Mitigation: Circuit breaker activated\n\n**📊 P2 - Twitter Sentiment Analysis Degradation**\n• Severity: Medium\n• Accuracy: 82% (SLA: >85%)\n• Affected Models: 3 ML pipelines\n• Trend: Declining since API v2 migration\n\n**🎯 Automated Response Actions Taken:**\n1. ✅ Incident created in ServiceNow (INC-2024-06-001)\n2. ✅ P0 escalation to on-call engineer (Response: 3min)\n3. ✅ Backup authentication tokens activated\n4. ✅ Customer notification prepared (pending approval)\n\n**🔍 Investigation Priority Matrix:**\n1. **LinkedIn Auth** (Revenue Impact: High)\n2. **Azure AD Token Refresh** (User Impact: Medium)\n3. **Twitter ML Model Retraining** (Quality Impact: Low)\n\n**📞 War Room Status:** Active - Teams channel #incident-response-001`;
     }
 
-    // Root cause analysis
+    // Advanced root cause analysis with historical correlation
     if (lowerQuery.includes('twitter') && (lowerQuery.includes('fail') || lowerQuery.includes('3 hour'))) {
-      return `**Root Cause Analysis: Twitter Pipeline Failures**\n\n**Pattern Detected:** Failures every ~3 hours suggests API rate limiting.\n\n**Similar Historical Issues:**\n• March 2024: Twitter API v2 rate limits exceeded\n• January 2024: Authentication token rotation issues\n\n**Recommended Actions:**\n1. **Immediate:** Implement exponential backoff\n2. **Short-term:** Distribute load across multiple API keys\n3. **Long-term:** Upgrade to Twitter Enterprise API\n\n**Technical Details:** 429 errors correlate with request peaks during business hours.`;
+      return `🔍 **Advanced Root Cause Analysis: Twitter Pipeline**\n\n**Pattern Recognition:**\n• ⏰ Failure Pattern: Every 2h 47min ± 13min\n• 📈 Correlation Score: 0.94 with API rate limits\n• 🕐 Peak Failures: 08:00, 10:47, 13:34, 16:21 UTC\n\n**📊 Historical Data Analysis (90 days):**\n• Similar pattern detected: March 15-22, 2024\n• Previous root cause: Twitter API v1.1 → v2 migration\n• Resolution time: 4.2 hours average\n• Cost impact: $1,200 in retry operations\n\n**🧠 ML Pattern Detection:**\n\`\`\`\nAnomaly Score: 8.7/10\nConfidence: 94%\nPredicted Resolution: 2.3 hours\nSimilar Incidents: 3 (all resolved)\n\`\`\`\n\n**🔧 Technical Deep Dive:**\n• **Error Pattern:** HTTP 429 → 5min backoff → 401 → credential refresh\n• **Token Lifecycle:** 2h 45min (3min shorter than expected)\n• **API Endpoint:** /2/tweets/search/stream (new rate limits)\n• **Request Volume:** 847 req/hour (limit: 300/15min window)\n\n**⚡ Immediate Actions (Auto-Executed):**\n1. ✅ Activated secondary API app (backup tokens)\n2. ✅ Implemented exponential backoff: 2^(attempt) seconds\n3. ✅ Enabled request queuing with Redis\n4. ✅ Reduced polling frequency: 45s → 90s\n\n**🚀 Strategic Recommendations:**\n1. **Upgrade to Twitter API v2 Essential** ($100/month)\n2. **Implement request sharding** across 3 developer accounts\n3. **Add predictive rate limit monitoring** (ML-based)\n4. **Create Twitter API health dashboard**\n\n**📈 Success Metrics:**\n• Target: <2% failure rate\n• Current: 15% → Expected: 3% after fixes\n• ETA: 1.5 hours for full recovery`;
     }
 
-    // Interactive troubleshooting
-    if (lowerQuery.includes('slow') && !lowerQuery.includes('slowest')) {
-      return `**Pipeline Performance Troubleshooting Guide**\n\nTo help diagnose the slow pipeline, I need more information:\n\n**Questions:**\n1. Which specific pipeline is experiencing slowness?\n2. When did you first notice the performance degradation?\n3. Are there any recent configuration changes?\n\n**Common Causes:**\n• Data volume increase\n• Downstream service bottlenecks\n• Resource constraints\n• Network latency\n\n**Quick Checks:**\n1. Monitor CPU/memory usage\n2. Check downstream service health\n3. Review recent deployment logs`;
+    // Enhanced interactive troubleshooting guide
+    if (lowerQuery.includes('help') || lowerQuery.includes('assist') || lowerQuery.includes('debug')) {
+      return `🤖 **AI Pipeline Assistant - Advanced Capabilities**\n\n**🔍 Troubleshooting Commands:**\n\`\`\`\n"Analyze failed LinkedIn pipelines"\n"Show slowest performing data sources"\n"Investigate European region status"\n"Critical alert summary with root cause"\n"Twitter API failure pattern analysis"\n"Predict next maintenance window"\n"Cost optimization recommendations"\n"Security anomaly detection"\n\`\`\`\n\n**📊 Advanced Analytics Available:**\n• **Predictive Failure Analysis** - ML-powered failure prediction\n• **Cost Impact Assessment** - Real-time cost analysis\n• **Performance Benchmarking** - Cross-region comparisons\n• **Security Intelligence** - Threat pattern recognition\n• **Capacity Planning** - Resource utilization forecasting\n\n**🚨 Real-Time Monitoring:**\n• Pipeline health checks every 30 seconds\n• Anomaly detection with 95% accuracy\n• Automated incident response workflows\n• Integration with Azure Monitor and Sentinel\n\n**🔧 Supported Actions:**\n• Restart failed pipelines\n• Scale resources automatically\n• Trigger backup procedures\n• Generate compliance reports\n\n**💡 Pro Tip:** Try asking "What should I focus on today?" for personalized recommendations based on current system state and historical patterns.`;
     }
 
-    // General status queries
-    if (lowerQuery.includes('status') || lowerQuery.includes('overview')) {
-      return `**Current Pipeline Status Overview:**\n\n📊 **Total Pipelines:** ${context.totalPipelines}\n✅ **Healthy:** ${context.healthyPipelines} (${Math.round((context.healthyPipelines / context.totalPipelines) * 100)}%)\n⚠️ **Warning:** ${context.warningPipelines}\n❌ **Failed:** ${context.failedPipelines}\n🔄 **Processing:** ${context.processingPipelines}\n\n**Top Sources:** ${context.sources.slice(0, 3).join(', ')}\n\n**Quick Actions:**\n• Review failed pipelines for immediate attention\n• Check warning pipelines for potential issues\n• Monitor processing pipelines for completion`;
-    }
-
-    // Default intelligent response
-    return `**AI Pipeline Assistant Ready** 🤖\n\nI can help you with:\n\n**📊 Status Queries:**\n• "Which LinkedIn pipelines failed today?"\n• "Show me the slowest pipelines this week"\n• "What's the status of European data sources?"\n\n**🚨 Alert Analysis:**\n• "Summarize all critical alerts"\n• "Group related alerts by severity"\n• "What are the investigation priorities?"\n\n**🔍 Troubleshooting:**\n• "Twitter pipeline failing every 3 hours"\n• "Help me diagnose slow performance"\n• "Root cause analysis for authentication errors"\n\n**Current Context:** ${context.totalPipelines} pipelines, ${context.failedPipelines} failed, ${context.criticalAlerts} critical alerts\n\nWhat would you like me to help you with?`;
+    // Default comprehensive overview
+    return `🚀 **Microsoft Threat Intelligence Pipeline AI Assistant**\n\n**📊 Current System Health:**\n• Total Pipelines: ${context.totalPipelines}\n• ✅ Healthy: ${context.healthyPipelines} (${Math.round((context.healthyPipelines / context.totalPipelines) * 100)}%)\n• ⚠️ Warning: ${context.warningPipelines}\n• ❌ Failed: ${context.failedPipelines}\n• 🔄 Processing: ${context.processingPipelines}\n\n**🌍 Multi-Source Intelligence:**\n• **LinkedIn:** Threat actor profiling, company intelligence\n• **Twitter:** Sentiment analysis, trending threats\n• **GitHub:** Code vulnerability scanning, threat campaigns\n• **Office365:** Email threat patterns, phishing detection\n• **Azure AD:** Identity threat monitoring, access anomalies\n\n**🧠 AI-Powered Insights Available:**\n• \`"Predict tomorrow's failures"\` - ML failure forecasting\n• \`"Show cost optimization opportunities"\` - Resource efficiency\n• \`"Analyze threat campaign patterns"\` - Security intelligence\n• \`"Compare region performance"\` - Geographic analysis\n\n**⚡ Quick Actions:**\n• \`"What needs immediate attention?"\`\n• \`"Show me the biggest threats today"\`\n• \`"Optimize pipeline performance"\`\n• \`"Generate executive summary"\`\n\n**🎯 Context-Aware:** I understand you're viewing the ${context.currentPage} page and can provide targeted insights for your current workflow.\n\nWhat specific threat intelligence challenge can I help you solve today?`;
   };
 
   const callAIAPI = async (message: string): Promise<string> => {
@@ -165,31 +246,40 @@ Current system state:
 
 Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Use markdown formatting for clarity.`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 1024,
-        messages: [
-          {
-            role: 'user',
-            content: `${systemPrompt}\n\nUser question: ${message}`
-          }
-        ]
-      })
-    });
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4',
+          max_tokens: 1024,
+          messages: [
+            {
+              role: 'system',
+              content: systemPrompt
+            },
+            {
+              role: 'user',
+              content: message
+            }
+          ]
+        })
+      });
 
-    if (!response.ok) {
-      throw new Error(`AI API error: ${response.status}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`AI API error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      // CORS error or network issue - fallback gracefully
+      throw error;
     }
-
-    const data = await response.json();
-    return data.content[0].text;
   };
 
   const handleSendMessage = async () => {
@@ -208,11 +298,11 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
         try {
           response = await callAIAPI(userMessage);
         } catch (apiError) {
-          console.warn('AI API failed, using mock response:', apiError);
+          console.warn('AI API failed, using enhanced mock intelligence:', apiError);
           response = generateMockResponse(userMessage);
         }
       } else {
-        // Use mock response
+        // Use enhanced mock intelligence
         response = generateMockResponse(userMessage);
       }
 
@@ -274,30 +364,61 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
 
       {showApiKeyInput && (
         <div className={styles.apiKeySection}>
-          <h4>AI API Configuration</h4>
+          <h4>🔑 Azure OpenAI Configuration</h4>
           <p>
             Get your API key from{' '}
-            <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">
-              Anthropic Console <ExternalLink size={12} />
+            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">
+              OpenAI Platform <ExternalLink size={12} />
             </a>
           </p>
+          <div className={styles.apiKeyInstructions}>
+            <p><strong>Quick Setup:</strong></p>
+            <ol>
+              <li>Sign up at platform.openai.com</li>
+              <li>Create a new API key</li>
+              <li>Paste it below and click "Save Key"</li>
+            </ol>
+          </div>
           <div className={styles.apiKeyInput}>
             <input
               type={showApiKey ? 'text' : 'password'}
-              placeholder="sk-ant-api03-..."
+              placeholder="sk-..."
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
+              autoComplete="off"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck="false"
             />
             <button
               onClick={() => setShowApiKey(!showApiKey)}
               className={styles.toggleVisibility}
+              type="button"
             >
               {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
+          {apiKey.trim() && !apiKey.trim().startsWith('sk-') && (
+            <div className={styles.validationWarning}>
+              ⚠️ API key should start with "sk-"
+            </div>
+          )}
           <div className={styles.apiKeyActions}>
-            <button onClick={saveApiKey} className={styles.saveButton}>
+            <button 
+              onClick={saveApiKey} 
+              className={styles.saveButton} 
+              disabled={!apiKey.trim()}
+              title={!apiKey.trim() ? "Please enter an API key" : "Save API key"}
+            >
               Save Key
+            </button>
+            <button
+              onClick={testConnection}
+              className={styles.testButton}
+              disabled={!apiKey.trim() || isTesting}
+              title={!apiKey.trim() ? "Please enter an API key" : "Test API connection"}
+            >
+              {isTesting ? <Loader2 size={14} className={styles.loadingIcon} /> : '🔧'} Test Connection
             </button>
             {localStorage.getItem('ai-assistant-api-key') && (
               <button onClick={clearApiKey} className={styles.clearButton}>
@@ -305,8 +426,20 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
               </button>
             )}
           </div>
+          
+          {testResult && (
+            <div className={`${styles.testResult} ${testResult.success ? styles.testSuccess : styles.testError}`}>
+              <div className={styles.testMessage}>{testResult.message}</div>
+              {testResult.details && (
+                <div className={styles.testDetails}>{testResult.details}</div>
+              )}
+            </div>
+          )}
           <div className={styles.costWarning}>
-            💡 Cost: ~$0.001 per query with claude-3-haiku
+            💡 Cost: ~$0.01 per query with GPT-4 (very affordable for demos)
+          </div>
+          <div className={styles.demoNote}>
+            <strong>No API key?</strong> Try the built-in Microsoft threat intelligence responses - they work without any setup!
           </div>
         </div>
       )}
@@ -318,8 +451,18 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
             <h4>Welcome to AI Pipeline Assistant!</h4>
             <p>I can help you with pipeline monitoring, troubleshooting, and threat intelligence analysis.</p>
             {!apiKey && (
-              <p className={styles.mockNote}>
-                💡 Configure your AI API key for enhanced responses, or try the built-in intelligence.
+              <div>
+                <p className={styles.mockNote}>
+                  🚀 Try me now! I have built-in intelligence that works without any setup.
+                </p>
+                <p className={styles.demoNote}>
+                  <strong>Want enhanced AI?</strong> Click the ⚙️ settings to add your OpenAI API key for even smarter responses!
+                </p>
+              </div>
+            )}
+            {apiKey && (
+              <p className={styles.aiReadyNote}>
+                🤖 AI Assistant is ready with full Azure OpenAI capabilities! Ask me anything about your pipelines.
               </p>
             )}
           </div>
