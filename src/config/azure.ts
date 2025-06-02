@@ -20,8 +20,14 @@ export const AZURE_CONFIG = {
   timeout: 30000, // 30 seconds
   retryCount: 3,
   
-  // Demo mode - when true, falls back to mock data if Azure is unavailable
+  // Demo mode - when true, shows realistic Azure simulation with educational logging
   demoMode: import.meta.env.VITE_DEMO_MODE === 'true',
+  
+  // Performance mode for demos - faster responses, optimized mock data
+  performanceMode: import.meta.env.VITE_DEMO_PERFORMANCE_MODE === 'true',
+  
+  // Show Azure simulation details for interview demo
+  showSimulation: import.meta.env.VITE_SHOW_AZURE_SIMULATION === 'true',
   
   // Feature flags
   enableRealTimeUpdates: true,

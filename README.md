@@ -83,9 +83,7 @@ See `AI_SETUP.md` for detailed configuration instructions.
 
 ## 🌐 Azure Function Deployment
 
-For secure API key management and CORS handling, deploy the included Azure Function:
-
-See `AZURE_FUNCTION_SETUP.md` for step-by-step deployment instructions.
+The AI assistant uses mock responses for demonstration purposes. In production, this would integrate with a secure backend proxy for API calls.
 
 ## 📱 Mobile Support
 

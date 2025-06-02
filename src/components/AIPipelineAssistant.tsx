@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2, Settings, Eye, EyeOff, ExternalLink } from 'lucide-react';
 import styles from './AIPipelineAssistant.module.css';
 import { mockPipelines } from '../data/mockData';
-import { callAzureFunction, isAzureFunctionConfigured } from '../config/azureFunction';
 import type { Pipeline, Alert } from '../types';
 
 interface Message {
@@ -85,10 +84,7 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
     const trimmedKey = openaiApiKey.trim();
     if (trimmedKey && (trimmedKey.startsWith('sk-') || trimmedKey.length > 20)) {
       localStorage.setItem('ai-assistant-openai-key', trimmedKey);
-      const usingAzureFunction = isAzureFunctionConfigured();
-      const message = usingAzureFunction 
-        ? '🔑 OpenAI API key saved! Ready to use Azure Function for secure AI responses. Enterprise-grade security and performance.'
-        : '🔑 OpenAI API key saved! I can now provide enhanced responses using GPT-4.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through a secure backend proxy.*';
+      const message = '🔑 OpenAI API key saved! I can now provide enhanced responses using GPT-4.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through a secure backend proxy.*';
       addMessage('assistant', message);
     } else if (trimmedKey) {
       localStorage.setItem('ai-assistant-openai-key', trimmedKey);
@@ -100,10 +96,7 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
     const trimmedKey = claudeApiKey.trim();
     if (trimmedKey && (trimmedKey.startsWith('sk-ant-') || trimmedKey.length > 30)) {
       localStorage.setItem('ai-assistant-claude-key', trimmedKey);
-      const usingAzureFunction = isAzureFunctionConfigured();
-      const message = usingAzureFunction 
-        ? '🔑 Claude API key saved! Ready to use Azure Function for secure AI responses. Enterprise-grade Anthropic integration.'
-        : '🔑 Claude API key saved! I can now provide enhanced responses using Claude AI.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through a secure backend proxy.*';
+      const message = '🔑 Claude API key saved! I can now provide enhanced responses using Claude AI.\n\n*Note: Due to browser CORS restrictions, the assistant currently uses advanced mock intelligence for demonstration. In production, this would connect through a secure backend proxy.*';
       addMessage('assistant', message);
     } else if (trimmedKey) {
       localStorage.setItem('ai-assistant-claude-key', trimmedKey);
@@ -372,17 +365,6 @@ const AIPipelineAssistant: React.FC<AIPipelineAssistantProps> = ({
 
     const context = getSystemContext();
     
-    // Try Azure Function first if configured and we have API keys
-    if (isAzureFunctionConfigured()) {
-      try {
-        const preferredService = hasClaude && hasOpenAI ? 'auto' : hasClaude ? 'claude' : 'openai';
-        return await callAzureFunction(message, context, preferredService);
-      } catch (azureError) {
-        console.warn('Azure Function failed, falling back to direct API calls:', azureError);
-        // Fall through to direct API calls if Azure Function fails
-      }
-    }
-
     // Fallback to direct API calls (will likely fail due to CORS in browser)
     const systemPrompt = `You are a Microsoft Threat Intelligence pipeline expert assistant. You have access to 160 pipelines monitoring data from LinkedIn, Twitter, Office365, AzureAD, GitHub, and other sources. Help analysts troubleshoot issues and understand patterns.
 
@@ -489,15 +471,10 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
         try {
           response = await callAIAPI(userMessage);
           
-          // If API call succeeds, add success message based on whether Azure Function was used
-          const usingAzureFunction = isAzureFunctionConfigured();
-          const successMessage = usingAzureFunction 
-            ? (isMobile 
-                ? "\n\n*✅ **Azure Function Success**: AI response delivered securely through Microsoft Azure serverless architecture! Perfect for enterprise deployment.*"
-                : "\n\n*✅ **Azure Function**: Secure AI proxy working correctly.*")
-            : (isMobile 
-                ? "\n\n*✅ Successfully connected to AI service from mobile device! Your API key is working correctly.*"
-                : "\n\n*✅ AI service connected successfully.*");
+          // If API call succeeds, add success message
+          const successMessage = isMobile 
+            ? "\n\n*✅ Successfully connected to AI service from mobile device! Your API key is working correctly.*"
+            : "\n\n*✅ AI service connected successfully.*";
           response += successMessage;
           
         } catch (apiError) {
@@ -562,11 +539,6 @@ Be concise, actionable, and focus on Microsoft threat intelligence scenarios. Us
             <h3>AI Pipeline Assistant</h3>
             <p>
               Pipeline Intelligence & Troubleshooting
-              {isAzureFunctionConfigured() && (
-                <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: 'rgba(82, 196, 26, 0.2)', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>
-                  🚀 Azure Function
-                </span>
-              )}
             </p>
           </div>
         </div>

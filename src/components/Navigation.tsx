@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Zap, Server, TrendingUp, Cpu, GitBranch, Workflow, Code } from 'lucide-react';
+import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Zap, TrendingUp, Cpu, GitBranch, Workflow, Code } from 'lucide-react';
 import { mockAlerts } from '../data/mockData';
 import AboutModal from './AboutModal';
 import KeyboardHelpModal from './KeyboardHelpModal';
@@ -40,12 +40,11 @@ const Navigation = () => {
     { key: '1', description: 'Go to Overview', altKey: true },
     { key: '2', description: 'Go to Pipelines', altKey: true },
     { key: '3', description: 'Go to Data Lineage', altKey: true },
-    { key: '4', description: 'Go to Azure Connection', altKey: true },
-    { key: '5', description: 'Go to Threat Prediction', altKey: true },
-    { key: '6', description: 'Go to AI Agent', altKey: true },
-    { key: '7', description: 'Go to Performance', altKey: true },
-    { key: '8', description: 'Go to Infrastructure', altKey: true },
-    { key: '9', description: 'Go to Data Engineering', altKey: true },
+    { key: '4', description: 'Go to Threat Prediction', altKey: true },
+    { key: '5', description: 'Go to AI Agent', altKey: true },
+    { key: '6', description: 'Go to Performance', altKey: true },
+    { key: '7', description: 'Go to Infrastructure', altKey: true },
+    { key: '8', description: 'Go to Data Engineering', altKey: true },
     { key: 'I', description: 'Go to Implementation Guide', altKey: true },
     { key: 'T', description: 'Go to Technical Challenges', altKey: true },
     { key: '0', description: 'Go to Alerts', altKey: true },
@@ -91,17 +90,6 @@ const Navigation = () => {
             >
               <Database className={styles.navIcon} />
               Data Lineage
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/azure-connection" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <Server className={styles.navIcon} />
-              Azure Connection
             </NavLink>
           </li>
           <li>

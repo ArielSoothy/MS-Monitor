@@ -78,36 +78,30 @@ export const createNavigationShortcuts = (navigate: (path: string) => void) => [
   },
   {
     key: '4',
-    description: 'Go to Azure Connection',
-    action: () => navigate('/azure-connection'),
-    altKey: true
-  },
-  {
-    key: '5',
     description: 'Go to Threat Prediction',
     action: () => navigate('/predictive-insights'),
     altKey: true
   },
   {
-    key: '6',
+    key: '5',
     description: 'Go to AI Agent',
     action: () => navigate('/ai-agent'),
     altKey: true
   },
   {
-    key: '7',
+    key: '6',
     description: 'Go to Performance',
     action: () => navigate('/performance'),
     altKey: true
   },
   {
-    key: '8',
+    key: '7',
     description: 'Go to Infrastructure',
     action: () => navigate('/infrastructure'),
     altKey: true
   },
   {
-    key: '9',
+    key: '8',
     description: 'Go to Data Engineering',
     action: () => navigate('/data-engineering'),
     altKey: true

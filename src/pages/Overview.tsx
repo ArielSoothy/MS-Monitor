@@ -1,27 +1,19 @@
 import { useState, useEffect, useMemo, memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Activity, AlertTriangle, TrendingUp, Server, RefreshCw, HelpCircle, Shield, UserX, Database } from 'lucide-react';
+import { Activity, AlertTriangle, TrendingUp, Server, RefreshCw, HelpCircle, Shield, UserX } from 'lucide-react';
 import { mockPipelines, mockAlerts } from '../data/mockData';
-import type { Pipeline } from '../types';
 import HowItWorksModal from '../components/HowItWorksModal';
-import AzureQueryDemo from '../components/AzureQueryDemo';
 import InfoTooltip from '../components/InfoTooltip';
 import { getTooltipContent } from '../utils/tooltipContent';
-import { useAzureData } from '../hooks/useAzureData';
 import styles from './Overview.module.css';
 
 const Overview = memo(() => {
-  // Azure Data Integration
-  const azureData = useAzureData();
-  
-  // Fallback to mock data
-  const [pipelines] = useState<Pipeline[]>(mockPipelines);
+  const [pipelines] = useState(mockPipelines);
   const [alerts] = useState(mockAlerts);
   const [currentIngestionRate, setCurrentIngestionRate] = useState(1247);
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [showHowItWorks, setShowHowItWorks] = useState(false);
-  const [showAzureDemo, setShowAzureDemo] = useState(false);
 
   // Generate mock ingestion rate data for the last 24 hours
   const [ingestionData] = useState(() => {
@@ -265,58 +257,6 @@ const Overview = memo(() => {
         </div>
       </div>
 
-      {/* Azure Data Explorer Status */}
-      <div className={styles.azureSection}>
-        <div className={styles.azureHeader}>
-          <div className={styles.azureTitle}>
-            <Database className={styles.azureIcon} />
-            <span>Azure Data Explorer - MSTIC Threat Intelligence</span>
-          </div>
-          <div className={styles.azureControls}>
-            <button 
-              className={styles.azureDemoButton}
-              onClick={() => setShowAzureDemo(true)}
-              title="View live KQL queries"
-            >
-              <Database size={16} />
-              KQL Demo
-            </button>
-            <div className={styles.azureStatus}>
-              <div className={`${styles.statusDot} ${azureData.isConnected ? styles.connected : styles.disconnected}`}></div>
-              <span>{azureData.isConnected ? 'Connected' : 'Demo Mode'}</span>
-            </div>
-          </div>
-        </div>
-        
-        {azureData.isConnected && azureData.threatOverview && (
-          <div className={styles.azureMetrics}>
-            <div className={styles.azureMetric}>
-              <span className={styles.azureMetricValue}>{azureData.threatOverview.TotalEvents}</span>
-              <span className={styles.azureMetricLabel}>Security Events (24h)</span>
-            </div>
-            <div className={styles.azureMetric}>
-              <span className={styles.azureMetricValue}>{azureData.threatOverview.HighRiskEvents}</span>
-              <span className={styles.azureMetricLabel}>High-Risk Events</span>
-            </div>
-            <div className={styles.azureMetric}>
-              <span className={styles.azureMetricValue}>{azureData.threatOverview.UniqueIPs}</span>
-              <span className={styles.azureMetricLabel}>Unique IPs</span>
-            </div>
-            <div className={styles.azureMetric}>
-              <span className={styles.azureMetricValue}>{azureData.threatOverview.ThreatPercentage}%</span>
-              <span className={styles.azureMetricLabel}>Threat Percentage</span>
-            </div>
-          </div>
-        )}
-        
-        {!azureData.isConnected && (
-          <div className={styles.azureDemo}>
-            <p>Azure Data Explorer unavailable - using mock data for demonstration</p>
-            <p>In production: Real-time threat intelligence from SecurityEvents, ThreatIndicators, and PipelineHealth tables</p>
-          </div>
-        )}
-      </div>
-
       {/* Real-time Metrics Header */}
       <div className={styles.metricsHeader}>
         <div className={styles.metricCard}>
@@ -443,47 +383,6 @@ const Overview = memo(() => {
           </div>
         </div>
       </div>
-
-      {/* Azure Geographic Threats Section */}
-      {azureData.isConnected && azureData.geographicThreats.length > 0 && (
-        <div className={styles.azureGeoSection}>
-          <h2 className={styles.sectionTitle}>
-            <Database className={styles.sectionIcon} />
-            Live Threat Intelligence - Geographic Distribution
-            <span className={styles.sectionSubtitle}>Real-time data from Azure Data Explorer</span>
-          </h2>
-          
-          <div className={styles.geoThreatsGrid}>
-            {azureData.geographicThreats.slice(0, 6).map((threat, index) => (
-              <div key={index} className={styles.geoThreatCard}>
-                <div className={styles.geoLocation}>
-                  <span className={styles.geoCountry}>{threat.Country}</span>
-                  {threat.City && <span className={styles.geoCity}>{threat.City}</span>}
-                </div>
-                <div className={styles.geoMetrics}>
-                  <div className={styles.geoMetric}>
-                    <span className={styles.geoValue}>{threat.ThreatEvents}</span>
-                    <span className={styles.geoLabel}>Events</span>
-                  </div>
-                  <div className={styles.geoMetric}>
-                    <span className={styles.geoValue}>{(threat.AvgRiskScore || 0).toFixed(1)}</span>
-                    <span className={styles.geoLabel}>Risk Score</span>
-                  </div>
-                  <div className={styles.geoMetric}>
-                    <span className={styles.geoValue}>{threat.UniqueUsers}</span>
-                    <span className={styles.geoLabel}>Users</span>
-                  </div>
-                </div>
-                <div className={styles.riskLevel}>
-                  <span className={`${styles.riskBadge} ${styles[threat.RiskLevel?.toLowerCase() || 'medium']}`}>
-                    {threat.RiskLevel || 'Medium'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Security Monitoring Section (Interview Scenario #2) */}
       <div className={styles.securitySection}>
@@ -917,60 +816,10 @@ const Overview = memo(() => {
         </div>
       </div>
       
-      {/* Azure Threat Correlations Section */}
-      {azureData.isConnected && azureData.threatCorrelations.length > 0 && (
-        <div className={styles.azureCorrelationSection}>
-          <h2 className={styles.sectionTitle}>
-            <Database className={styles.sectionIcon} />
-            Real-time Threat Correlations
-            <span className={styles.sectionSubtitle}>Live threat intelligence from Azure Data Explorer</span>
-          </h2>
-          
-          <div className={styles.correlationTable}>
-            <div className={styles.correlationHeader}>
-              <span>Time</span>
-              <span>User</span>
-              <span>Source IP</span>
-              <span>Threat Type</span>
-              <span>Risk Score</span>
-              <span>Pipeline</span>
-            </div>
-            
-            {azureData.threatCorrelations.slice(0, 10).map((correlation, index) => (
-              <div key={index} className={styles.correlationRow}>
-                <span className={styles.correlationTime}>
-                  {new Date(correlation.Timestamp).toLocaleTimeString()}
-                </span>
-                <span className={styles.correlationUser}>
-                  {correlation.UserEmail || correlation.UserId}
-                </span>
-                <span className={styles.correlationIP}>
-                  {correlation.SourceIP}
-                </span>
-                <span className={styles.correlationThreat}>
-                  {correlation.ThreatType}
-                </span>
-                <span className={`${styles.correlationRisk} ${styles[(correlation.RiskScore || 0) > 80 ? 'critical' : (correlation.RiskScore || 0) > 60 ? 'high' : 'medium']}`}>
-                  {(correlation.RiskScore || 0).toFixed(1)}
-                </span>
-                <span className={styles.correlationPipeline}>
-                  {correlation.PipelineId}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      
       <HowItWorksModal 
         isOpen={showHowItWorks}
         onClose={() => setShowHowItWorks(false)}
         section="overview"
-      />
-      
-      <AzureQueryDemo 
-        isOpen={showAzureDemo}
-        onClose={() => setShowAzureDemo(false)}
       />
     </div>
   );
