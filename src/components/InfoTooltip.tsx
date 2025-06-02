@@ -70,6 +70,9 @@ const InfoTooltip: React.FC<InfoTooltipProps> = ({
     e.stopPropagation();
     if (trigger === 'click') {
       setIsVisible(!isVisible);
+    } else {
+      // For hover trigger, also support click to toggle
+      setIsVisible(!isVisible);
     }
   };
 

@@ -1595,7 +1595,7 @@ interface DataConnection {
                       x={node.x + 90}
                       y={node.y + 30}
                       textAnchor="middle"
-                      fill="#0078d4"
+                      fill="#ffffff"
                       fontSize="8"
                       fontWeight="500"
                     >
@@ -1750,7 +1750,7 @@ interface DataConnection {
                       <text
                         x={tooltipX + 10}
                         y={tooltipY + 28}
-                        fill="#0078d4"
+                        fill="#ffffff"
                         fontSize="9"
                         fontWeight="500"
                       >

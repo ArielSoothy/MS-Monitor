@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Brain, Activity, AlertTriangle, CheckCircle, Clock, Search, FileText, TrendingUp, Users, HelpCircle } from 'lucide-react';
+import { Brain, Activity, AlertTriangle, CheckCircle, Clock, Search, FileText, TrendingUp, Users, HelpCircle, Shield } from 'lucide-react';
 import type { AgentState, Investigation, AgentTrigger } from '../types';
 import { mockPipelines, mockAlerts } from '../data/mockData';
 import { aiService } from '../utils/aiService';
 import HowItWorksModal from './HowItWorksModal';
+import ChallengesModal from './ChallengesModal';
 import styles from './AutonomousAgent.module.css';
 
 // MSTIC-focused realistic investigation scenarios for Microsoft interview demo
@@ -607,6 +608,7 @@ const AutonomousAgent: React.FC = () => {
   const [selectedView, setSelectedView] = useState<'status' | 'investigation' | 'findings' | 'activity' | 'config' | 'demo' | 'realtime'>('realtime');
   const [isInvestigating, setIsInvestigating] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState<string>('azure-ad-anomaly');
   const [simulationRunning, setSimulationRunning] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -1254,6 +1256,14 @@ const AutonomousAgent: React.FC = () => {
             <HelpCircle size={16} />
             How does it work?
           </button>
+          <button 
+            className={`${styles.howItWorksButton} ${styles.challengesButton}`}
+            onClick={() => setShowChallenges(true)}
+            title="Implementation Challenges"
+          >
+            <Shield size={16} />
+            Implementation Challenges
+          </button>
           <div className={styles.agentIndicator}>
             <div className={`${styles.statusDot} ${styles[agentState.status]}`}></div>
             <span>Last activity: {formatTime(agentState.lastActivity)}</span>
@@ -1269,56 +1279,21 @@ const AutonomousAgent: React.FC = () => {
           <Activity size={16} />
           Real-time Demo
         </button>
-        <button 
-          className={selectedView === 'demo' ? styles.active : ''}
-          onClick={() => setSelectedView('demo')}
-        >
-          <TrendingUp size={16} />
-          Scenarios
-        </button>
-        <button 
-          className={selectedView === 'status' ? styles.active : ''}
-          onClick={() => setSelectedView('status')}
-        >
-          <Brain size={16} />
-          Status
-        </button>
-        <button 
-          className={selectedView === 'investigation' ? styles.active : ''}
-          onClick={() => setSelectedView('investigation')}
-        >
-          <Search size={16} />
-          Investigation
-        </button>
-        <button 
-          className={selectedView === 'findings' ? styles.active : ''}
-          onClick={() => setSelectedView('findings')}
-        >
-          <CheckCircle size={16} />
-          Findings
-        </button>
-        <button 
-          className={selectedView === 'activity' ? styles.active : ''}
-          onClick={() => setSelectedView('activity')}
-        >
-          <FileText size={16} />
-          Activity Log
-        </button>
       </div>
 
       <div className={styles.content}>
-        {selectedView === 'demo' && renderDemoScenarios()}
-        {selectedView === 'status' && renderStatusOverview()}
-        {selectedView === 'investigation' && renderInvestigationDetails()}
-        {selectedView === 'findings' && renderFindings()}
-        {selectedView === 'activity' && renderActivityLog()}
-        {selectedView === 'config' && renderConfiguration()}
         {selectedView === 'realtime' && renderRealtimeSimulation()}
       </div>
       
       <HowItWorksModal 
         isOpen={showHowItWorks}
         onClose={() => setShowHowItWorks(false)}
+        section="autonomousAgent"
+      />
+      
+      <ChallengesModal
+        isOpen={showChallenges}
+        onClose={() => setShowChallenges(false)}
         section="autonomousAgent"
       />
     </div>

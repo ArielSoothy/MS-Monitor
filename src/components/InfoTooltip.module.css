@@ -45,10 +45,11 @@
   border: 1px solid #404040;
   border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  z-index: 1000;
+  z-index: 10000;
   opacity: 0;
   animation: tooltipFadeIn 0.2s ease-out forwards;
   max-width: 320px;
+  pointer-events: auto;
   min-width: 200px;
   backdrop-filter: blur(8px);
 }
