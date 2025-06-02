@@ -15,11 +15,16 @@ import {
   Settings,
   Activity,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  ExternalLink,
+  Copy,
+  FileText,
+  Shield
 } from 'lucide-react';
 import { mockPipelines } from '../data/mockData';
 import type { Pipeline, PipelineStatus, PipelineSource } from '../types';
 import HowItWorksModal from '../components/HowItWorksModal';
+import ChallengesModal from '../components/ChallengesModal';
 import InfoTooltip from '../components/InfoTooltip';
 import { getTooltipContent } from '../utils/tooltipContent';
 import styles from './Pipelines.module.css';
@@ -36,6 +41,9 @@ const Pipelines = memo(() => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
+  const [runningPipelines, setRunningPipelines] = useState<Set<string>>(new Set());
+  const [showActionFeedback, setShowActionFeedback] = useState<{id: string, action: string, show: boolean}>({id: '', action: '', show: false});
   const listRef = useRef<List>(null);
 
   // Generate mock 24-hour processing time data for each pipeline
@@ -214,6 +222,157 @@ const Pipelines = memo(() => {
     });
   }, []);
 
+  const handlePipelineAction = async (pipelineId: string, action: 'run' | 'pause' | 'configure', e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log(`${action} pipeline:`, pipelineId);
+    
+    if (action === 'run') {
+      setRunningPipelines(prev => new Set([...prev, pipelineId]));
+      setShowActionFeedback({id: pipelineId, action: 'Starting pipeline...', show: true});
+      
+      // Simulate pipeline starting
+      setTimeout(() => {
+        setRunningPipelines(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(pipelineId);
+          return newSet;
+        });
+        setShowActionFeedback({id: pipelineId, action: '✅ Pipeline started successfully', show: true});
+        setTimeout(() => setShowActionFeedback({id: '', action: '', show: false}), 3000);
+      }, 2000);
+    } else if (action === 'pause') {
+      setShowActionFeedback({id: pipelineId, action: 'Pausing pipeline...', show: true});
+      setTimeout(() => {
+        setShowActionFeedback({id: pipelineId, action: '⏸️ Pipeline paused', show: true});
+        setTimeout(() => setShowActionFeedback({id: '', action: '', show: false}), 3000);
+      }, 1000);
+    } else if (action === 'configure') {
+      setShowActionFeedback({id: pipelineId, action: '⚙️ Opening configuration...', show: true});
+      setTimeout(() => setShowActionFeedback({id: '', action: '', show: false}), 2000);
+    }
+  };
+
+  // Generate diagnostic queries for the pipeline
+  const getDiagnosticQueries = (pipeline: Pipeline) => {
+    const queries = [
+      {
+        name: 'Recent Executions',
+        query: `// Query to analyze recent pipeline executions
+PipelineExecutions
+| where PipelineName == "${pipeline.name}"
+| where TimeGenerated > ago(24h)
+| summarize 
+    TotalRuns = count(),
+    SuccessfulRuns = countif(Status == "Success"),
+    FailedRuns = countif(Status == "Failed"),
+    AvgDuration = avg(DurationMinutes)
+by bin(TimeGenerated, 1h)
+| order by TimeGenerated desc`
+      },
+      {
+        name: 'Error Analysis',
+        query: `// Query to analyze pipeline errors and failures
+PipelineErrors
+| where PipelineName == "${pipeline.name}"
+| where TimeGenerated > ago(7d)
+| summarize ErrorCount = count() by ErrorType, bin(TimeGenerated, 1d)
+| order by TimeGenerated desc, ErrorCount desc`
+      },
+      {
+        name: 'Performance Metrics',
+        query: `// Query to analyze pipeline performance metrics
+PipelineMetrics
+| where PipelineName == "${pipeline.name}"
+| where TimeGenerated > ago(30d)
+| extend ProcessingTimeCategory = case(
+    DurationMinutes <= ${pipeline.slaRequirement * 0.7}, "Fast",
+    DurationMinutes <= ${pipeline.slaRequirement}, "Normal",
+    "Slow"
+)
+| summarize 
+    Count = count(),
+    AvgDuration = avg(DurationMinutes),
+    P95Duration = percentile(DurationMinutes, 95)
+by ProcessingTimeCategory
+| order by AvgDuration asc`
+      }
+    ];
+    return queries;
+  };
+
+  // Generate log references with actual links
+  const getLogReferences = (pipeline: Pipeline) => {
+    const baseLogUrl = "https://portal.azure.com/#@microsoft.onmicrosoft.com/logs";
+    const workspaceId = "12345678-1234-1234-1234-123456789012"; // Mock workspace ID
+    
+    return [
+      {
+        system: 'Azure Monitor Logs',
+        description: 'View detailed execution logs and metrics',
+        queryId: `pipeline-${pipeline.id}-logs`,
+        logUrl: `${baseLogUrl}?workspaceId=${workspaceId}&query=PipelineExecutions | where PipelineName == "${pipeline.name}"`,
+        timestamp: new Date(pipeline.lastRun.getTime() - Math.random() * 60 * 60 * 1000),
+        logLevel: 'INFO',
+        source: 'Azure Data Factory'
+      },
+      {
+        system: 'Application Insights',
+        description: 'Performance and dependency tracking',
+        queryId: `pipeline-${pipeline.id}-insights`,
+        logUrl: `https://portal.azure.com/#@microsoft.onmicrosoft.com/resource/appInsights`,
+        timestamp: new Date(pipeline.lastRun.getTime() - Math.random() * 30 * 60 * 1000),
+        logLevel: pipeline.status === 'failed' ? 'ERROR' : 'INFO',
+        source: 'Application Insights'
+      },
+      {
+        system: 'Azure Storage Logs',
+        description: 'Data movement and storage operations',
+        queryId: `pipeline-${pipeline.id}-storage`,
+        logUrl: `${baseLogUrl}?workspaceId=${workspaceId}&query=StorageLogs | where OperationName contains "${pipeline.name}"`,
+        timestamp: new Date(pipeline.lastRun.getTime() - Math.random() * 45 * 60 * 1000),
+        logLevel: 'INFO',
+        source: 'Azure Storage'
+      }
+    ];
+  };
+
+  // Generate runbook links
+  const getRunbooks = (pipeline: Pipeline) => {
+    return [
+      {
+        title: 'Pipeline Troubleshooting Guide',
+        description: 'Step-by-step troubleshooting for common pipeline issues',
+        url: `https://docs.microsoft.com/runbooks/${pipeline.source.toLowerCase()}-pipeline-troubleshooting`,
+        category: 'Troubleshooting'
+      },
+      {
+        title: 'Data Quality Validation',
+        description: 'Procedures for validating data quality and integrity',
+        url: `https://docs.microsoft.com/runbooks/data-quality-${pipeline.dataClassification.toLowerCase()}`,
+        category: 'Quality Assurance'
+      },
+      {
+        title: 'Performance Optimization',
+        description: 'Guidelines for optimizing pipeline performance',
+        url: `https://docs.microsoft.com/runbooks/pipeline-optimization-${pipeline.process}`,
+        category: 'Optimization'
+      }
+    ];
+  };
+
+  // Enhanced copy functionality
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setShowActionFeedback({id: '', action: `${type} copied to clipboard!`, show: true});
+      setTimeout(() => setShowActionFeedback({id: '', action: '', show: false}), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      setShowActionFeedback({id: '', action: 'Failed to copy', show: true});
+      setTimeout(() => setShowActionFeedback({id: '', action: '', show: false}), 2000);
+    }
+  };
+
   const getStatusIcon = (status: PipelineStatus) => {
     switch (status) {
       case 'healthy':
@@ -341,16 +500,29 @@ const Pipelines = memo(() => {
               </div>
               
               <div className={styles.actions}>
-                {pipeline.status === 'processing' ? (
-                  <button className={styles.actionButton} title="Pause Pipeline">
-                    <Pause size={16} />
+                {pipeline.status === 'processing' || runningPipelines.has(pipeline.id) ? (
+                  <button 
+                    className={`${styles.actionButton} ${styles.pauseButton}`} 
+                    title={runningPipelines.has(pipeline.id) ? "Starting..." : "Pause Pipeline"}
+                    onClick={(e) => handlePipelineAction(pipeline.id, 'pause', e)}
+                    disabled={runningPipelines.has(pipeline.id)}
+                  >
+                    {runningPipelines.has(pipeline.id) ? <Clock size={16} className={styles.spinning} /> : <Pause size={16} />}
                   </button>
                 ) : (
-                  <button className={styles.actionButton} title="Run Pipeline">
+                  <button 
+                    className={`${styles.actionButton} ${styles.runButton}`} 
+                    title="Run Pipeline"
+                    onClick={(e) => handlePipelineAction(pipeline.id, 'run', e)}
+                  >
                     <Play size={16} />
                   </button>
                 )}
-                <button className={styles.actionButton} title="Configure Pipeline">
+                <button 
+                  className={`${styles.actionButton} ${styles.configButton}`} 
+                  title="Configure Pipeline"
+                  onClick={(e) => handlePipelineAction(pipeline.id, 'configure', e)}
+                >
                   <Settings size={16} />
                 </button>
               </div>
@@ -492,6 +664,81 @@ const Pipelines = memo(() => {
                     )}
                   </div>
                 </div>
+
+                {/* Logs and Diagnostics */}
+                <div className={styles.logsSection}>
+                  <h4 className={styles.sectionTitle}>
+                    <FileText className={styles.sectionIcon} />
+                    Logs and Diagnostics
+                    {getTooltipContent('pipelineLogsDiagnostics') && (
+                      <InfoTooltip 
+                        {...getTooltipContent('pipelineLogsDiagnostics')!} 
+                        position="right"
+                        size="medium"
+                      />
+                    )}
+                  </h4>
+                  <div className={styles.logsContent}>
+                    <div className={styles.logQueries}>
+                      <h5 className={styles.subTitle}>Diagnostic Queries</h5>
+                      {getDiagnosticQueries(pipeline).map((query, idx) => (
+                        <div key={idx} className={styles.queryItem}>
+                          <div className={styles.queryHeader}>
+                            <span className={styles.queryName}>{query.name}</span>
+                            <button 
+                              className={styles.copyButton} 
+                              onClick={() => copyToClipboard(query.query, 'Query')}
+                              title="Copy query to clipboard"
+                            >
+                              <Copy size={14} />
+                            </button>
+                          </div>
+                          <div className={styles.queryBody}>
+                            <pre className={styles.queryText}>{query.query}</pre>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className={styles.logReferences}>
+                      <h5 className={styles.subTitle}>Log References</h5>
+                      {getLogReferences(pipeline).map((log, idx) => (
+                        <div key={idx} className={styles.logItem}>
+                          <div className={styles.logHeader}>
+                            <span className={styles.logSystem}>{log.system}</span>
+                            <span className={styles.logLevel}>{log.logLevel}</span>
+                          </div>
+                          <div className={styles.logBody}>
+                            <div className={styles.logDescription}>{log.description}</div>
+                            <a href={log.logUrl} target="_blank" rel="noopener noreferrer" className={styles.logLink}>
+                              View Logs
+                              <ExternalLink size={14} className={styles.linkIcon} />
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className={styles.runbooks}>
+                      <h5 className={styles.subTitle}>Runbook Links</h5>
+                      {getRunbooks(pipeline).map((runbook, idx) => (
+                        <div key={idx} className={styles.runbookItem}>
+                          <div className={styles.runbookHeader}>
+                            <span className={styles.runbookTitle}>{runbook.title}</span>
+                            <span className={styles.runbookCategory}>{runbook.category}</span>
+                          </div>
+                          <div className={styles.runbookBody}>
+                            <div className={styles.runbookDescription}>{runbook.description}</div>
+                            <a href={runbook.url} target="_blank" rel="noopener noreferrer" className={styles.runbookLink}>
+                              View Runbook
+                              <ExternalLink size={14} className={styles.linkIcon} />
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -513,6 +760,13 @@ const Pipelines = memo(() => {
                 title="How does this system work?"
               >
                 <HelpCircle size={18} />
+              </button>
+              <button 
+                className={`${styles.infoButton} ${styles.challengesButton}`}
+                onClick={() => setShowChallenges(true)}
+                title="Implementation Challenges"
+              >
+                <Shield size={18} />
               </button>
             </h1>
             <p className={styles.subtitle}>Monitor and manage your threat intelligence data pipelines</p>
@@ -795,7 +1049,7 @@ const Pipelines = memo(() => {
               const isExpanded = expandedRows.has(pipeline.id);
               // Increased heights with more consistent calculations
               const collapsedHeight = 100; // Base height for collapsed row
-              const expandedHeight = 480;  // Height for expanded row with all details
+              const expandedHeight = 600;  // Height for expanded row with all details including logs
               return isExpanded ? expandedHeight : collapsedHeight;
             }}
             className={styles.virtualList}
@@ -811,6 +1065,19 @@ const Pipelines = memo(() => {
         onClose={() => setShowHowItWorks(false)}
         section="pipelines"
       />
+      
+      <ChallengesModal 
+        isOpen={showChallenges}
+        onClose={() => setShowChallenges(false)}
+        section="pipelines"
+      />
+      
+      {/* Action Feedback Notification */}
+      {showActionFeedback.show && (
+        <div className={styles.feedbackNotification}>
+          <span>{showActionFeedback.action}</span>
+        </div>
+      )}
     </div>
   );
 });

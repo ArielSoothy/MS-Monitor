@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Activity, AlertTriangle, TrendingUp, Server, RefreshCw, HelpCircle, Shield, UserX } from 'lucide-react';
 import { mockPipelines, mockAlerts } from '../data/mockData';
 import HowItWorksModal from '../components/HowItWorksModal';
+import ChallengesModal from '../components/ChallengesModal';
 import InfoTooltip from '../components/InfoTooltip';
 import { getTooltipContent } from '../utils/tooltipContent';
 import styles from './Overview.module.css';
@@ -14,6 +15,7 @@ const Overview = memo(() => {
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
 
   // Generate mock ingestion rate data for the last 24 hours
   const [ingestionData] = useState(() => {
@@ -242,6 +244,13 @@ const Overview = memo(() => {
                 title="How does this system work?"
               >
                 <HelpCircle size={18} />
+              </button>
+              <button 
+                className={`${styles.infoButton} ${styles.challengesButton}`}
+                onClick={() => setShowChallenges(true)}
+                title="Implementation Challenges"
+              >
+                <Shield size={18} />
               </button>
             </h1>
             <p className={styles.subtitle}>Real-time monitoring and analytics</p>
@@ -819,6 +828,12 @@ const Overview = memo(() => {
       <HowItWorksModal 
         isOpen={showHowItWorks}
         onClose={() => setShowHowItWorks(false)}
+        section="overview"
+      />
+      
+      <ChallengesModal 
+        isOpen={showChallenges}
+        onClose={() => setShowChallenges(false)}
         section="overview"
       />
     </div>

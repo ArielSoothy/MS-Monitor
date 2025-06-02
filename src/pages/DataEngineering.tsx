@@ -13,8 +13,12 @@ import {
   Pause,
   Cpu,
   MemoryStick,
-  HardDrive
+  HardDrive,
+  HelpCircle,
+  Shield
 } from 'lucide-react';
+import HowItWorksModal from '../components/HowItWorksModal';
+import ChallengesModal from '../components/ChallengesModal';
 import styles from './DataEngineering.module.css';
 
 interface DataPipelineStage {
@@ -80,6 +84,8 @@ const DataEngineering: React.FC = () => {
   const [selectedOptimization, setSelectedOptimization] = useState<PerformanceOptimization | null>(null);
   const [loading, setLoading] = useState(true);
   const [realTimeMode, setRealTimeMode] = useState(true);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
 
   useEffect(() => {
     loadDataEngineeringMetrics();
@@ -421,7 +427,22 @@ const DataEngineering: React.FC = () => {
         <div className={styles.titleSection}>
           <Database className={styles.titleIcon} />
           <div>
-            <h1>Data Engineering Excellence</h1>
+            <h1>Data Engineering Excellence
+              <button 
+                className={styles.infoButton}
+                onClick={() => setShowHowItWorks(true)}
+                title="How does this system work?"
+              >
+                <HelpCircle size={18} />
+              </button>
+              <button 
+                className={`${styles.infoButton} ${styles.challengesButton}`}
+                onClick={() => setShowChallenges(true)}
+                title="Implementation Challenges"
+              >
+                <Shield size={18} />
+              </button>
+            </h1>
             <p>Advanced pipeline optimization, data quality monitoring, and schema evolution</p>
           </div>
         </div>
@@ -621,6 +642,18 @@ const DataEngineering: React.FC = () => {
       
       {/* Hidden div to satisfy TypeScript - schema evolution data loaded */}
       <div style={{ display: 'none' }}>{schemaEvolution.length}</div>
+      
+      <HowItWorksModal 
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+        section="dataEngineering"
+      />
+      
+      <ChallengesModal
+        isOpen={showChallenges}
+        onClose={() => setShowChallenges(false)}
+        section="dataEngineering"
+      />
     </div>
   );
 };

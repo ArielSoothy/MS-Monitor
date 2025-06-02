@@ -24,6 +24,7 @@ import { mockPipelines } from '../data/mockData';
 import type { PipelineSource, PipelineStatus } from '../types';
 import ErrorDetailsModal from '../components/ErrorDetailsModal';
 import HowItWorksModal from '../components/HowItWorksModal';
+import ChallengesModal from '../components/ChallengesModal';
 import styles from './DataLineage.module.css';
 
 interface LineageNode {
@@ -140,6 +141,7 @@ interface DataConnection {
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
   // New popup states
   const [showNodePopup, setShowNodePopup] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
@@ -1311,6 +1313,13 @@ interface DataConnection {
               >
                 <HelpCircle size={18} />
               </button>
+              <button 
+                className={`${styles.infoButton} ${styles.challengesButton}`}
+                onClick={() => setShowChallenges(true)}
+                title="Implementation Challenges"
+              >
+                <Shield size={18} />
+              </button>
             </h1>
             <p className={styles.subtitle}>Visualize and explore data flow through your threat intelligence pipelines</p>
           </div>
@@ -2343,6 +2352,12 @@ interface DataConnection {
       <HowItWorksModal 
         isOpen={showHowItWorks}
         onClose={() => setShowHowItWorks(false)}
+        section="dataLineage"
+      />
+      
+      <ChallengesModal
+        isOpen={showChallenges}
+        onClose={() => setShowChallenges(false)}
         section="dataLineage"
       />
     </div>

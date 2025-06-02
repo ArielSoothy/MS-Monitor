@@ -1,17 +1,104 @@
 import React from 'react';
-import { X, Brain, Database, Activity, AlertTriangle, TrendingUp, GitBranch, HelpCircle } from 'lucide-react';
+import { X, Brain, Database, Activity, AlertTriangle, TrendingUp, GitBranch, HelpCircle, Server } from 'lucide-react';
 import styles from './HowItWorksModal.module.css';
 
 interface HowItWorksModalProps {
   isOpen: boolean;
   onClose: () => void;
-  section: 'overview' | 'pipelines' | 'alerts' | 'dataLineage' | 'predictiveInsights' | 'autonomousAgent';
+  section: 'overview' | 'pipelines' | 'alerts' | 'dataLineage' | 'predictiveInsights' | 'autonomousAgent' | 'dataEngineering' | 'infrastructure' | 'performance';
 }
 
 const HowItWorksModal: React.FC<HowItWorksModalProps> = ({ isOpen, onClose, section }) => {
   if (!isOpen) return null;
 
   const sectionContent = {
+    dataEngineering: {
+      icon: <Database size={24} />,
+      title: "Data Engineering - Pipeline Optimization",
+      conceptual: {
+        title: "What it does",
+        content: [
+          "Monitors data quality metrics across all threat intelligence pipelines",
+          "Tracks schema evolution and management for security data sources",
+          "Identifies optimization opportunities for ETL performance",
+          "Enforces data compliance for sensitive security telemetry"
+        ]
+      },
+      technical: {
+        title: "How it works in production at Microsoft",
+        content: [
+          "**Data Quality Metrics**: Automated validation of data quality attributes including completeness, consistency, and accuracy",
+          "**Schema Registry**: Centralized schema management with version control and compatibility enforcement",
+          "**ETL Performance Analysis**: Profiling of extract, transform, and load jobs with bottleneck identification",
+          "**Query Optimization**: Automated query plan analysis with tuning recommendations",
+          "**Compliance Automation**: Automated scanning for PII and sensitive data with masking enforcement"
+        ]
+      },
+      implementation: [
+        "SQL query optimization with execution plan analysis",
+        "Apache Spark performance tuning for data processing jobs",
+        "Apache Iceberg for schema evolution management",
+        "Azure Data Factory monitoring and optimization"
+      ]
+    },
+    infrastructure: {
+      icon: <Server size={24} />,
+      title: "Infrastructure - System Monitoring",
+      conceptual: {
+        title: "What it does",
+        content: [
+          "Monitors compute, storage, and networking resources for threat intelligence infrastructure",
+          "Tracks resource utilization and cost optimization opportunities",
+          "Visualizes regional deployment health across global security operations centers",
+          "Manages infrastructure security posture and compliance"
+        ]
+      },
+      technical: {
+        title: "How it works in production at Microsoft",
+        content: [
+          "**Azure Monitor**: Collects and analyzes telemetry data from Azure services",
+          "**Azure Resource Graph**: Querying resource configurations across subscriptions",
+          "**Cost Management API**: Retrieving and analyzing resource costs and usage",
+          "**Azure Security Center**: Security posture management and compliance monitoring",
+          "**Capacity Planning**: Predictive scaling based on historical usage patterns"
+        ]
+      },
+      implementation: [
+        "Infrastructure as Code (Terraform, ARM templates)",
+        "Real-time resource utilization monitoring",
+        "Cost optimization recommendations",
+        "Auto-scaling configurations based on workload patterns"
+      ]
+    },
+    performance: {
+      icon: <TrendingUp size={24} />,
+      title: "Performance - Query and System Optimization",
+      conceptual: {
+        title: "What it does",
+        content: [
+          "Monitors query performance across security data stores",
+          "Analyzes system bottlenecks and resource constraints",
+          "Provides optimization recommendations for improved throughput",
+          "Tracks SLAs and performance trends over time"
+        ]
+      },
+      technical: {
+        title: "How it works in production at Microsoft",
+        content: [
+          "**Query Telemetry**: Capturing execution plans and runtime metrics for all security queries",
+          "**Resource Monitoring**: Tracking CPU, memory, I/O, and network utilization",
+          "**Index Optimization**: Analyzing index usage patterns and recommending improvements",
+          "**Caching Strategies**: Implementing and monitoring query result caching",
+          "**Anomaly Detection**: Identifying unusual performance degradation patterns"
+        ]
+      },
+      implementation: [
+        "Query performance data collection and analysis",
+        "Azure Data Explorer cluster optimization",
+        "Kusto Query Language (KQL) query tuning",
+        "Resource usage trend analysis and forecasting"
+      ]
+    },
     overview: {
       icon: <Activity size={24} />,
       title: "System Overview - Real-time Monitoring",

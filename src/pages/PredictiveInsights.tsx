@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { ThreatPrediction, ThreatType, ThreatSeverity, SecurityFeatures } from '../types';
 import HowItWorksModal from '../components/HowItWorksModal';
+import ChallengesModal from '../components/ChallengesModal';
 import InfoTooltip from '../components/InfoTooltip';
 import { getTooltipContent } from '../utils/tooltipContent';
 import styles from './PredictiveInsights.module.css';
@@ -43,6 +44,7 @@ const PredictiveInsights: React.FC = () => {
   const [showModelDetails, setShowModelDetails] = useState(false);
   const [showModelExplanation, setShowModelExplanation] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
   const [selectedThreatType, setSelectedThreatType] = useState<ThreatType | 'all'>('all');
 
   // Generate threat intelligence entities for analysis
@@ -479,6 +481,14 @@ const PredictiveInsights: React.FC = () => {
             >
               <HelpCircle size={16} />
               How does it work?
+            </button>
+            <button 
+              className={styles.howItWorksButton}
+              onClick={() => setShowChallenges(true)}
+              title="Implementation Challenges"
+            >
+              <Shield size={16} />
+              Implementation Challenges
             </button>
             <div className={styles.lastUpdate}>
               <Clock size={16} />
@@ -951,6 +961,12 @@ const PredictiveInsights: React.FC = () => {
       <HowItWorksModal 
         isOpen={showHowItWorks}
         onClose={() => setShowHowItWorks(false)}
+        section="predictiveInsights"
+      />
+      
+      <ChallengesModal
+        isOpen={showChallenges}
+        onClose={() => setShowChallenges(false)}
         section="predictiveInsights"
       />
     </div>

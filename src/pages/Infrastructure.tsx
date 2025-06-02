@@ -14,8 +14,11 @@ import {
   Network,
   Zap,
   Timer,
-  RefreshCw
+  RefreshCw,
+  HelpCircle
 } from 'lucide-react';
+import HowItWorksModal from '../components/HowItWorksModal';
+import ChallengesModal from '../components/ChallengesModal';
 import styles from './Infrastructure.module.css';
 
 interface NodeHealth {
@@ -82,6 +85,8 @@ const Infrastructure: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<NodeHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
 
   useEffect(() => {
     loadInfrastructureData();
@@ -302,7 +307,22 @@ const Infrastructure: React.FC = () => {
         <div className={styles.titleSection}>
           <Server className={styles.titleIcon} />
           <div>
-            <h1>Infrastructure Monitoring</h1>
+            <h1>Infrastructure Monitoring
+              <button 
+                className={styles.infoButton}
+                onClick={() => setShowHowItWorks(true)}
+                title="How does this system work?"
+              >
+                <HelpCircle size={18} />
+              </button>
+              <button 
+                className={`${styles.infoButton} ${styles.challengesButton}`}
+                onClick={() => setShowChallenges(true)}
+                title="Implementation Challenges"
+              >
+                <Shield size={18} />
+              </button>
+            </h1>
             <p>Real-time cluster health, security, scaling, and cost optimization</p>
           </div>
         </div>
@@ -581,6 +601,18 @@ const Infrastructure: React.FC = () => {
           </div>
         </div>
       )}
+      
+      <HowItWorksModal 
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+        section="infrastructure"
+      />
+      
+      <ChallengesModal
+        isOpen={showChallenges}
+        onClose={() => setShowChallenges(false)}
+        section="infrastructure"
+      />
     </div>
   );
 };

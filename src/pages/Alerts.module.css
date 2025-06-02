@@ -249,6 +249,17 @@
   border-color: #444;
 }
 
+.alertRow.clickable {
+  cursor: pointer;
+}
+
+.alertRow.clickable:hover {
+  border-color: #0078d4;
+  background: #252526;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 .alertRow.critical {
   border-left: 4px solid #dc3545;
 }
@@ -302,12 +313,14 @@
 }
 
 .alertMeta {
+  color: #888888;
+  font-size: 12px;
+  margin-left: auto;
+  padding-right: 16px;
   display: flex;
-  gap: 1rem;
   align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
-  font-size: 0.875rem;
-  color: #888;
 }
 
 .pipeline {
@@ -1967,6 +1980,10 @@ input:checked + .slider:before {
   font-size: 12px;
   margin-left: auto;
   padding-right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .alertActions {
@@ -1991,4 +2008,15 @@ input:checked + .slider:before {
 
 .resolveBtn:hover {
   background: #218838;
+}
+
+.acknowledgedBadge {
+  background: rgba(0, 120, 212, 0.2);
+  color: #0078d4;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid rgba(0, 120, 212, 0.3);
+  margin-left: 8px;
 }

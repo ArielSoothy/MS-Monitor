@@ -4,11 +4,14 @@ import {
   Search, 
   Check,
   HelpCircle,
-  Activity
+  Activity,
+  Shield
 } from 'lucide-react';
 import { mockAlerts, mockPipelines } from '../data/mockData';
 import type { Alert } from '../types';
 import HowItWorksModal from '../components/HowItWorksModal';
+import ChallengesModal from '../components/ChallengesModal';
+import AlertDetailsModal from '../components/AlertDetailsModal';
 import styles from './Alerts.module.css';
 
 const Alerts = memo(() => {
@@ -16,8 +19,10 @@ const Alerts = memo(() => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'active' | 'rules' | 'history' | 'correlation'>('active');
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
   const [realTimeMode, setRealTimeMode] = useState(false);
   const [newAlertCount, setNewAlertCount] = useState(0);
+  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
 
   // Show notification when new alerts arrive
   useEffect(() => {
@@ -105,6 +110,23 @@ const Alerts = memo(() => {
     return () => clearInterval(interval);
   }, [realTimeMode]);
 
+  const handleAlertClick = (alert: Alert) => {
+    setSelectedAlert(alert);
+  };
+
+  const handleResolveAlert = (alertId: string) => {
+    setAlerts(prev => prev.map(a => 
+      a.id === alertId ? { ...a, resolved: true, resolvedAt: new Date() } : a
+    ));
+    setSelectedAlert(null);
+  };
+
+  const handleAcknowledgeAlert = (alertId: string) => {
+    setAlerts(prev => prev.map(a => 
+      a.id === alertId ? { ...a, acknowledgedBy: 'Current User' } : a
+    ));
+  };
+
   return (
     <div className={styles.alertsPage}>
       <div className={styles.pageHeader}>
@@ -131,6 +153,14 @@ const Alerts = memo(() => {
           >
             <HelpCircle size={16} />
             How It Works
+          </button>
+          <button
+            onClick={() => setShowChallenges(true)}
+            className={styles.howItWorksBtn}
+            title="Implementation Challenges"
+          >
+            <Shield size={16} />
+            Implementation Challenges
           </button>
         </div>
       </div>
@@ -205,7 +235,12 @@ const Alerts = memo(() => {
                 {alerts.filter(a => !a.resolved && 
                   a.message.toLowerCase().includes(searchTerm.toLowerCase())
                 ).map(alert => (
-                  <div key={alert.id} className={`${styles.alertRow} ${styles[alert.severity]}`}>
+                  <div 
+                    key={alert.id} 
+                    className={`${styles.alertRow} ${styles[alert.severity]} ${styles.clickable}`}
+                    onClick={() => handleAlertClick(alert)}
+                    title="Click to view alert details"
+                  >
                     <div className={styles.alertContent}>
                       <AlertTriangle className={styles.severityIcon} />
                       <div className={styles.alertMessage}>
@@ -213,14 +248,23 @@ const Alerts = memo(() => {
                       </div>
                       <div className={styles.alertMeta}>
                         {new Date(alert.timestamp).toLocaleString()}
+                        {alert.acknowledgedBy && (
+                          <span className={styles.acknowledgedBadge}>
+                            Acknowledged by {alert.acknowledgedBy}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className={styles.alertActions}>
                       <button
-                        onClick={() => setAlerts(prev => prev.map(a => 
-                          a.id === alert.id ? { ...a, resolved: true, resolvedAt: new Date() } : a
-                        ))}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAlerts(prev => prev.map(a => 
+                            a.id === alert.id ? { ...a, resolved: true, resolvedAt: new Date() } : a
+                          ));
+                        }}
                         className={styles.resolveBtn}
+                        title="Resolve this alert"
                       >
                         <Check size={16} />
                         Resolve
@@ -266,6 +310,22 @@ const Alerts = memo(() => {
           isOpen={showHowItWorks}
           section="alerts"
           onClose={() => setShowHowItWorks(false)} 
+        />
+      )}
+      
+      <ChallengesModal
+        isOpen={showChallenges}
+        section="alerts"
+        onClose={() => setShowChallenges(false)}
+      />
+
+      {selectedAlert && (
+        <AlertDetailsModal
+          alert={selectedAlert}
+          isOpen={!!selectedAlert}
+          onClose={() => setSelectedAlert(null)}
+          onResolve={() => handleResolveAlert(selectedAlert.id)}
+          onAcknowledge={() => handleAcknowledgeAlert(selectedAlert.id)}
         />
       )}
     </div>

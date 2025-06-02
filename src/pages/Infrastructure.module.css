@@ -1,4 +1,3 @@
-
 .infrastructurePage {
   padding: 2rem;
   max-width: 1400px;
@@ -32,6 +31,37 @@
   font-size: 2rem;
   font-weight: 600;
   color: #ffffff;
+  display: flex;
+  align-items: center;
+}
+
+.infoButton {
+  background: none;
+  border: none;
+  color: #0078d4;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0.8;
+  margin-left: 8px;
+}
+
+.infoButton:hover {
+  background-color: rgba(0, 120, 212, 0.1);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.challengesButton {
+  color: #ff4500;
+}
+
+.challengesButton:hover {
+  background-color: rgba(255, 69, 0, 0.1);
 }
 
 .header p {

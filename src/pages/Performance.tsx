@@ -9,8 +9,12 @@ import {
   CheckCircle,
   Timer,
   BarChart3,
-  Zap
+  Zap,
+  HelpCircle,
+  Shield
 } from 'lucide-react';
+import HowItWorksModal from '../components/HowItWorksModal';
+import ChallengesModal from '../components/ChallengesModal';
 import styles from './Performance.module.css';
 
 interface QueryPerformanceMetric {
@@ -57,6 +61,8 @@ const Performance: React.FC = () => {
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<QueryPerformanceMetric | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
 
   useEffect(() => {
     loadPerformanceData();
@@ -211,7 +217,22 @@ const Performance: React.FC = () => {
         <div className={styles.titleSection}>
           <BarChart3 className={styles.titleIcon} />
           <div>
-            <h1>Performance & Optimization</h1>
+            <h1>Performance & Optimization
+              <button 
+                className={styles.infoButton}
+                onClick={() => setShowHowItWorks(true)}
+                title="How does this system work?"
+              >
+                <HelpCircle size={18} />
+              </button>
+              <button 
+                className={`${styles.infoButton} ${styles.challengesButton}`}
+                onClick={() => setShowChallenges(true)}
+                title="Implementation Challenges"
+              >
+                <Shield size={18} />
+              </button>
+            </h1>
             <p>Real-time query performance, system health, and optimization insights</p>
           </div>
         </div>
@@ -401,6 +422,18 @@ const Performance: React.FC = () => {
           </div>
         </div>
       )}
+      
+      <HowItWorksModal 
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+        section="performance"
+      />
+      
+      <ChallengesModal
+        isOpen={showChallenges}
+        onClose={() => setShowChallenges(false)}
+        section="performance"
+      />
     </div>
   );
 };
