@@ -32,11 +32,13 @@
   color: #ffffff;
 }
 
+/* Navigation list with overflow handling for scrolling when content exceeds container height */
 .navList {
   list-style: none;
   padding: 0;
   margin: 0;
   flex: 1;
+  overflow-y: auto; /* Fix: Added scrolling for navigation overflow */
 }
 
 .navLink {

@@ -108,6 +108,7 @@ export interface Alert {
   acknowledgedBy?: string;
   description?: string;
   actions?: string[];
+  category: string;
   // Enhanced enterprise features
   logReferences: LogReference[];
   pointOfContact: {

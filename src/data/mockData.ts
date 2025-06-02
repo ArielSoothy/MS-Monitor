@@ -758,30 +758,122 @@ export function generateMockAlerts(pipelines: Pipeline[]): Alert[] {
   const alerts: Alert[] = [];
   let idCounter = 1;
 
-  const alertMessages = [
-    'High failure rate detected',
-    'Processing time exceeded threshold',
-    'Data source unavailable',
-    'Authentication failure',
-    'Memory usage critical',
-    'Disk space running low',
-    'Network connectivity issues',
-    'Rate limit exceeded',
-    'Suspicious activity detected',
-    'Data quality issues found'
-  ];
+  // Organized alert categories for Microsoft MSTIC interview demo
+  const alertCategories = {
+    infrastructure: [
+      {
+        message: 'ThreatIntel pipeline failure - IOC ingestion stopped',
+        description: 'Critical threat intelligence pipeline has failed 3 consecutive runs. Zero IOCs ingested in last 45 minutes. Downstream security tools affected.',
+        severity: 'critical' as const,
+        category: 'Infrastructure'
+      },
+      {
+        message: 'High memory usage - LinkedIn analytics pipeline',
+        description: 'Memory consumption at 94% for 12 minutes. Risk of OOM killer activation. Large dataset processing detected.',
+        severity: 'high' as const,
+        category: 'Infrastructure'
+      },
+      {
+        message: 'API rate limit exceeded - Twitter feed',
+        description: 'Twitter API rate limit reached (300 req/15min). Data ingestion throttled. Consider upgrading API tier.',
+        severity: 'medium' as const,
+        category: 'Infrastructure'
+      }
+    ],
+    internalUser: [
+      {
+        message: 'Privilege escalation detected - Admin role granted',
+        description: 'User john.doe@microsoft.com elevated to Global Admin at 02:30 AM. Unusual time detected. Previous role: Security Reader.',
+        severity: 'high' as const,
+        category: 'Internal User Security'
+      },
+      {
+        message: 'Large data export - Threat intelligence download',
+        description: 'User exported 2.3GB of classified threat intelligence data. Export size 10x larger than baseline.',
+        severity: 'medium' as const,
+        category: 'Internal User Security'
+      }
+    ],
+    externalUser: [
+      {
+        message: 'Brute force detected - Multiple failed logins',
+        description: 'Source IP 192.168.1.100 attempted 47 login failures in 5 minutes. Targeting admin accounts.',
+        severity: 'high' as const,
+        category: 'External Threat'
+      },
+      {
+        message: 'Suspicious geolocation - Login from Iran',
+        description: 'Admin user logged in from Tehran, Iran. Previous location: Tel Aviv, Israel (impossible travel time: 2 hours).',
+        severity: 'critical' as const,
+        category: 'External Threat'
+      }
+    ],
+    aiAnomaly: [
+      {
+        message: 'Anomalous user behavior - Unusual access pattern',
+        description: 'ML model detected 3.2 standard deviations from user baseline. Pattern: login → role change → bulk data access.',
+        severity: 'medium' as const,
+        category: 'AI/ML Anomaly'
+      },
+      {
+        message: 'Data volume spike detected - 500% increase',
+        description: 'Threat feed processing volume increased 5x without scheduled batch job. Possible data poisoning attack.',
+        severity: 'high' as const,
+        category: 'AI/ML Anomaly'
+      }
+    ],
+    dataAccess: [
+      {
+        message: 'Sensitive data access - Classified threat actor profiles',
+        description: 'Unauthorized access to CLASSIFIED threat actor database. User lacks required security clearance.',
+        severity: 'critical' as const,
+        category: 'Data Access'
+      },
+      {
+        message: 'Query anomaly - SELECT * on production database',
+        description: 'Full table scan detected on 50TB threat intelligence database. Query will impact production performance.',
+        severity: 'high' as const,
+        category: 'Data Access'
+      }
+    ],
+    dataEngineering: [
+      {
+        message: 'Schema drift detected - Missing required fields',
+        description: 'LinkedIn data source schema changed. Missing fields: threat_level, actor_attribution. 45% of records affected.',
+        severity: 'high' as const,
+        category: 'Data Quality'
+      },
+      {
+        message: 'Duplicate records detected - 15% duplication rate',
+        description: 'IOC deduplication threshold exceeded. Duplicate rate: 15.2% (threshold: 10%). Data quality compromised.',
+        severity: 'medium' as const,
+        category: 'Data Quality'
+      },
+      {
+        message: 'Late arriving data - SLA breach imminent',
+        description: 'Government threat feed delayed 4.2 hours. SLA requirement: <2 hours. Critical threat indicators may be missed.',
+        severity: 'high' as const,
+        category: 'Data Quality'
+      }
+    ],
+    geopolitical: [
+      {
+        message: 'Nation-state threat detected - APT targeting',
+        description: 'Iranian APT group "Charming Kitten" detected targeting Israeli infrastructure. Active campaign in progress.',
+        severity: 'critical' as const,
+        category: 'Geopolitical Threat'
+      }
+    ]
+  };
 
-  const descriptions = [
-    'Pipeline has exceeded the configured failure rate threshold of 10%',
-    'Average processing time has exceeded 60 minutes for the last 3 consecutive runs',
-    'Unable to connect to data source for more than 30 minutes',
-    'Authentication credentials have expired or are invalid',
-    'Memory usage has exceeded 90% for more than 15 minutes',
-    'Available disk space is below 10% threshold',
-    'Network latency has exceeded acceptable limits',
-    'API rate limit has been exceeded, throttling requests',
-    'Unusual patterns detected in data processing',
-    'Data validation checks have failed multiple times'
+  const alertTemplates: Array<{message: string, description: string, severity: 'low' | 'medium' | 'high' | 'critical', category: string}> = [
+    ...alertCategories.infrastructure,
+    ...alertCategories.internalUser,
+    ...alertCategories.externalUser,
+    ...alertCategories.aiAnomaly,
+    ...alertCategories.dataAccess,
+    ...alertCategories.dataEngineering,
+    ...alertCategories.geopolitical
   ];
 
   const msticTeams = [
@@ -792,7 +884,7 @@ export function generateMockAlerts(pipelines: Pipeline[]): Alert[] {
     { team: 'Infrastructure', contact: 'David Brown', email: 'david.brown@microsoft.com', slack: '#infra-ops' }
   ];
 
-  const generateEnhancedAlertData = (pipeline: Pipeline, severity: string, messageIndex: number) => {
+  const generateEnhancedAlertData = (pipeline: Pipeline, severity: string, alertTemplate: typeof alertTemplates[0]) => {
     const team = msticTeams[Math.floor(Math.random() * msticTeams.length)];
     const correlationId = `corr-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
@@ -843,7 +935,7 @@ export function generateMockAlerts(pipelines: Pipeline[]): Alert[] {
         ]
       },
       alertContext: {
-        alertRule: `rule-${messageIndex + 1}`,
+        alertRule: `rule-${alertTemplate.category.toLowerCase().replace(/\s+/g, '-')}`,
         triggerCondition: severity === 'critical' ? 'failure_rate > 15%' : 'processing_time > 60min',
         threshold: severity === 'critical' ? 15 : 60,
         actualValue: severity === 'critical' ? Math.floor(Math.random() * 30) + 16 : Math.floor(Math.random() * 120) + 61,
@@ -852,55 +944,66 @@ export function generateMockAlerts(pipelines: Pipeline[]): Alert[] {
     };
   };
 
-  // Generate alerts for failed and warning pipelines
-  pipelines
-    .filter(p => p.status === 'failed' || p.status === 'warning')
-    .forEach(pipeline => {
-      if (Math.random() < 0.7) { // 70% chance of having an alert
-        const severity = pipeline.status === 'failed' ? 
-          (Math.random() < 0.5 ? 'critical' : 'high') :
-          (Math.random() < 0.5 ? 'medium' : 'low');
-        
-        const messageIndex = Math.floor(Math.random() * alertMessages.length);
-        const isResolved = Math.random() < 0.3; // 30% chance of being resolved
-        const timestamp = getRandomDate(3);
-        const enhancedData = generateEnhancedAlertData(pipeline, severity, messageIndex);
-        
-        alerts.push({
-          id: `alert-${idCounter++}`,
-          pipelineId: pipeline.id,
-          severity: severity as 'low' | 'medium' | 'high' | 'critical',
-          message: alertMessages[messageIndex],
-          description: descriptions[messageIndex],
-          timestamp,
-          resolved: isResolved,
-          resolvedAt: isResolved ? new Date(timestamp.getTime() + Math.random() * 2 * 24 * 60 * 60 * 1000) : undefined,
-          acknowledgedBy: isResolved && Math.random() < 0.8 ? 'admin@microsoft.com' : undefined,
-          actions: ['Investigate', 'Acknowledge', 'Dismiss'],
-          ...enhancedData
-        });
-      }
-    });
+  // Create focused set of alerts - one for each major category
+  alertTemplates.forEach((template, index) => {
+    // Select appropriate pipeline based on alert type
+    let selectedPipeline = pipelines[0]; // default
+    
+    if (template.category === 'Infrastructure' && template.message.includes('ThreatIntel')) {
+      selectedPipeline = pipelines.find(p => p.source === 'ThreatIntel') || pipelines[0];
+    } else if (template.category === 'Infrastructure' && template.message.includes('LinkedIn')) {
+      selectedPipeline = pipelines.find(p => p.source === 'LinkedIn') || pipelines[0];
+    } else if (template.category === 'Infrastructure' && template.message.includes('Twitter')) {
+      selectedPipeline = pipelines.find(p => p.source === 'Twitter') || pipelines[0];
+    } else if (template.category === 'External Threat' || template.category === 'Internal User Security') {
+      selectedPipeline = pipelines.find(p => p.source === 'AzureAD') || pipelines[0];
+    } else if (template.category === 'Data Access') {
+      selectedPipeline = pipelines.find(p => p.source === 'Office365') || pipelines[0];
+    } else if (template.category === 'Data Quality') {
+      selectedPipeline = pipelines.find(p => p.source === 'LinkedIn') || pipelines[0];
+    } else if (template.category === 'Geopolitical Threat') {
+      selectedPipeline = pipelines.find(p => p.source === 'ThreatIntel') || pipelines[0];
+    }
 
-  // Add some additional resolved alerts for history
-  for (let i = 0; i < 15; i++) {
+    const isResolved = index % 4 === 0; // 25% resolved for variety
+    const timestamp = getRandomDate(1); // Within last day for relevance
+    const enhancedData = generateEnhancedAlertData(selectedPipeline, template.severity, template);
+    
+    alerts.push({
+      id: `alert-${idCounter++}`,
+      pipelineId: selectedPipeline.id,
+      severity: template.severity,
+      message: template.message,
+      description: template.description,
+      category: template.category,
+      timestamp,
+      resolved: isResolved,
+      resolvedAt: isResolved ? new Date(timestamp.getTime() + Math.random() * 4 * 60 * 60 * 1000) : undefined,
+      acknowledgedBy: isResolved && Math.random() < 0.8 ? 'admin@microsoft.com' : undefined,
+      actions: ['Investigate', 'Acknowledge', 'Escalate', 'Create Incident'],
+      ...enhancedData
+    });
+  });
+
+  // Add a few additional historical alerts for trend analysis
+  for (let i = 0; i < 8; i++) {
+    const template = alertTemplates[Math.floor(Math.random() * alertTemplates.length)];
     const pipeline = pipelines[Math.floor(Math.random() * pipelines.length)];
-    const messageIndex = Math.floor(Math.random() * alertMessages.length);
     const timestamp = getRandomDate(7);
-    const severity = ['low', 'medium', 'high', 'critical'][Math.floor(Math.random() * 4)];
-    const enhancedData = generateEnhancedAlertData(pipeline, severity, messageIndex);
+    const enhancedData = generateEnhancedAlertData(pipeline, template.severity, template);
     
     alerts.push({
       id: `alert-${idCounter++}`,
       pipelineId: pipeline.id,
-      severity: severity as any,
-      message: alertMessages[messageIndex],
-      description: descriptions[messageIndex],
+      severity: template.severity,
+      message: template.message,
+      description: template.description,
+      category: template.category,
       timestamp,
       resolved: true,
-      resolvedAt: new Date(timestamp.getTime() + Math.random() * 2 * 24 * 60 * 60 * 1000),
+      resolvedAt: new Date(timestamp.getTime() + Math.random() * 6 * 60 * 60 * 1000),
       acknowledgedBy: Math.random() < 0.8 ? 'admin@microsoft.com' : undefined,
-      actions: ['Investigate', 'Acknowledge', 'Dismiss'],
+      actions: ['Investigate', 'Acknowledge', 'Escalate', 'Create Incident'],
       ...enhancedData
     });
   }
@@ -911,58 +1014,139 @@ export function generateMockAlerts(pipelines: Pipeline[]): Alert[] {
 export function generateAlertRules(): AlertRule[] {
   return [
     {
-      id: 'rule-1',
-      name: 'Pipeline Failure Rate',
-      description: 'Pipeline failure rate exceeds 10%',
+      id: 'rule-infra-failure',
+      name: 'Critical Pipeline Failure',
+      description: 'Pipeline failure rate exceeds 15% or consecutive failures > 3',
       enabled: true,
       type: 'failure_rate',
-      threshold: 10,
-      severity: 'high'
-    },
-    {
-      id: 'rule-2',
-      name: 'No Data Received',
-      description: 'No data received for more than 30 minutes',
-      enabled: true,
-      type: 'timeout',
-      timeWindow: 30,
+      threshold: 15,
       severity: 'critical'
     },
     {
-      id: 'rule-3',
-      name: 'Processing Time Threshold',
-      description: 'Processing time exceeds 60 minutes',
+      id: 'rule-memory-high',
+      name: 'High Memory Usage',
+      description: 'Memory usage exceeds 90% for more than 10 minutes',
       enabled: true,
-      type: 'threshold',
-      threshold: 60,
-      severity: 'medium'
-    },
-    {
-      id: 'rule-4',
-      name: 'Memory Usage Critical',
-      description: 'Memory usage exceeds 90%',
-      enabled: false,
       type: 'threshold',
       threshold: 90,
-      severity: 'critical'
+      severity: 'high'
     },
     {
-      id: 'rule-5',
-      name: 'Disk Space Low',
-      description: 'Available disk space below 10%',
+      id: 'rule-api-rate-limit',
+      name: 'API Rate Limit Exceeded',
+      description: 'External API rate limit reached - ingestion throttled',
+      enabled: true,
+      type: 'threshold',
+      threshold: 100,
+      severity: 'medium'
+    },
+    {
+      id: 'rule-privilege-escalation',
+      name: 'Unusual Privilege Escalation',
+      description: 'Admin privileges granted outside business hours',
+      enabled: true,
+      type: 'threshold',
+      threshold: 1,
+      severity: 'high'
+    },
+    {
+      id: 'rule-data-export-large',
+      name: 'Large Data Export',
+      description: 'Data export size exceeds 1GB threshold',
+      enabled: true,
+      type: 'threshold',
+      threshold: 1024,
+      severity: 'medium'
+    },
+    {
+      id: 'rule-brute-force',
+      name: 'Brute Force Attack',
+      description: 'Multiple failed login attempts from single IP',
       enabled: true,
       type: 'threshold',
       threshold: 10,
       severity: 'high'
     },
     {
-      id: 'rule-6',
-      name: 'Authentication Failures',
-      description: 'Multiple authentication failures detected',
+      id: 'rule-impossible-travel',
+      name: 'Impossible Travel Detection',
+      description: 'User login from geographically impossible location',
       enabled: true,
       type: 'threshold',
-      threshold: 5,
+      threshold: 1,
+      severity: 'critical'
+    },
+    {
+      id: 'rule-ml-anomaly',
+      name: 'ML Behavioral Anomaly',
+      description: 'User behavior deviates >3 standard deviations from baseline',
+      enabled: true,
+      type: 'threshold',
+      threshold: 3,
       severity: 'medium'
+    },
+    {
+      id: 'rule-data-volume-spike',
+      name: 'Unexpected Data Volume Spike',
+      description: 'Data processing volume exceeds 200% of baseline',
+      enabled: true,
+      type: 'threshold',
+      threshold: 200,
+      severity: 'high'
+    },
+    {
+      id: 'rule-sensitive-data-access',
+      name: 'Unauthorized Sensitive Data Access',
+      description: 'Access to classified/restricted data without clearance',
+      enabled: true,
+      type: 'threshold',
+      threshold: 1,
+      severity: 'critical'
+    },
+    {
+      id: 'rule-full-table-scan',
+      name: 'Performance-Impacting Query',
+      description: 'Full table scan on production database detected',
+      enabled: true,
+      type: 'threshold',
+      threshold: 1,
+      severity: 'high'
+    },
+    {
+      id: 'rule-schema-drift',
+      name: 'Data Schema Drift',
+      description: 'Schema changes affecting >25% of incoming records',
+      enabled: true,
+      type: 'threshold',
+      threshold: 25,
+      severity: 'high'
+    },
+    {
+      id: 'rule-duplicate-data',
+      name: 'Data Quality - Duplicates',
+      description: 'Duplicate record threshold exceeded (>10%)',
+      enabled: true,
+      type: 'threshold',
+      threshold: 10,
+      severity: 'medium'
+    },
+    {
+      id: 'rule-sla-breach',
+      name: 'SLA Breach Imminent',
+      description: 'Data processing delay approaching SLA limits',
+      enabled: true,
+      type: 'timeout',
+      timeWindow: 120,
+      severity: 'high'
+    },
+    {
+      id: 'rule-nation-state-threat',
+      name: 'Nation-State Threat Detection',
+      description: 'Advanced persistent threat or nation-state activity detected',
+      enabled: true,
+      type: 'threshold',
+      threshold: 1,
+      severity: 'critical'
     }
   ];
 }
