@@ -48,16 +48,11 @@ const PredictiveInsights: React.FC = () => {
   const generateUserProfiles = (): ThreatPrediction[] => {
     const departments = ['Engineering', 'Sales', 'Marketing', 'Finance', 'HR', 'IT', 'Legal', 'Operations'];
     const roles = ['Engineer', 'Manager', 'Director', 'Analyst', 'Coordinator', 'Specialist', 'Admin', 'Executive'];
-    const names = [
-      'Sarah Chen', 'Michael Rodriguez', 'Emma Thompson', 'David Kim', 'Lisa Wang',
-      'James Wilson', 'Maria Garcia', 'Alex Johnson', 'Rachel Brown', 'Chris Lee',
-      'Jennifer Davis', 'Mark Taylor', 'Anna Petrov', 'Robert Miller', 'Grace Liu',
-      'John Anderson', 'Sophie Martin', 'Daniel Cohen', 'Elena Rossi', 'Thomas Singh',
-      'Kate Murphy', 'Ryan O\'Connor', 'Maya Patel', 'Lucas Weber', 'Zoe Adams'
-    ];
+    // Generate anonymized user IDs instead of real names for privacy
+    const userCount = 25;
 
-    return names.map((name, index) => {
-      const userId = `user${index + 1000}`;
+    return Array.from({ length: userCount }, (_, index) => {
+      const userId = `user${(index + 1000).toString().padStart(4, '0')}`;
       const department = departments[Math.floor(seededRandom(`${userId}-dept`) * departments.length)];
       const role = roles[Math.floor(seededRandom(`${userId}-role`) * roles.length)];
       
@@ -131,7 +126,7 @@ const PredictiveInsights: React.FC = () => {
 
       return {
         userId,
-        userDisplayName: name,
+        userDisplayName: userId, // Use anonymized user ID instead of real names
         department,
         role,
         threatType,
@@ -704,10 +699,24 @@ const PredictiveInsights: React.FC = () => {
                   {Object.entries(selectedPrediction.features).map(([feature, value]) => (
                     <div key={feature} className={styles.featureCard}>
                       <div className={styles.featureName}>
-                        {feature.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        {feature.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).replace(/\b\w/g, l => l.toUpperCase())}
                       </div>
                       <div className={styles.featureValue}>
-                        {typeof value === 'number' ? value.toFixed(1) : value}
+                        {(() => {
+                          if (typeof value !== 'number') return value;
+                          
+                          // Format specific features with appropriate units
+                          if (feature.includes('Frequency')) return `${value}/day`;
+                          if (feature.includes('Volume')) return `${value.toFixed(1)} GB`;
+                          if (feature.includes('Activity') || feature.includes('Usage')) return `${value.toFixed(0)}%`;
+                          if (feature.includes('Anomaly') && value > 0) return `${value.toFixed(0)} km`;
+                          if (feature.includes('Attempts')) return `${value} attempts`;
+                          if (feature.includes('Count')) return `${value} devices`;
+                          if (feature.includes('Age')) return `${value} days`;
+                          if (feature.includes('Level')) return `Level ${value}`;
+                          
+                          return value.toFixed(1);
+                        })()}
                       </div>
                     </div>
                   ))}

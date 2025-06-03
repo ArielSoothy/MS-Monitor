@@ -570,7 +570,7 @@
   }
 }
 
-.threatModalHeader {
+.modalHeader {
   padding: 24px;
   border-bottom: 1px solid #404040;
   display: flex;
@@ -580,7 +580,7 @@
   position: relative;
 }
 
-.threatModalHeader::before {
+.modalHeader::before {
   content: '';
   position: absolute;
   top: 0;
@@ -590,605 +590,88 @@
   background: linear-gradient(90deg, #0078d4, #00bcf2);
 }
 
-.threatSummary {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.threatIcon {
-  padding: 12px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.threatIcon.critical {
-  background: rgba(255, 71, 87, 0.2);
-  color: #ff6b7a;
-  border: 1px solid rgba(255, 71, 87, 0.4);
-}
-
-.threatIcon.warning {
-  background: rgba(255, 165, 2, 0.2);
-  color: #ffa502;
-  border: 1px solid rgba(255, 165, 2, 0.4);
-}
-
-.threatIcon.medium {
-  background: rgba(255, 193, 7, 0.2);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.4);
-}
-
-.threatIcon.healthy {
-  background: rgba(38, 222, 129, 0.2);
-  color: #26de81;
-  border: 1px solid rgba(38, 222, 129, 0.4);
-}
-
-.threatHeaderInfo h2 {
-  margin: 0 0 8px 0;
-  color: #ffffff;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.threatMeta {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.severityBadge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.severityBadge.critical {
-  background: rgba(255, 71, 87, 0.25);
-  color: #ff6b7a;
-  border: 1px solid rgba(255, 71, 87, 0.4);
-  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.2);
-}
-
-.severityBadge.high {
-  background: rgba(255, 99, 72, 0.25);
-  color: #ff7961;
-  border: 1px solid rgba(255, 99, 72, 0.4);
-  box-shadow: 0 2px 8px rgba(255, 99, 72, 0.2);
-}
-
-.severityBadge.medium {
-  background: rgba(255, 193, 7, 0.25);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.4);
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
-}
-
-.severityBadge.low {
-  background: rgba(38, 222, 129, 0.25);
-  color: #26de81;
-  border: 1px solid rgba(38, 222, 129, 0.4);
-  box-shadow: 0 2px 8px rgba(38, 222, 129, 0.2);
-}
-
-.threatType {
-  padding: 4px 8px;
-  background: rgba(0, 120, 212, 0.15);
-  color: #0078d4;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.confidenceScore {
-  padding: 4px 8px;
-  background: rgba(116, 125, 140, 0.15);
-  color: #747d8c;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.threatModalBody {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
-}
-
-.threatsTabsContent {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.threatSection {
-  background: #1a1a1a;
-  border: 1px solid #404040;
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.threatSection h3 {
-  margin: 0 0 16px 0;
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.riskGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.riskCard {
-  background: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 8px;
-  padding: 16px;
-  text-align: center;
-}
-
-.riskLabel {
-  color: #a0a0a0;
-  font-size: 12px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-}
-
-.riskValue {
+.modalHeader h2 {
+  margin: 0;
   color: #ffffff;
   font-size: 20px;
   font-weight: 600;
 }
 
-.riskValue.critical {
-  color: #ff6b7a;
-}
-
-.riskValue.warning {
-  color: #ffa502;
-}
-
-.riskValue.medium {
-  color: #ffc107;
-}
-
-.riskValue.healthy {
-  color: #26de81;
-}
-
-.indicatorsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-}
-
-.indicatorCard {
-  background: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 6px;
-  padding: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.indicatorName {
-  color: #a0a0a0;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.indicatorValue {
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.decisionAnalysis {
+/* Modal Body */
+.modalBody {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
-.decisionPathContainer h4,
-.reasoningContainer h4 {
-  margin: 0 0 12px 0;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.decisionPath {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.decisionStep {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 12px;
-  background: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 6px;
-}
-
-.stepNumber {
-  background: #0078d4;
-  color: #ffffff;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.stepText {
-  color: #ffffff;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.reasoningList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.reasoningItem {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 10px 12px;
-  background: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 6px;
-}
-
-.reasoningBullet {
-  color: #0078d4;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.reasoningText {
-  color: #ffffff;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.actionsContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.actionItem {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 12px;
-  background: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 6px;
-}
-
-.actionPriority {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-
-.actionPriority.high {
-  background: rgba(255, 71, 87, 0.25);
-  color: #ff6b7a;
-  border: 1px solid rgba(255, 71, 87, 0.4);
-}
-
-.actionPriority.medium {
-  background: rgba(255, 193, 7, 0.25);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.4);
-}
-
-.actionPriority.low {
-  background: rgba(38, 222, 129, 0.25);
-  color: #26de81;
-  border: 1px solid rgba(38, 222, 129, 0.4);
-}
-
-.actionText {
-  color: #ffffff;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  color: #a0a0a0;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.closeButton:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-}
-
-/* Enhanced Threat Details Modal Styles */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-  backdrop-filter: blur(4px);
-}
-
-.threatModal {
-  background: #2d2d2d;
-  border: 1px solid #404040;
+/* Prediction Result */
+.predictionResult {
   border-radius: 12px;
-  width: 90%;
-  max-width: 1200px;
-  max-height: 90vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-  animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.threatModalHeader {
-  padding: 24px;
-  border-bottom: 1px solid #404040;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  padding: 20px;
   background: #1a1a1a;
-  position: relative;
+  border: 1px solid #404040;
 }
 
-.threatModalHeader::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #0078d4, #00bcf2);
-}
-
-.threatSummary {
-  display: flex;
+/* Threat Info Display */
+.threatInfo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
-  align-items: flex-start;
 }
 
-.threatIcon {
-  padding: 12px;
-  border-radius: 8px;
+.threatTypeDisplay {
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.threatIcon.critical {
-  background: rgba(255, 71, 87, 0.2);
-  color: #ff6b7a;
-  border: 1px solid rgba(255, 71, 87, 0.4);
-}
-
-.threatIcon.warning {
-  background: rgba(255, 165, 2, 0.2);
-  color: #ffa502;
-  border: 1px solid rgba(255, 165, 2, 0.4);
-}
-
-.threatIcon.medium {
-  background: rgba(255, 193, 7, 0.2);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.4);
-}
-
-.threatIcon.healthy {
-  background: rgba(38, 222, 129, 0.2);
-  color: #26de81;
-  border: 1px solid rgba(38, 222, 129, 0.4);
-}
-
-.threatHeaderInfo h2 {
-  margin: 0 0 8px 0;
-  color: #ffffff;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.threatMeta {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.severityBadge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.severityBadge.critical {
-  background: rgba(255, 71, 87, 0.25);
-  color: #ff6b7a;
-  border: 1px solid rgba(255, 71, 87, 0.4);
-  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.2);
-}
-
-.severityBadge.high {
-  background: rgba(255, 99, 72, 0.25);
-  color: #ff7961;
-  border: 1px solid rgba(255, 99, 72, 0.4);
-  box-shadow: 0 2px 8px rgba(255, 99, 72, 0.2);
-}
-
-.severityBadge.medium {
-  background: rgba(255, 193, 7, 0.25);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.4);
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
-}
-
-.severityBadge.low {
-  background: rgba(38, 222, 129, 0.25);
-  color: #26de81;
-  border: 1px solid rgba(38, 222, 129, 0.4);
-  box-shadow: 0 2px 8px rgba(38, 222, 129, 0.2);
-}
-
-.threatType {
-  padding: 4px 8px;
+  gap: 8px;
+  padding: 8px 12px;
   background: rgba(0, 120, 212, 0.15);
   color: #0078d4;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: 6px;
+  font-weight: 600;
+  width: fit-content;
 }
 
-.confidenceScore {
-  padding: 4px 8px;
-  background: rgba(116, 125, 140, 0.15);
-  color: #747d8c;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+.severityDisplay {
+  font-weight: 600;
+  color: #ffffff;
 }
 
-.threatModalBody {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
+.riskScoreDisplay {
+  font-weight: 600;
+  color: #ffffff;
 }
 
-.threatsTabsContent {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.confidenceDisplay {
+  font-weight: 600;
+  color: #ffffff;
 }
 
-.threatSection {
+/* Behavioral Analysis */
+.behavioralAnalysis {
   background: #1a1a1a;
   border: 1px solid #404040;
   border-radius: 8px;
   padding: 20px;
 }
 
-.threatSection h3 {
+.behavioralAnalysis h3 {
   margin: 0 0 16px 0;
   color: #ffffff;
   font-size: 18px;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
-.riskGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.riskCard {
-  background: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 8px;
-  padding: 16px;
-  text-align: center;
-}
-
-.riskLabel {
-  color: #a0a0a0;
-  font-size: 12px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-}
-
-.riskValue {
-  color: #ffffff;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.riskValue.critical {
-  color: #ff6b7a;
-}
-
-.riskValue.warning {
-  color: #ffa502;
-}
-
-.riskValue.medium {
-  color: #ffc107;
-}
-
-.riskValue.healthy {
-  color: #26de81;
-}
-
-.indicatorsGrid {
+/* Feature Grid */
+.featureGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
 }
 
-.indicatorCard {
+.featureCard {
   background: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 6px;
@@ -1198,159 +681,17 @@
   align-items: center;
 }
 
-.indicatorName {
-  color: #a0a0a0;
+.featureName {
+  color: #cccccc;
   font-size: 12px;
   font-weight: 500;
+  text-transform: capitalize;
 }
 
-.indicatorValue {
+.featureValue {
   color: #ffffff;
-  font-size: 14px;
   font-weight: 600;
-}
-
-.decisionAnalysis {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.decisionPathContainer h4,
-.reasoningContainer h4 {
-  margin: 0 0 12px 0;
-  color: #ffffff;
   font-size: 14px;
-  font-weight: 600;
 }
 
-.decisionPath {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.decisionStep {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 12px;
-  background: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 6px;
-}
-
-.stepNumber {
-  background: #0078d4;
-  color: #ffffff;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.stepText {
-  color: #ffffff;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.reasoningList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.reasoningItem {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 10px 12px;
-  background: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 6px;
-}
-
-.reasoningBullet {
-  color: #0078d4;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.reasoningText {
-  color: #ffffff;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.actionsContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.actionItem {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 12px;
-  background: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 6px;
-}
-
-.actionPriority {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-
-.actionPriority.high {
-  background: rgba(255, 71, 87, 0.25);
-  color: #ff6b7a;
-  border: 1px solid rgba(255, 71, 87, 0.4);
-}
-
-.actionPriority.medium {
-  background: rgba(255, 193, 7, 0.25);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.4);
-}
-
-.actionPriority.low {
-  background: rgba(38, 222, 129, 0.25);
-  color: #26de81;
-  border: 1px solid rgba(38, 222, 129, 0.4);
-}
-
-.actionText {
-  color: #ffffff;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  color: #a0a0a0;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.closeButton:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-}
+/* ...existing code... */
