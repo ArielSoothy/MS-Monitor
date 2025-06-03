@@ -17,6 +17,18 @@
   position: relative;
 }
 
+/* Mobile layout adjustments */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding-top: 70px; /* Account for fixed mobile nav height */
+  }
+}
+
 /* Page loading container */
 .page-loading {
   padding: 2rem;

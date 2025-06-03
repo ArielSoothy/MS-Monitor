@@ -14,6 +14,7 @@
 .brand {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 1.5rem 1rem;
   border-bottom: 1px solid #333;
   background: #252526;
@@ -30,6 +31,28 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: #ffffff;
+  flex: 1;
+}
+
+.mobileMenuButton {
+  display: none;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.mobileMenuButton:hover {
+  background: #3c3c3c;
+}
+
+.navContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 /* Navigation list with overflow handling for scrolling when content exceeds container height */
@@ -124,32 +147,76 @@
   .navigation {
     width: 100%;
     height: auto;
-    position: relative;
-    flex-direction: row;
-    overflow-x: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    z-index: 1001;
   }
   
   .brand {
-    min-width: 200px;
-    border-right: 1px solid #333;
-    border-bottom: none;
+    min-width: auto;
+    border-right: none;
+    border-bottom: 1px solid #333;
+  }
+  
+  .mobileMenuButton {
+    display: block;
+  }
+  
+  .navContent {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1e1e1e;
+    border-bottom: 1px solid #333;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+  }
+  
+  .navContent.mobileMenuOpen {
+    display: flex;
   }
   
   .navList {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    padding: 0;
   }
   
   .navLink {
-    white-space: nowrap;
-    min-width: 120px;
-    justify-content: center;
+    padding: 1rem;
     border-left: none;
-    border-bottom: 3px solid transparent;
+    border-bottom: 1px solid #333;
+    justify-content: flex-start;
   }
   
   .navLink.active {
     border-left: none;
-    border-bottom-color: #0078d4;
+    border-bottom-color: #333;
+    background: #094771;
+  }
+  
+  .navActions {
+    flex-direction: row;
+    padding: 1rem;
+    border-top: 1px solid #333;
+    gap: 0.5rem;
+  }
+  
+  .actionButton {
+    flex: 1;
+  }
+}
+
+/* Adjust main content for mobile navigation */
+@media (max-width: 768px) {
+  :global(.main-content) {
+    margin-left: 0;
+    padding-top: 70px; /* Account for fixed mobile nav height */
   }
 }

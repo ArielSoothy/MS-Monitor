@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Zap, TrendingUp, Cpu, GitBranch, Workflow, Code } from 'lucide-react';
+import { BarChart3, Database, AlertTriangle, Activity, Shield, Info, Keyboard, Zap, TrendingUp, Cpu, GitBranch, Workflow, Code, Menu, X } from 'lucide-react';
 import { mockAlerts } from '../data/mockData';
 import AboutModal from './AboutModal';
 import KeyboardHelpModal from './KeyboardHelpModal';
@@ -10,6 +10,7 @@ import styles from './Navigation.module.css';
 const Navigation = () => {
   const [showAbout, setShowAbout] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Calculate active alerts count
   const activeAlertsCount = mockAlerts.filter(alert => !alert.resolved).length;
@@ -28,10 +29,26 @@ const Navigation = () => {
         action: () => {
           setShowAbout(false);
           setShowKeyboardHelp(false);
+          setIsMobileMenuOpen(false);
         }
       }
     ]
   });
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (isMobileMenuOpen && !target.closest(`.${styles.navigation}`)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [isMobileMenuOpen]);
 
   const keyboardShortcuts = [
     { key: '?', description: 'Show keyboard shortcuts' },
@@ -56,154 +73,180 @@ const Navigation = () => {
         <div className={styles.brand}>
           <Shield className={styles.brandIcon} />
           <span className={styles.brandText}>MSTIC Monitor</span>
+          <button 
+            className={styles.mobileMenuButton}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
         
-        <ul className={styles.navList}>
-          <li>
-            <NavLink 
-              to="/overview" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <BarChart3 className={styles.navIcon} />
-              Overview
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/pipelines" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <Activity className={styles.navIcon} />
-              Pipelines
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/data-lineage" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <Database className={styles.navIcon} />
-              Data Lineage
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/predictive-insights" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <Shield className={styles.navIcon} />
-              Threat Prediction
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/ai-agent" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <Zap className={styles.navIcon} />
-              AI Agent
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/performance" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <TrendingUp className={styles.navIcon} />
-              Performance
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/infrastructure" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <Cpu className={styles.navIcon} />
-              Infrastructure
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/data-engineering" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <GitBranch className={styles.navIcon} />
-              Data Engineering
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/implementation-guide" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <Workflow className={styles.navIcon} />
-              Implementation Guide
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/technical-challenges" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <Code className={styles.navIcon} />
-              Technical Challenges
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/alerts" 
-              className={({ isActive }) => 
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-            >
-              <div className={styles.navLinkContent}>
-                <AlertTriangle className={styles.navIcon} />
-                Alerts
-                {activeAlertsCount > 0 && (
-                  <span className={styles.notificationBadge}>
-                    {activeAlertsCount > 99 ? '99+' : activeAlertsCount}
-                  </span>
-                )}
-              </div>
-            </NavLink>
-          </li>
-        </ul>
+        <div className={`${styles.navContent} ${isMobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
+          <ul className={styles.navList}>
+            <li>
+              <NavLink 
+                to="/overview" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <BarChart3 className={styles.navIcon} />
+                Overview
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/pipelines" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Activity className={styles.navIcon} />
+                Pipelines
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/data-lineage" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Database className={styles.navIcon} />
+                Data Lineage
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/predictive-insights" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Shield className={styles.navIcon} />
+                Threat Prediction
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/ai-agent" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Zap className={styles.navIcon} />
+                AI Agent
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/performance" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <TrendingUp className={styles.navIcon} />
+                Performance
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/infrastructure" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Cpu className={styles.navIcon} />
+                Infrastructure
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/data-engineering" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <GitBranch className={styles.navIcon} />
+                Data Engineering
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/implementation-guide" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Workflow className={styles.navIcon} />
+                Implementation Guide
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/technical-challenges" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Code className={styles.navIcon} />
+                Technical Challenges
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/alerts" 
+                className={({ isActive }) => 
+                  `${styles.navLink} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <div className={styles.navLinkContent}>
+                  <AlertTriangle className={styles.navIcon} />
+                  Alerts
+                  {activeAlertsCount > 0 && (
+                    <span className={styles.notificationBadge}>
+                      {activeAlertsCount > 99 ? '99+' : activeAlertsCount}
+                    </span>
+                  )}
+                </div>
+              </NavLink>
+            </li>
+          </ul>
 
-        <div className={styles.navActions}>
-          <button 
-            className={styles.actionButton}
-            onClick={() => setShowKeyboardHelp(true)}
-            title="Keyboard shortcuts (Press ? for help)"
-          >
-            <Keyboard size={18} />
-          </button>
-          <button 
-            className={styles.actionButton}
-            onClick={() => setShowAbout(true)}
-            title="About MSTIC Monitor"
-          >
-            <Info size={18} />
-          </button>
+          <div className={styles.navActions}>
+            <button 
+              className={styles.actionButton}
+              onClick={() => {
+                setShowKeyboardHelp(true);
+                setIsMobileMenuOpen(false);
+              }}
+              title="Keyboard shortcuts (Press ? for help)"
+            >
+              <Keyboard size={18} />
+            </button>
+            <button 
+              className={styles.actionButton}
+              onClick={() => {
+                setShowAbout(true);
+                setIsMobileMenuOpen(false);
+              }}
+              title="About MSTIC Monitor"
+            >
+              <Info size={18} />
+            </button>
+          </div>
         </div>
       </nav>
 
