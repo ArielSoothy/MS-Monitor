@@ -120,7 +120,7 @@ const Overview = memo(() => {
         processing: metrics.processing
       };
     })
-    .filter(team => team.total >= 3) // Only show teams with at least 3 pipelines
+    .filter(team => team.total >= 2) // Only show teams with at least 2 pipelines (reduced from 3)
     .sort((a, b) => b.healthPercentage - a.healthPercentage)
     .slice(0, 8); // Show top 8 teams
 

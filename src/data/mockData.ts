@@ -659,17 +659,31 @@ function generateAffectedDestinations(source: PipelineSource): string[] {
 export function generateMockPipelines(): Pipeline[] {
   const pipelines: Pipeline[] = [];
   let idCounter = 1;
+  
+  // Track team assignments to ensure better distribution
+  const teamAssignmentCounters: Record<string, number> = {};
 
   // Generate pipelines using the enhanced configuration
-  pipelineConfigs.forEach(config => {
-    config.dataTypes.forEach(dataType => {
-      config.processes.forEach(process => {
-        config.regions.forEach(region => {
+  pipelineConfigs.forEach((config, configIndex) => {
+    config.dataTypes.forEach((dataType, dataTypeIndex) => {
+      config.processes.forEach((process, processIndex) => {
+        config.regions.forEach((region, regionIndex) => {
           // Create pipeline name following the convention: "{Source}{DataType}{Process}_{Region}"
           const name = `${config.source}_${dataType}_${process}_${region}`;
           const status = getRealisticStatus(config, dataType, process);
           const lastRun = getRealisticLastRun(status);
-          const team = getRandomElement(config.teams);
+          
+          // Improved team assignment for better distribution
+          // Use a rotating assignment based on indices to ensure each team gets pipelines
+          const teamIndex = (configIndex + dataTypeIndex + processIndex + regionIndex) % config.teams.length;
+          const team = config.teams[teamIndex];
+          
+          // Track assignments to ensure distribution
+          if (!teamAssignmentCounters[team]) {
+            teamAssignmentCounters[team] = 0;
+          }
+          teamAssignmentCounters[team]++;
+          
           const slaRequirement = getRandomElement(config.slaRequirements);
           const dataClassification = getRandomElement(config.dataClassifications);
           
